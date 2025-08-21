@@ -89,7 +89,7 @@ const weatherTool = createTool<WeatherInput, WeatherConfig>({
     },
   },
 
-  async execute(input, config, context) {
+  async execute(input: WeatherInput, config: WeatherConfig, context: any) {
     console.log(`Fetching weather data for: ${input.location}`);
 
     try {

@@ -51,3 +51,5 @@ pnpm-lock.yaml
 .cache/
 .next/
 .nuxt/
+
+CLAUDE.md
