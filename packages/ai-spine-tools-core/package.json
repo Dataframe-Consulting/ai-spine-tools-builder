@@ -1,0 +1,45 @@
+{
+  "name": "@ai-spine/tools-core",
+  "version": "1.0.0",
+  "description": "Core types and utilities for AI Spine tools",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "ai-spine",
+    "tools",
+    "types",
+    "core"
+  ],
+  "author": "AI Spine Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "jest": "^29.5.0",
+    "rollup": "^4.0.0",
+    "@rollup/plugin-typescript": "^11.0.0",
+    "rollup-plugin-dts": "^6.0.0",
+    "tslib": "^2.6.0"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  }
+}

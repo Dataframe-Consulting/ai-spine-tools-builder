@@ -1,0 +1,50 @@
+{
+  "name": "create-ai-spine-tool",
+  "version": "1.0.0",
+  "description": "CLI tool for creating AI Spine compatible tools",
+  "main": "dist/index.js",
+  "bin": {
+    "create-ai-spine-tool": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "templates"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc -w",
+    "test": "jest",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "ai-spine",
+    "tools",
+    "cli",
+    "scaffold",
+    "generator"
+  ],
+  "author": "AI Spine Team",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^11.0.0",
+    "inquirer": "^9.0.0",
+    "chalk": "^5.0.0",
+    "ora": "^7.0.0",
+    "fs-extra": "^11.0.0",
+    "mustache": "^4.2.0",
+    "validate-npm-package-name": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/inquirer": "^9.0.0",
+    "@types/fs-extra": "^11.0.0",
+    "@types/mustache": "^4.2.0",
+    "@types/validate-npm-package-name": "^4.0.0",
+    "@types/jest": "^29.5.0",
+    "jest": "^29.5.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

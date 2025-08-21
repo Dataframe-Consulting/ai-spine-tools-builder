@@ -1,0 +1,51 @@
+{
+  "name": "ai-spine-tools-sdk",
+  "version": "1.0.0",
+  "description": "SDK for building AI Spine compatible tools",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "templates/*",
+    "examples/*"
+  ],
+  "scripts": {
+    "bootstrap": "npm install && npm run build",
+    "build": "npm run build --workspaces",
+    "dev": "npm run dev --workspaces",
+    "test": "npm run test --workspaces",
+    "test:templates": "npm run test:templates --workspace=@ai-spine/tools-testing",
+    "test:examples": "npm run test:examples --workspace=@ai-spine/tools-testing",
+    "lint": "eslint packages/ templates/ examples/ --ext .ts,.js",
+    "clean": "npm run clean --workspaces",
+    "publish:all": "npm run publish --workspaces",
+    "deploy:docs": "npm run deploy:docs --workspace=@ai-spine/tools-docs"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.50.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.0.0",
+    "lerna": "^8.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Dataframe-Consulting/ai-spine-tools-builder.git"
+  },
+  "keywords": [
+    "ai-spine",
+    "tools",
+    "sdk",
+    "framework",
+    "ai-agents"
+  ],
+  "author": "AI Spine Team",
+  "license": "MIT"
+}

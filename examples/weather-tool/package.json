@@ -1,0 +1,38 @@
+{
+  "name": "weather-tool-example",
+  "version": "1.0.0",
+  "description": "Example weather tool built with AI Spine Tools SDK",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "jest",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "ai-spine",
+    "weather",
+    "example",
+    "tool"
+  ],
+  "author": "AI Spine Team",
+  "license": "MIT",
+  "dependencies": {
+    "@ai-spine/tools": "^1.0.0",
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "@ai-spine/tools-testing": "^1.0.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "tsx": "^4.0.0",
+    "jest": "^29.0.0",
+    "@types/jest": "^29.0.0",
+    "supertest": "^6.3.0",
+    "@types/supertest": "^2.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

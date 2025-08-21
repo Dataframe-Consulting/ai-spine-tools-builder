@@ -1,0 +1,35 @@
+{
+  "name": "{{packageName}}",
+  "version": "1.0.0",
+  "description": "{{description}}",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "nodemon --exec tsx src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "{{#includeTests}}jest{{/includeTests}}{{^includeTests}}echo \"No tests specified\"{{/includeTests}}",
+    "test:watch": "{{#includeTests}}jest --watch{{/includeTests}}{{^includeTests}}echo \"No tests specified\"{{/includeTests}}",
+    "deploy": "echo \"Deployment not configured yet\"",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "ai-spine",
+    "tool",
+    "{{toolNameKebabCase}}"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    {{#dependencies}}
+    "{{@key}}": "{{.}}"{{^@last}},{{/@last}}
+    {{/dependencies}}
+  },
+  "devDependencies": {
+    {{#devDependencies}}
+    "{{@key}}": "{{.}}"{{^@last}},{{/@last}}
+    {{/devDependencies}}
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

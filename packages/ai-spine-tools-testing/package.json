@@ -1,0 +1,55 @@
+{
+  "name": "@ai-spine/tools-testing",
+  "version": "1.0.0",
+  "description": "Testing utilities for AI Spine tools",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:templates": "node dist/template-validator.js",
+    "test:examples": "node dist/example-validator.js",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "ai-spine",
+    "tools",
+    "testing",
+    "validation"
+  ],
+  "author": "AI Spine Team",
+  "license": "MIT",
+  "dependencies": {
+    "@ai-spine/tools-core": "^1.0.0",
+    "axios": "^1.6.0",
+    "supertest": "^6.3.0"
+  },
+  "devDependencies": {
+    "@types/supertest": "^2.0.0",
+    "@types/jest": "^29.5.0",
+    "jest": "^29.5.0",
+    "rollup": "^4.0.0",
+    "@rollup/plugin-typescript": "^11.0.0",
+    "@rollup/plugin-node-resolve": "^15.0.0",
+    "@rollup/plugin-commonjs": "^25.0.0",
+    "rollup-plugin-dts": "^6.0.0",
+    "tslib": "^2.6.0"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  }
+}
