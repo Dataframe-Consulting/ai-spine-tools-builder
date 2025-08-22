@@ -742,6 +742,319 @@ export function timeField(): BaseInputFieldBuilder<ToolInputField> {
   }();
 }
 
+// ===== DOCUMENTATION GENERATION UTILITIES =====
+
+/**
+ * Documentation generator that creates OpenAPI-style documentation from field definitions
+ */
+export class DocumentationGenerator {
+  /**
+   * Generate OpenAPI schema from field definition
+   */
+  static generateOpenAPISchema(field: ToolInputField | ToolConfigField): any {
+    const schema: any = {
+      type: this.mapToOpenAPIType(field.type),
+    };
+
+    // Add description
+    if (field.description) {
+      schema.description = field.description;
+    }
+
+    // Add example
+    if (field.example !== undefined) {
+      schema.example = field.example;
+    }
+
+    // Add default value
+    if (field.default !== undefined) {
+      schema.default = field.default;
+    }
+
+    // Type-specific properties
+    switch (field.type) {
+      case 'string':
+        this.addStringProperties(schema, field);
+        break;
+      case 'number':
+        this.addNumberProperties(schema, field);
+        break;
+      case 'array':
+        this.addArrayProperties(schema, field);
+        break;
+      case 'object':
+        this.addObjectProperties(schema, field);
+        break;
+      case 'enum':
+        this.addEnumProperties(schema, field);
+        break;
+      case 'date':
+        schema.format = 'date';
+        this.addDateProperties(schema, field);
+        break;
+      case 'datetime':
+        schema.format = 'date-time';
+        this.addDateProperties(schema, field);
+        break;
+      case 'time':
+        schema.format = 'time';
+        break;
+      case 'file':
+        schema.format = 'binary';
+        this.addFileProperties(schema, field);
+        break;
+    }
+
+    return schema;
+  }
+
+  private static mapToOpenAPIType(type: string): string {
+    const typeMap: Record<string, string> = {
+      'string': 'string',
+      'number': 'number',
+      'boolean': 'boolean',
+      'array': 'array',
+      'object': 'object',
+      'date': 'string',
+      'datetime': 'string',
+      'time': 'string',
+      'email': 'string',
+      'url': 'string',
+      'uuid': 'string',
+      'json': 'object',
+      'file': 'string',
+      'enum': 'string',
+      'apiKey': 'string',
+    };
+    return typeMap[type] || 'string';
+  }
+
+  private static addStringProperties(schema: any, field: ToolInputField | ToolConfigField) {
+    if ('minLength' in field && field.minLength !== undefined) schema.minLength = field.minLength;
+    if ('maxLength' in field && field.maxLength !== undefined) schema.maxLength = field.maxLength;
+    if ('pattern' in field && field.pattern) schema.pattern = field.pattern;
+    if ('format' in field && field.format) schema.format = field.format;
+  }
+
+  private static addNumberProperties(schema: any, field: ToolInputField | ToolConfigField) {
+    if ('min' in field && field.min !== undefined) schema.minimum = field.min;
+    if ('max' in field && field.max !== undefined) schema.maximum = field.max;
+    if ('integer' in field && field.integer) schema.type = 'integer';
+  }
+
+  private static addArrayProperties(schema: any, field: ToolInputField | ToolConfigField) {
+    if ('items' in field && field.items) {
+      schema.items = this.generateOpenAPISchema(field.items);
+    }
+    if ('minItems' in field && field.minItems !== undefined) schema.minItems = field.minItems;
+    if ('maxItems' in field && field.maxItems !== undefined) schema.maxItems = field.maxItems;
+    if ('uniqueItems' in field && field.uniqueItems) schema.uniqueItems = true;
+  }
+
+  private static addObjectProperties(schema: any, field: ToolInputField | ToolConfigField) {
+    if ('properties' in field && field.properties) {
+      schema.properties = {};
+      for (const [key, prop] of Object.entries(field.properties)) {
+        schema.properties[key] = this.generateOpenAPISchema(prop);
+      }
+    }
+    if ('requiredProperties' in field && field.requiredProperties?.length) {
+      schema.required = field.requiredProperties;
+    }
+    if ('additionalProperties' in field && field.additionalProperties !== undefined) {
+      schema.additionalProperties = field.additionalProperties;
+    }
+  }
+
+  private static addEnumProperties(schema: any, field: ToolInputField | ToolConfigField) {
+    if ('enum' in field && field.enum) {
+      schema.enum = field.enum;
+    }
+    // Handle config enum fields that store enum in validation
+    if ('validation' in field && field.validation && 'enum' in field.validation) {
+      schema.enum = field.validation.enum;
+    }
+  }
+
+  private static addDateProperties(schema: any, field: ToolInputField | ToolConfigField) {
+    if ('minDate' in field && field.minDate) schema.minimum = field.minDate;
+    if ('maxDate' in field && field.maxDate) schema.maximum = field.maxDate;
+  }
+
+  private static addFileProperties(schema: any, field: ToolInputField | ToolConfigField) {
+    if ('allowedMimeTypes' in field && field.allowedMimeTypes?.length) {
+      schema.contentMediaType = field.allowedMimeTypes[0];
+      if (field.allowedMimeTypes.length > 1) {
+        schema['x-allowed-mime-types'] = field.allowedMimeTypes;
+      }
+    }
+    if ('maxFileSize' in field && field.maxFileSize) {
+      schema['x-max-file-size'] = field.maxFileSize;
+    }
+  }
+
+  /**
+   * Generate complete tool documentation from schema
+   */
+  static generateToolDocumentation(schema: {
+    input?: Record<string, ToolInputField>;
+    config?: Record<string, ToolConfigField>;
+  }, metadata?: { name?: string; description?: string; version?: string }) {
+    const doc: any = {
+      openapi: '3.0.3',
+      info: {
+        title: metadata?.name || 'AI Spine Tool',
+        description: metadata?.description || 'An AI Spine compatible tool',
+        version: metadata?.version || '1.0.0',
+      },
+      paths: {
+        '/api/execute': {
+          post: {
+            summary: 'Execute the tool',
+            requestBody: {
+              required: true,
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {},
+                    required: [],
+                  },
+                },
+              },
+            },
+            responses: {
+              '200': {
+                description: 'Tool execution successful',
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        success: { type: 'boolean' },
+                        data: { type: 'object' },
+                        executionTime: { type: 'number' },
+                        executionId: { type: 'string' },
+                      },
+                    },
+                  },
+                },
+              },
+              '400': {
+                description: 'Validation error',
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        success: { type: 'boolean', enum: [false] },
+                        error: { type: 'string' },
+                        errors: {
+                          type: 'array',
+                          items: {
+                            type: 'object',
+                            properties: {
+                              path: { type: 'array', items: { type: 'string' } },
+                              code: { type: 'string' },
+                              message: { type: 'string' },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        '/health': {
+          get: {
+            summary: 'Get tool health status',
+            responses: {
+              '200': {
+                description: 'Tool health information',
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        status: { type: 'string', enum: ['healthy', 'degraded', 'unhealthy'] },
+                        uptime: { type: 'number' },
+                        version: { type: 'string' },
+                        metrics: { type: 'object' },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        '/schema': {
+          get: {
+            summary: 'Get tool schema documentation',
+            responses: {
+              '200': {
+                description: 'Tool schema information',
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        metadata: { type: 'object' },
+                        schema: { type: 'object' },
+                        openapi: { type: 'object' },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+
+    // Add input and config properties to request schema
+    const requestSchema = doc.paths['/api/execute'].post.requestBody.content['application/json'].schema;
+    
+    if (schema.input && Object.keys(schema.input).length > 0) {
+      requestSchema.properties.input_data = {
+        type: 'object',
+        properties: {},
+        required: [],
+      };
+
+      for (const [key, field] of Object.entries(schema.input)) {
+        requestSchema.properties.input_data.properties[key] = this.generateOpenAPISchema(field);
+        if (field.required) {
+          requestSchema.properties.input_data.required.push(key);
+        }
+      }
+
+      requestSchema.required.push('input_data');
+    }
+
+    if (schema.config && Object.keys(schema.config).length > 0) {
+      requestSchema.properties.config = {
+        type: 'object',
+        properties: {},
+        required: [],
+      };
+
+      for (const [key, field] of Object.entries(schema.config)) {
+        requestSchema.properties.config.properties[key] = this.generateOpenAPISchema(field);
+        if (field.required) {
+          requestSchema.properties.config.required.push(key);
+        }
+      }
+    }
+
+    return doc;
+  }
+}
+
 // ===== SCHEMA VALIDATION UTILITIES =====
 
 /**
@@ -859,6 +1172,120 @@ export class SchemaBuilder {
   reset(): void {
     this.validator.reset();
   }
+
+  /**
+   * Generate OpenAPI documentation for the current schema
+   */
+  generateDocumentation(metadata?: { name?: string; description?: string; version?: string }) {
+    const schema = this.build();
+    return DocumentationGenerator.generateToolDocumentation(schema, metadata);
+  }
+
+  /**
+   * Generate example request data based on the schema
+   */
+  generateExampleRequest(): { input_data?: any; config?: any } {
+    const result: any = {};
+
+    // Generate example input data
+    if (Object.keys(this.inputFields).length > 0) {
+      result.input_data = {};
+      for (const [key, field] of Object.entries(this.inputFields)) {
+        result.input_data[key] = this.generateExampleValue(field);
+      }
+    }
+
+    // Generate example config data
+    if (Object.keys(this.configFields).length > 0) {
+      result.config = {};
+      for (const [key, field] of Object.entries(this.configFields)) {
+        result.config[key] = this.generateExampleValue(field);
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Generate an example value for a field
+   */
+  private generateExampleValue(field: ToolInputField | ToolConfigField): any {
+    // Use explicit example if provided
+    if (field.example !== undefined) {
+      return field.example;
+    }
+
+    // Use default value if provided
+    if (field.default !== undefined) {
+      return field.default;
+    }
+
+    // Generate based on field type
+    switch (field.type) {
+      case 'string':
+        if ('format' in field) {
+          if (field.format === 'email') return 'user@example.com';
+          if (field.format === 'url') return 'https://example.com';
+          if (field.format === 'uuid') return '550e8400-e29b-41d4-a716-446655440000';
+        }
+        if ('enum' in field && field.enum) return field.enum[0];
+        return 'example string';
+      
+      case 'number':
+        if ('min' in field && 'max' in field && field.min !== undefined && field.max !== undefined) {
+          return Math.floor((field.min + field.max) / 2);
+        }
+        if ('min' in field && field.min !== undefined) return field.min;
+        if ('max' in field && field.max !== undefined) return field.max;
+        const isInteger = 'integer' in field && field.integer;
+        return isInteger ? 42 : 42.5;
+      
+      case 'boolean':
+        return true;
+      
+      case 'array':
+        if ('items' in field && field.items) {
+          const itemExample = this.generateExampleValue(field.items);
+          return [itemExample];
+        }
+        return ['item'];
+      
+      case 'object':
+        const objExample: any = {};
+        if ('properties' in field && field.properties) {
+          for (const [key, prop] of Object.entries(field.properties)) {
+            objExample[key] = this.generateExampleValue(prop);
+          }
+        }
+        return objExample;
+      
+      case 'date':
+        return '2023-12-25';
+      
+      case 'datetime':
+        return '2023-12-25T12:00:00Z';
+      
+      case 'time':
+        return '12:00:00';
+      
+      case 'enum':
+        if ('enum' in field && field.enum) return field.enum[0];
+        // Handle config enum fields
+        if ('validation' in field && field.validation && 'enum' in field.validation && field.validation.enum) {
+          return field.validation.enum[0];
+        }
+        return 'option1';
+      
+      case 'apiKey':
+        return 'sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+      
+      case 'file':
+        return 'file.txt';
+      
+      default:
+        return 'example value';
+    }
+  }
 }
 
 /**
@@ -939,6 +1366,13 @@ export function createValidator(schema: {
         input: schema.input,
         config: schema.config,
       }, options);
+    },
+
+    /**
+     * Generate OpenAPI documentation for the schema
+     */
+    generateDocumentation: (metadata?: { name?: string; description?: string; version?: string }) => {
+      return DocumentationGenerator.generateToolDocumentation(schema, metadata);
     },
 
     /**

@@ -5,6 +5,7 @@ export * from './types.js';
 export * from './field-builders.js';
 export { 
   SchemaBuilder, 
+  DocumentationGenerator,
   createSchema, 
   validateField, 
   createValidator, 
