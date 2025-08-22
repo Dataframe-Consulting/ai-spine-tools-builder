@@ -42,6 +42,7 @@ import {
   ToolConfigField, 
   StringFormat 
 } from './types.js';
+import { ZodSchemaValidator, ValidationResult, ValidationOptions } from './validation.js';
 
 // ===== INPUT FIELD BUILDERS =====
 
@@ -740,3 +741,285 @@ export function timeField(): BaseInputFieldBuilder<ToolInputField> {
     }
   }();
 }
+
+// ===== SCHEMA VALIDATION UTILITIES =====
+
+/**
+ * Schema builder class that provides direct validation capabilities
+ * along with field building functionality
+ */
+export class SchemaBuilder {
+  private inputFields: Record<string, ToolInputField> = {};
+  private configFields: Record<string, ToolConfigField> = {};
+  private validator = new ZodSchemaValidator();
+
+  /**
+   * Add an input field to the schema
+   */
+  addInput(name: string, field: ToolInputField): this {
+    this.inputFields[name] = field;
+    return this;
+  }
+
+  /**
+   * Add a config field to the schema
+   */
+  addConfig(name: string, field: ToolConfigField): this {
+    this.configFields[name] = field;
+    return this;
+  }
+
+  /**
+   * Build the complete schema
+   */
+  build() {
+    return {
+      input: { ...this.inputFields },
+      config: { ...this.configFields },
+    };
+  }
+
+  /**
+   * Validate input data against the current schema
+   */
+  async validateInput(
+    data: any, 
+    options?: ValidationOptions
+  ): Promise<ValidationResult> {
+    return this.validator.validateInput(data, this.inputFields, options);
+  }
+
+  /**
+   * Validate config data against the current schema
+   */
+  async validateConfig(
+    data: any, 
+    options?: ValidationOptions
+  ): Promise<ValidationResult> {
+    return this.validator.validateConfig(data, this.configFields, options);
+  }
+
+  /**
+   * Validate complete tool data (input + config)
+   */
+  async validateToolData(
+    data: { input: any; config: any },
+    options?: ValidationOptions
+  ): Promise<ValidationResult> {
+    const schema = {
+      input: this.inputFields,
+      config: this.configFields,
+    };
+    
+    return this.validator.validateToolSchema(data, schema, options);
+  }
+
+  /**
+   * Test a single field value against its definition
+   */
+  async testField(
+    fieldName: string, 
+    value: any, 
+    type: 'input' | 'config' = 'input'
+  ): Promise<ValidationResult> {
+    const fields = type === 'input' ? this.inputFields : this.configFields;
+    const field = fields[fieldName];
+    
+    if (!field) {
+      return {
+        success: false,
+        errors: [{
+          path: [fieldName],
+          code: 'FIELD_NOT_FOUND',
+          message: `Field '${fieldName}' not found in ${type} schema`,
+        }],
+      };
+    }
+
+    const testSchema = { [fieldName]: field };
+    const testData = { [fieldName]: value };
+    
+    if (type === 'input') {
+      return this.validator.validateInput(testData, testSchema as Record<string, ToolInputField>);
+    } else {
+      return this.validator.validateConfig(testData, testSchema as Record<string, ToolConfigField>);
+    }
+  }
+
+  /**
+   * Get performance metrics from the validator
+   */
+  getMetrics() {
+    return this.validator.getMetrics();
+  }
+
+  /**
+   * Reset validator cache and metrics
+   */
+  reset(): void {
+    this.validator.reset();
+  }
+}
+
+/**
+ * Create a new schema builder instance
+ */
+export function createSchema(): SchemaBuilder {
+  return new SchemaBuilder();
+}
+
+/**
+ * Validate a single field value quickly without building a full schema
+ */
+export async function validateField(
+  field: ToolInputField | ToolConfigField,
+  value: any,
+  fieldName: string = 'field',
+  options?: ValidationOptions
+): Promise<ValidationResult> {
+  const validator = new ZodSchemaValidator();
+  const schema = { [fieldName]: field };
+  const data = { [fieldName]: value };
+
+  // Check if this is a config field by looking at the type
+  const isConfigField = 'type' in field && (
+    field.type === 'apiKey' || 
+    field.type === 'secret' || 
+    (field.type === 'url' && 'validation' in field) ||
+    (field.type === 'json' && 'validation' in field && 'jsonSchema' in (field.validation || {}))
+  );
+
+  if (isConfigField) {
+    // This is a config field
+    return validator.validateConfig(data, schema as Record<string, ToolConfigField>, options);
+  } else {
+    // This is an input field
+    return validator.validateInput(data, schema as Record<string, ToolInputField>, options);
+  }
+}
+
+/**
+ * Create a validation function for a specific schema
+ */
+export function createValidator(schema: {
+  input?: Record<string, ToolInputField>;
+  config?: Record<string, ToolConfigField>;
+}) {
+  const validator = new ZodSchemaValidator();
+
+  return {
+    /**
+     * Validate input data
+     */
+    validateInput: async (data: any, options?: ValidationOptions) => {
+      if (!schema.input) {
+        throw new Error('No input schema defined');
+      }
+      return validator.validateInput(data, schema.input, options);
+    },
+
+    /**
+     * Validate config data
+     */
+    validateConfig: async (data: any, options?: ValidationOptions) => {
+      if (!schema.config) {
+        throw new Error('No config schema defined');
+      }
+      return validator.validateConfig(data, schema.config, options);
+    },
+
+    /**
+     * Validate complete tool data
+     */
+    validateToolData: async (data: { input: any; config: any }, options?: ValidationOptions) => {
+      if (!schema.input || !schema.config) {
+        throw new Error('Both input and config schemas must be defined');
+      }
+      return validator.validateToolSchema(data, {
+        input: schema.input,
+        config: schema.config,
+      }, options);
+    },
+
+    /**
+     * Get performance metrics
+     */
+    getMetrics: () => validator.getMetrics(),
+
+    /**
+     * Reset cache and metrics
+     */
+    reset: () => validator.reset(),
+  };
+}
+
+// ===== VALIDATION HELPERS =====
+
+/**
+ * Quick validation functions for common patterns
+ */
+export const validate = {
+  /**
+   * Validate an email address
+   */
+  email: async (value: any): Promise<ValidationResult> => {
+    return validateField(emailField().required().build(), value, 'email');
+  },
+
+  /**
+   * Validate a URL
+   */
+  url: async (value: any): Promise<ValidationResult> => {
+    return validateField(urlField().required().build(), value, 'url');
+  },
+
+  /**
+   * Validate a UUID
+   */
+  uuid: async (value: any): Promise<ValidationResult> => {
+    return validateField(uuidField().required().build(), value, 'uuid');
+  },
+
+  /**
+   * Validate an API key
+   */
+  apiKey: async (value: any, pattern?: string): Promise<ValidationResult> => {
+    const field = apiKeyField().required();
+    if (pattern) {
+      field.pattern(pattern);
+    }
+    return validateField(field.build(), value, 'apiKey');
+  },
+
+  /**
+   * Validate a positive integer
+   */
+  positiveInteger: async (value: any): Promise<ValidationResult> => {
+    return validateField(
+      numberField().required().min(1).integer().build(),
+      value,
+      'positiveInteger'
+    );
+  },
+
+  /**
+   * Validate a non-empty string
+   */
+  nonEmptyString: async (value: any): Promise<ValidationResult> => {
+    return validateField(
+      stringField().required().minLength(1).build(),
+      value,
+      'nonEmptyString'
+    );
+  },
+
+  /**
+   * Validate an array of strings
+   */
+  stringArray: async (value: any, minItems?: number, maxItems?: number): Promise<ValidationResult> => {
+    const field = arrayField(stringField().required().build()).required();
+    if (minItems !== undefined) field.minItems(minItems);
+    if (maxItems !== undefined) field.maxItems(maxItems);
+    return validateField(field.build(), value, 'stringArray');
+  },
+};

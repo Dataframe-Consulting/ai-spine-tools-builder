@@ -3,9 +3,22 @@ export * from './types.js';
 
 // Field builders for creating schemas
 export * from './field-builders.js';
+export { 
+  SchemaBuilder, 
+  createSchema, 
+  validateField, 
+  createValidator, 
+  validate 
+} from './field-builders.js';
 
 // Validation utilities
-export { SchemaValidator } from './validation.js';
+export { 
+  SchemaValidator, 
+  ZodSchemaValidator,
+  type ValidationResult,
+  type ValidationErrorDetail,
+  type ValidationOptions
+} from './validation.js';
 
 // Utility functions
 export { ToolUtils } from './utils.js';
