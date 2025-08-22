@@ -185,9 +185,9 @@ export class SchemaValidator {
     const errors: string[] = [];
 
     // Type validation
-    if (schema.type === 'key') {
+    if (schema.type === 'apiKey' || schema.type === 'secret') {
       if (typeof value !== 'string') {
-        errors.push(`Config '${fieldName}' must be a string (API key)`);
+        errors.push(`Config '${fieldName}' must be a string (API key/secret)`);
       }
     } else if (!this.isValidType(value, schema.type as any)) {
       errors.push(
