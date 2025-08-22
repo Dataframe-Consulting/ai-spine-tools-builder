@@ -24,6 +24,15 @@ export {
 // Utility functions
 export { ToolUtils } from './utils.js';
 
+// Tool class for creating and running tools
+export { 
+  Tool, 
+  type ToolServerConfig, 
+  type ToolMetrics, 
+  type ToolState, 
+  type ToolEvents 
+} from './tool.js';
+
 // Re-export commonly used types for convenience
 export type {
   // Core interfaces
