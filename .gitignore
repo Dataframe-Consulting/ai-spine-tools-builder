@@ -51,6 +51,9 @@ pnpm-lock.yaml
 .cache/
 .next/
 .nuxt/
+.claude/
 
 CLAUDE.md
 DEVELOPMENT_PLAN.md
+
+documentation/
