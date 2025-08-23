@@ -8,7 +8,7 @@ export class ToolUtils {
     return {
       status: 'success',
       data,
-      metadata,
+      metadata: metadata ? { custom: metadata } : undefined,
     };
   }
 
@@ -22,9 +22,12 @@ export class ToolUtils {
   ): ToolExecutionResult {
     return {
       status: 'error',
-      error_code: code,
-      error_message: message,
-      error_details: details,
+      error: {
+        code,
+        message,
+        type: 'execution_error',
+        details,
+      },
     };
   }
 
@@ -34,9 +37,12 @@ export class ToolUtils {
   static errorFromException(error: ToolError): ToolExecutionResult {
     return {
       status: 'error',
-      error_code: error.code,
-      error_message: error.message,
-      error_details: error.details,
+      error: {
+        code: error.code,
+        message: error.message,
+        type: 'execution_error',
+        details: error.details,
+      },
     };
   }
 
@@ -47,31 +53,49 @@ export class ToolUtils {
     fn: () => Promise<T>
   ): Promise<ToolExecutionResult> {
     const startTime = Date.now();
+    const startedAt = new Date().toISOString();
     
     try {
       const result = await fn();
       const executionTime = Date.now() - startTime;
+      const completedAt = new Date().toISOString();
       
       return {
         status: 'success',
         data: result,
-        execution_time_ms: executionTime,
+        timing: {
+          executionTimeMs: executionTime,
+          startedAt,
+          completedAt,
+        },
       };
     } catch (error) {
       const executionTime = Date.now() - startTime;
+      const completedAt = new Date().toISOString();
       
       if (error instanceof ToolError) {
         return {
           ...this.errorFromException(error),
-          execution_time_ms: executionTime,
+          timing: {
+            executionTimeMs: executionTime,
+            startedAt,
+            completedAt,
+          },
         };
       }
       
       return {
         status: 'error',
-        error_code: 'UNEXPECTED_ERROR',
-        error_message: error instanceof Error ? error.message : String(error),
-        execution_time_ms: executionTime,
+        error: {
+          code: 'UNEXPECTED_ERROR',
+          message: error instanceof Error ? error.message : String(error),
+          type: 'execution_error',
+        },
+        timing: {
+          executionTimeMs: executionTime,
+          startedAt,
+          completedAt,
+        },
       };
     }
   }
