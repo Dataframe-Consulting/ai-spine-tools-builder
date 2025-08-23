@@ -26,6 +26,7 @@ const config = [
       file: 'dist/index.esm.js',
       format: 'esm',
       sourcemap: true,
+      exports: 'named',
     },
     plugins: [
       resolve({ preferBuiltins: true }),
@@ -33,6 +34,7 @@ const config = [
       typescript({
         tsconfig: './tsconfig.json',
         declaration: false,
+        declarationMap: false,
       }),
     ],
     external,
@@ -44,6 +46,7 @@ const config = [
       file: 'dist/index.js',
       format: 'cjs',
       sourcemap: true,
+      exports: 'named',
     },
     plugins: [
       resolve({ preferBuiltins: true }),
@@ -51,6 +54,7 @@ const config = [
       typescript({
         tsconfig: './tsconfig.json',
         declaration: false,
+        declarationMap: false,
       }),
     ],
     external,

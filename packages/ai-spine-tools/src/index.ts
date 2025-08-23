@@ -1,8 +1,10 @@
 // Main tool creation and management
-export { Tool, ToolServerOptions, CreateToolOptions } from './tool';
 export {
+  // Core factory functions
   createTool,
   ToolBuilder,
+  
+  // Input field builders
   stringField,
   numberField,
   booleanField,
@@ -10,9 +12,20 @@ export {
   objectField,
   dateField,
   timeField,
+  enumField,
+  
+  // Config field builders
   apiKeyField,
   configStringField,
   configNumberField,
+  configUrlField,
+  
+  // Convenience functions
+  simpleCreateTool,
+  createToolBuilder,
+  
+  // Types
+  CreateToolOptions
 } from './create-tool';
 
 // Re-export core types and utilities
