@@ -1,6 +1,14 @@
 // Core types and interfaces
 export * from './types.js';
 
+// Error classes (exported as values, not types)
+export { 
+  ToolError, 
+  ValidationError, 
+  ConfigurationError, 
+  ExecutionError 
+} from './types.js';
+
 // Field builders for creating schemas
 export * from './field-builders.js';
 export { 
@@ -57,11 +65,11 @@ export type {
   AISpineExecuteResponse,
   AISpineHealthResponse,
   
-  // Error types
-  ToolError,
-  ValidationError,
-  ConfigurationError,
-  ExecutionError,
+  // Error classes
+  // ToolError,
+  // ValidationError,
+  // ConfigurationError,
+  // ExecutionError,
   
   // Utility types
   DeepPartial,
