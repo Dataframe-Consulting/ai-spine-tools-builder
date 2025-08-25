@@ -834,12 +834,25 @@ export class DocumentationGenerator {
     if ('maxLength' in field && field.maxLength !== undefined) schema.maxLength = field.maxLength;
     if ('pattern' in field && field.pattern) schema.pattern = field.pattern;
     if ('format' in field && field.format) schema.format = field.format;
+    
+    // Add validation properties
+    if ('validation' in field && field.validation) {
+      if (field.validation.min !== undefined) schema.minLength = field.validation.min;
+      if (field.validation.max !== undefined) schema.maxLength = field.validation.max;
+      if (field.validation.pattern) schema.pattern = field.validation.pattern;
+    }
   }
 
   private static addNumberProperties(schema: any, field: ToolInputField | ToolConfigField) {
     if ('min' in field && field.min !== undefined) schema.minimum = field.min;
     if ('max' in field && field.max !== undefined) schema.maximum = field.max;
     if ('integer' in field && field.integer) schema.type = 'integer';
+    
+    // Add validation properties
+    if ('validation' in field && field.validation) {
+      if (field.validation.min !== undefined) schema.minimum = field.validation.min;
+      if (field.validation.max !== undefined) schema.maximum = field.validation.max;
+    }
   }
 
   private static addArrayProperties(schema: any, field: ToolInputField | ToolConfigField) {
@@ -849,6 +862,9 @@ export class DocumentationGenerator {
     if ('minItems' in field && field.minItems !== undefined) schema.minItems = field.minItems;
     if ('maxItems' in field && field.maxItems !== undefined) schema.maxItems = field.maxItems;
     if ('uniqueItems' in field && field.uniqueItems) schema.uniqueItems = true;
+    
+    // Add validation properties from field.validation
+    // Note: Array validation properties would need to be added to the validation type interface
   }
 
   private static addObjectProperties(schema: any, field: ToolInputField | ToolConfigField) {
