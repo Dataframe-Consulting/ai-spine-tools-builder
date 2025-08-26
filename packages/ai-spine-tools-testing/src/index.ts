@@ -1,5 +1,17 @@
 // Test client for integration testing
-export { AISpineTestClient, TestClientOptions, TestExecutionResult } from './test-client';
+export { 
+  AISpineTestClient, 
+  TestClientOptions, 
+  TestExecutionResult,
+  PerformanceMetrics,
+  LoadTestOptions,
+  LoadTestResult,
+  ScenarioResult,
+  ToolValidationResult,
+  RequestEvent,
+  ResponseEvent,
+  ErrorEvent
+} from './test-client';
 
 // Enhanced test helpers for comprehensive testing
 export {

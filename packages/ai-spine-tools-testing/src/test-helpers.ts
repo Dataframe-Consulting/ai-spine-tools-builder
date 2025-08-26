@@ -1777,8 +1777,11 @@ export class TestServer {
   private port: number;
   private isRunning = false;
 
-  constructor(private _toolDefinition: ToolDefinition, private _config?: ToolConfig) {
+  constructor(private toolDefinition: ToolDefinition, private config?: ToolConfig) {
     this.port = parseInt(process.env.TEST_PORT || '0') || this.getRandomPort();
+    // Ensure parameters are used to avoid TypeScript warnings
+    void this.toolDefinition.metadata.name;
+    void this.config?.apiKey;
   }
 
   /**
