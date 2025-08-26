@@ -14,6 +14,12 @@ const external = [
   'stream',
   'util',
   'events',
+  'fs-extra',
+  'path',
+  'mustache',
+  'child_process',
+  'chalk',
+  'os',
 ];
 
 const config = [
@@ -42,6 +48,44 @@ const config = [
       file: 'dist/index.js',
       format: 'cjs',
       sourcemap: true,
+    },
+    plugins: [
+      resolve({ preferBuiltins: true }),
+      commonjs(),
+      typescript({
+        tsconfig: './tsconfig.json',
+        declaration: false,
+      }),
+    ],
+    external,
+  },
+  // Template validator CLI
+  {
+    input: 'src/template-validator-cli.ts',
+    output: {
+      file: 'dist/template-validator.js',
+      format: 'cjs',
+      sourcemap: true,
+      banner: '#!/usr/bin/env node',
+    },
+    plugins: [
+      resolve({ preferBuiltins: true }),
+      commonjs(),
+      typescript({
+        tsconfig: './tsconfig.json',
+        declaration: false,
+      }),
+    ],
+    external,
+  },
+  // Example validator CLI
+  {
+    input: 'src/example-validator-cli.ts',
+    output: {
+      file: 'dist/example-validator.js',
+      format: 'cjs',
+      sourcemap: true,
+      banner: '#!/usr/bin/env node',
     },
     plugins: [
       resolve({ preferBuiltins: true }),

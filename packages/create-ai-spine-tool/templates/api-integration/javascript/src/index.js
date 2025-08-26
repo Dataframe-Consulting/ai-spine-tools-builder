@@ -1,22 +1,8 @@
-import { createTool, stringField, numberField, apiKeyField, configStringField } from '@ai-spine/tools';
-import axios from 'axios';
-
-// Define the input interface for type safety
-interface {{toolNamePascalCase}}Input {
-  query: string;
-  limit?: number;
-  format?: 'json' | 'text';
-}
-
-// Define the configuration interface
-interface {{toolNamePascalCase}}Config {
-  api_key: string;
-  base_url?: string;
-  timeout?: number;
-}
+const { createTool, stringField, numberField, apiKeyField, configStringField } = require('@ai-spine/tools');
+const axios = require('axios');
 
 // Create the tool
-const {{toolNameCamelCase}}Tool = createTool<{{toolNamePascalCase}}Input, {{toolNamePascalCase}}Config>({
+const {{toolNameCamelCase}}Tool = createTool({
   metadata: {
     name: '{{toolName}}',
     version: '1.0.0',
@@ -169,7 +155,7 @@ const {{toolNameCamelCase}}Tool = createTool<{{toolNamePascalCase}}Input, {{tool
 /**
  * Process the API response based on the requested format
  */
-function processApiResponse(data: any, format: string = 'json'): any {
+function processApiResponse(data, format = 'json') {
   if (format === 'text') {
     if (typeof data === 'string') {
       return data;
@@ -195,7 +181,7 @@ async function main() {
       },
       security: {
         requireAuth: process.env.API_KEY_AUTH === 'true',
-        ...(process.env.VALID_API_KEYS && { apiKeys: process.env.VALID_API_KEYS.split(',') }),
+        apiKeys: process.env.VALID_API_KEYS?.split(','),
       },
     });
   } catch (error) {
@@ -222,4 +208,4 @@ if (require.main === module) {
   main();
 }
 
-export default {{toolNameCamelCase}}Tool;
+module.exports = {{toolNameCamelCase}}Tool;
