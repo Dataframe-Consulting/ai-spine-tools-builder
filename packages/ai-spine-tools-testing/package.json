@@ -32,7 +32,8 @@
     "supertest": "^6.3.0",
     "fs-extra": "^11.0.0",
     "mustache": "^4.2.0",
-    "chalk": "^4.1.0"
+    "chalk": "^4.1.0",
+    "@faker-js/faker": "^8.4.1"
   },
   "devDependencies": {
     "@types/supertest": "^2.0.0",
@@ -45,7 +46,8 @@
     "@rollup/plugin-node-resolve": "^15.0.0",
     "@rollup/plugin-commonjs": "^25.0.0",
     "rollup-plugin-dts": "^6.0.0",
-    "tslib": "^2.6.0"
+    "tslib": "^2.6.0",
+    "typescript": "^5.0.0"
   },
   "peerDependencies": {
     "typescript": ">=5.0.0"
