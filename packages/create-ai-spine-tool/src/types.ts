@@ -81,11 +81,36 @@ export interface TemplateContext {
   /** Current year for copyright notices */
   year: number;
   
+  /** Current date in ISO format (YYYY-MM-DD) */
+  date?: string;
+  
+  /** Current timestamp in ISO format */
+  timestamp?: string;
+  
+  /** Node.js version used during creation */
+  nodeVersion?: string;
+  
   /** Runtime dependencies to include in package.json */
   dependencies: Array<{ key: string; value: string; isLast: boolean }>;
   
   /** Development dependencies to include in package.json */
   devDependencies: Array<{ key: string; value: string; isLast: boolean }>;
+  
+  // Template-specific feature flags for conditional rendering
+  /** Whether this is the basic template */
+  isBasicTemplate?: boolean;
+  
+  /** Whether this is the API integration template */
+  isApiIntegrationTemplate?: boolean;
+  
+  /** Whether this is the data processing template */
+  isDataProcessingTemplate?: boolean;
+  
+  /** Whether TypeScript is being used */
+  isTypeScript?: boolean;
+  
+  /** Whether JavaScript is being used */
+  isJavaScript?: boolean;
 }
 
 /**

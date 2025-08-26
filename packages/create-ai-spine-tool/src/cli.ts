@@ -20,8 +20,9 @@ import path from 'path';
 import fs from 'fs-extra';
 import { execSync } from 'child_process';
 import validatePackageName from 'validate-npm-package-name';
-import { createTool } from './create-tool';
+import { createTool, generateEnhancedTemplateContext } from './create-tool';
 import { TemplateType, Language, CreateToolOptions, TeamConfig, SystemRequirements } from './types';
+import { TemplateValidator, printValidationResult } from './template-validator';
 
 /**
  * System requirements for tool creation
@@ -56,6 +57,7 @@ program
   .option('--config <path>', 'path to team configuration file')
   .option('--check-system', 'verify system requirements before creating tool')
   .option('--dry-run', 'show what would be created without actually creating it')
+  .option('--validate-templates', 'validate all templates without creating a tool')
   .option('--verbose', 'enable verbose logging for troubleshooting')
   .action(async (name, options) => {
     try {
@@ -68,6 +70,12 @@ program
       // Check system requirements if requested
       if (options.checkSystem) {
         await checkSystemRequirements();
+        return;
+      }
+
+      // Template validation mode
+      if (options.validateTemplates) {
+        await validateAllTemplates();
         return;
       }
 
@@ -92,6 +100,7 @@ ${chalk.bold('Examples:')}
   ${chalk.cyan('create-ai-spine-tool my-tool --yes --no-git --no-install')}
   ${chalk.cyan('create-ai-spine-tool --check-system')}
   ${chalk.cyan('create-ai-spine-tool my-tool --dry-run')}
+  ${chalk.cyan('create-ai-spine-tool --validate-templates')}
 
 ${chalk.bold('Configuration:')}
   Create a ${chalk.yellow(TEAM_CONFIG_FILENAME)} file in your project or home directory
@@ -697,4 +706,113 @@ function compareVersions(version1: string, version2: string): number {
   }
   
   return 0;
+}
+
+/**
+ * Validates all available templates and reports results.
+ */
+async function validateAllTemplates(): Promise<void> {
+  console.log(chalk.blue.bold('🔍 Validating All Templates'));
+  console.log(chalk.gray('Checking template syntax, structure, and generated code quality'));
+  console.log();
+
+  const templatesDir = path.join(__dirname, '..', 'templates');
+  const templateTypes: TemplateType[] = ['basic', 'api-integration', 'data-processing'];
+  const languages: Language[] = ['typescript', 'javascript'];
+  
+  let totalTests = 0;
+  let passedTests = 0;
+  let failedTests = 0;
+  
+  const validator = new TemplateValidator({
+    validateTypeScript: true,
+    validatePackageJson: true,
+    validateTemplates: true,
+    runTests: false, // Skip running actual tests for speed
+    timeoutMs: 30000,
+    strict: true,
+  });
+
+  for (const template of templateTypes) {
+    for (const language of languages) {
+      console.log(chalk.bold(`📋 Validating ${template}/${language}...`));
+      
+      // Generate test context
+      const testOptions: CreateToolOptions = {
+        name: `test-${template}-tool`,
+        description: `Test tool for ${template} template validation`,
+        template,
+        language,
+        includeTests: true,
+        includeDocker: true,
+        initGit: false,
+        installDeps: false,
+      };
+      
+      const context = generateEnhancedTemplateContext(testOptions);
+      
+      try {
+        totalTests++;
+        const result = await validator.validateTemplate(template, language, context, templatesDir);
+        
+        if (result.isValid) {
+          passedTests++;
+          console.log(chalk.green(`  ✅ ${template}/${language} - PASSED`));
+          
+          if (process.env.AI_SPINE_VERBOSE) {
+            console.log(chalk.gray(`    Validated ${result.validatedFiles.length} files in ${result.validationTimeMs}ms`));
+            if (result.warnings.length > 0) {
+              console.log(chalk.yellow(`    ${result.warnings.length} warnings found`));
+            }
+          }
+        } else {
+          failedTests++;
+          console.log(chalk.red(`  ❌ ${template}/${language} - FAILED`));
+          console.log(chalk.red(`    ${result.errors.length} errors found:`));
+          
+          // Show first few errors
+          const errorsToShow = result.errors.slice(0, 3);
+          for (const error of errorsToShow) {
+            console.log(chalk.red(`    • ${error.code}: ${error.message}`));
+            if (error.suggestion) {
+              console.log(chalk.yellow(`      💡 ${error.suggestion}`));
+            }
+          }
+          
+          if (result.errors.length > 3) {
+            console.log(chalk.gray(`    ... and ${result.errors.length - 3} more errors`));
+          }
+        }
+        
+        console.log();
+      } catch (error) {
+        failedTests++;
+        console.log(chalk.red(`  ❌ ${template}/${language} - ERROR`));
+        console.log(chalk.red(`    Validation failed: ${(error as Error).message}`));
+        console.log();
+      }
+    }
+  }
+
+  // Summary
+  console.log(chalk.bold('📊 Validation Summary:'));
+  console.log(chalk.green(`  ✅ Passed: ${passedTests}/${totalTests}`));
+  console.log(chalk.red(`  ❌ Failed: ${failedTests}/${totalTests}`));
+  console.log();
+
+  if (failedTests === 0) {
+    console.log(chalk.green.bold('🎉 All templates validated successfully!'));
+    console.log(chalk.gray('Templates are ready for use in production'));
+  } else {
+    console.log(chalk.yellow.bold('⚠️  Some templates have validation issues'));
+    console.log(chalk.gray('Review the errors above and fix template issues'));
+    console.log(chalk.gray('Use --verbose flag for detailed validation information'));
+  }
+  
+  console.log();
+
+  // Exit with appropriate code
+  if (failedTests > 0) {
+    process.exit(1);
+  }
 }
