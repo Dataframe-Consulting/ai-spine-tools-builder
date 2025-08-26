@@ -195,7 +195,7 @@ async function main() {
       },
       security: {
         requireAuth: process.env.API_KEY_AUTH === 'true',
-        apiKeys: process.env.VALID_API_KEYS?.split(','),
+        ...(process.env.VALID_API_KEYS && { apiKeys: process.env.VALID_API_KEYS.split(',') }),
       },
     });
   } catch (error) {

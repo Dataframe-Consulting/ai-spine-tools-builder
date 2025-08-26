@@ -651,15 +651,96 @@ async function validateTypeScriptContent(
  */
 async function validateJsonContent(
   content: string,
-  _sourcePath: string,
+  sourcePath: string,
   errors: string[],
   _warnings: string[]
 ): Promise<void> {
   try {
-    JSON.parse(content);
+    // Check if this is a JSONC file (like tsconfig.json) that allows comments
+    const fileName = path.basename(sourcePath).toLowerCase();
+    const isJsoncFile = fileName === 'tsconfig.json' || 
+                       fileName === 'jsconfig.json' || 
+                       fileName.endsWith('.jsonc');
+    
+    if (isJsoncFile) {
+      // For JSONC files, strip comments before parsing
+      const jsonContent = stripJsonComments(content);
+      JSON.parse(jsonContent);
+    } else {
+      // Regular JSON files
+      JSON.parse(content);
+    }
   } catch (parseError) {
     errors.push(`Invalid JSON syntax: ${(parseError as Error).message}`);
   }
+}
+
+/**
+ * Strips comments from JSON content to make it valid JSON.
+ * Handles both single-line and multi-line comments.
+ */
+function stripJsonComments(jsonString: string): string {
+  let result = '';
+  let i = 0;
+  let inString = false;
+  let inComment = false;
+  let commentType: 'single' | 'multi' | null = null;
+  
+  while (i < jsonString.length) {
+    const char = jsonString[i];
+    const nextChar = jsonString[i + 1];
+    
+    // Handle strings (don't strip comments inside strings)
+    if (char === '"' && !inComment && (i === 0 || jsonString[i - 1] !== '\\')) {
+      inString = !inString;
+      result += char;
+      i++;
+      continue;
+    }
+    
+    if (inString) {
+      result += char;
+      i++;
+      continue;
+    }
+    
+    // Handle end of comments
+    if (inComment) {
+      if (commentType === 'single' && char === '\n') {
+        inComment = false;
+        commentType = null;
+        result += char; // Keep the newline
+      } else if (commentType === 'multi' && char === '*' && nextChar === '/') {
+        inComment = false;
+        commentType = null;
+        i += 2; // Skip both * and /
+        continue;
+      }
+      i++;
+      continue;
+    }
+    
+    // Handle start of comments
+    if (char === '/' && nextChar === '/') {
+      inComment = true;
+      commentType = 'single';
+      i += 2;
+      continue;
+    }
+    
+    if (char === '/' && nextChar === '*') {
+      inComment = true;
+      commentType = 'multi';
+      i += 2;
+      continue;
+    }
+    
+    // Regular character
+    result += char;
+    i++;
+  }
+  
+  return result;
 }
 
 /**
