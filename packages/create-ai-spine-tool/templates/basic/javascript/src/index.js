@@ -13,40 +13,14 @@
  * @since 1.0.0
  */
 
-import { createTool, stringField, numberField, booleanField, apiKeyField } from '@ai-spine/tools';
-
-/**
- * Input interface defining the structure of data that users will provide
- * to this tool. This interface ensures type safety and enables automatic
- * validation and documentation generation.
- */
-interface {{toolNamePascalCase}}Input {
-  /** The message to be processed by the tool */
-  message: string;
-  /** Number of times to repeat the message (optional, defaults to 1) */
-  count?: number;
-  /** Whether to convert the message to uppercase (optional, defaults to false) */
-  uppercase?: boolean;
-}
-
-/**
- * Configuration interface defining settings that can be provided via
- * environment variables or configuration files. These settings typically
- * include API keys, service endpoints, and operational parameters.
- */
-interface {{toolNamePascalCase}}Config {
-  /** Optional API key for external service integrations */
-  api_key?: string;
-  /** Default count value when not specified in input */
-  default_count?: number;
-}
+const { createTool, stringField, numberField, booleanField, apiKeyField } = require('@ai-spine/tools');
 
 /**
  * Main tool instance created using the AI Spine createTool factory.
  * This tool implements the universal AI Spine contract, making it compatible
  * with all AI Spine platforms and runtimes.
  */
-const {{toolNameCamelCase}}Tool = createTool<{{toolNamePascalCase}}Input, {{toolNamePascalCase}}Config>({
+const {{toolNameCamelCase}}Tool = createTool({
   /**
    * Tool metadata provides information about the tool's identity,
    * capabilities, and usage. This information is used for documentation
@@ -118,10 +92,10 @@ const {{toolNameCamelCase}}Tool = createTool<{{toolNamePascalCase}}Input, {{tool
    * It receives validated input data, configuration, and execution context,
    * then performs the requested operation and returns structured results.
    * 
-   * @param input - Validated input data matching the input schema
-   * @param config - Configuration settings from environment/config files  
-   * @param context - Execution context with metadata and tracking information
-   * @returns Promise resolving to structured execution results
+   * @param {Object} input - Validated input data matching the input schema
+   * @param {Object} config - Configuration settings from environment/config files  
+   * @param {Object} context - Execution context with metadata and tracking information
+   * @returns {Promise<Object>} Promise resolving to structured execution results
    */
   async execute(input, config, context) {
     console.log(`Executing {{toolName}} tool with execution ID: ${context.executionId}`);
@@ -195,7 +169,7 @@ async function main() {
       // Security configuration for production deployments
       security: {
         requireAuth: process.env.API_KEY_AUTH === 'true',
-        ...(process.env.VALID_API_KEYS && { apiKeys: process.env.VALID_API_KEYS.split(',') }),
+        apiKeys: process.env.VALID_API_KEYS?.split(','),
       },
     });
     
@@ -240,4 +214,4 @@ if (require.main === module) {
  * Export the tool instance for use in tests, other modules, or programmatic usage.
  * This allows the tool to be imported and used without starting the HTTP server.
  */
-export default {{toolNameCamelCase}}Tool;
+module.exports = {{toolNameCamelCase}}Tool;

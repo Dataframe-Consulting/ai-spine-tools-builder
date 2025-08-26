@@ -1,9 +1,9 @@
 {{#includeTests}}
-import request from 'supertest';
-import {{toolNameCamelCase}}Tool from '../src/index';
+const request = require('supertest');
+const {{toolNameCamelCase}}Tool = require('../src/index');
 
 describe('{{toolNamePascalCase}} Tool', () => {
-  let app: any;
+  let app;
 
   beforeAll(async () => {
     app = {{toolNameCamelCase}}Tool.getApp();

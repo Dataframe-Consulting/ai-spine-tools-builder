@@ -1,33 +1,8 @@
-import { createTool, arrayField, stringField, numberField, booleanField, objectField } from '@ai-spine/tools';
-import _ from 'lodash';
-
-// Define the input interface for type safety
-interface {{toolNamePascalCase}}Input {
-  data: any[];
-  operation: 'filter' | 'transform' | 'aggregate' | 'sort';
-  parameters: {
-    filterBy?: string;
-    filterValue?: any;
-    transformField?: string;
-    transformFunction?: 'uppercase' | 'lowercase' | 'multiply' | 'add';
-    transformValue?: number;
-    aggregateBy?: string;
-    aggregateFunction?: 'sum' | 'avg' | 'count' | 'min' | 'max';
-    sortBy?: string;
-    sortOrder?: 'asc' | 'desc';
-  };
-  outputFormat?: 'array' | 'object' | 'csv';
-}
-
-// Define the configuration interface
-interface {{toolNamePascalCase}}Config {
-  max_records?: number;
-  allow_unsafe_operations?: boolean;
-  default_output_format?: string;
-}
+const { createTool, arrayField, stringField, numberField, booleanField } = require('@ai-spine/tools');
+const _ = require('lodash');
 
 // Create the tool
-const {{toolNameCamelCase}}Tool = createTool<{{toolNamePascalCase}}Input, {{toolNamePascalCase}}Config>({
+const {{toolNameCamelCase}}Tool = createTool({
   metadata: {
     name: '{{toolName}}',
     version: '1.0.0',
@@ -142,7 +117,7 @@ const {{toolNameCamelCase}}Tool = createTool<{{toolNamePascalCase}}Input, {{tool
 
       console.log(`Processing ${input.data.length} records with operation: ${input.operation}`);
 
-      let result: any;
+      let result;
       let processingStats = {
         inputRecords: input.data.length,
         outputRecords: 0,
@@ -199,7 +174,7 @@ const {{toolNameCamelCase}}Tool = createTool<{{toolNamePascalCase}}Input, {{tool
 /**
  * Filter data based on field and value
  */
-async function performFilter(data: any[], parameters: any): Promise<any[]> {
+async function performFilter(data, parameters) {
   const { filterBy, filterValue } = parameters;
   
   if (!filterBy) {
@@ -220,7 +195,7 @@ async function performFilter(data: any[], parameters: any): Promise<any[]> {
 /**
  * Transform data by applying functions to specified fields
  */
-async function performTransform(data: any[], parameters: any): Promise<any[]> {
+async function performTransform(data, parameters) {
   const { transformField, transformFunction, transformValue } = parameters;
   
   if (!transformField || !transformFunction) {
@@ -263,7 +238,7 @@ async function performTransform(data: any[], parameters: any): Promise<any[]> {
 /**
  * Aggregate data by grouping and applying aggregation functions
  */
-async function performAggregate(data: any[], parameters: any): Promise<any> {
+async function performAggregate(data, parameters) {
   const { aggregateBy, aggregateFunction } = parameters;
   
   if (!aggregateBy || !aggregateFunction) {
@@ -271,7 +246,7 @@ async function performAggregate(data: any[], parameters: any): Promise<any> {
   }
 
   const grouped = _.groupBy(data, aggregateBy);
-  const result: any = {};
+  const result = {};
 
   for (const [key, group] of Object.entries(grouped)) {
     switch (aggregateFunction) {
@@ -301,7 +276,7 @@ async function performAggregate(data: any[], parameters: any): Promise<any> {
 /**
  * Sort data by specified field and order
  */
-async function performSort(data: any[], parameters: any): Promise<any[]> {
+async function performSort(data, parameters) {
   const { sortBy, sortOrder = 'asc' } = parameters;
   
   if (!sortBy) {
@@ -314,7 +289,7 @@ async function performSort(data: any[], parameters: any): Promise<any[]> {
 /**
  * Format output according to specified format
  */
-function formatOutput(data: any, format: string): any {
+function formatOutput(data, format) {
   switch (format) {
     case 'array':
       return Array.isArray(data) ? data : [data];
@@ -343,7 +318,7 @@ async function main() {
       },
       security: {
         requireAuth: process.env.API_KEY_AUTH === 'true',
-        ...(process.env.VALID_API_KEYS && { apiKeys: process.env.VALID_API_KEYS.split(',') }),
+        apiKeys: process.env.VALID_API_KEYS?.split(','),
       },
     });
   } catch (error) {
@@ -370,4 +345,4 @@ if (require.main === module) {
   main();
 }
 
-export default {{toolNameCamelCase}}Tool;
+module.exports = {{toolNameCamelCase}}Tool;

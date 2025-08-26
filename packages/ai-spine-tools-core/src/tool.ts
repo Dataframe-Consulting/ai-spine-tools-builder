@@ -23,7 +23,7 @@ import {
   AISpineHealthResponse
 } from './types.js';
 import { ZodSchemaValidator } from './validation.js';
-// import { DocumentationGenerator } from './field-builders.js'; // Commented out - not used
+import { DocumentationGenerator } from './field-builders.js';
 
 /**
  * Configuration options for Tool server setup
@@ -1255,6 +1255,14 @@ export class Tool<TInput = ToolInput, TConfig = ToolConfig> {
               security: this.config.security?.requireAuth ? [
                 { 'apiKey': [] }
               ] : [],
+              requestBody: {
+                required: true,
+                content: {
+                  'application/json': {
+                    schema: this.generateRequestBodySchema()
+                  }
+                }
+              },
               responses: {
                 '200': {
                   description: 'Tool executed successfully',
@@ -1984,6 +1992,56 @@ print(result)`
     }
 
     return exampleInput;
+  }
+
+  /**
+   * Generates OpenAPI request body schema for the execute endpoint
+   * @private
+   */
+  private generateRequestBodySchema(): any {
+    const schema: any = {
+      type: 'object',
+      properties: {},
+      required: []
+    };
+
+    // Add input_data property if input schema exists
+    if (this.definition.schema.input && Object.keys(this.definition.schema.input).length > 0) {
+      schema.properties.input_data = {
+        type: 'object',
+        properties: {},
+        required: []
+      };
+
+      // Generate schema for each input field
+      for (const [key, field] of Object.entries(this.definition.schema.input)) {
+        schema.properties.input_data.properties[key] = DocumentationGenerator.generateOpenAPISchema(field);
+        if (field.required) {
+          schema.properties.input_data.required.push(key);
+        }
+      }
+
+      schema.required.push('input_data');
+    }
+
+    // Add config property if config schema exists
+    if (this.definition.schema.config && Object.keys(this.definition.schema.config).length > 0) {
+      schema.properties.config = {
+        type: 'object',
+        properties: {},
+        required: []
+      };
+
+      // Generate schema for each config field
+      for (const [key, field] of Object.entries(this.definition.schema.config)) {
+        schema.properties.config.properties[key] = DocumentationGenerator.generateOpenAPISchema(field);
+        if (field.required) {
+          schema.properties.config.required.push(key);
+        }
+      }
+    }
+
+    return schema;
   }
   
   /**
