@@ -166,7 +166,7 @@ export class TemplateValidator {
       }
 
       // Validate template structure
-      await this.validateTemplateStructure(templateDir, templateType, errors, warnings);
+      await this.validateTemplateStructure(templateDir, templateType, language, errors, warnings);
 
       // Validate template syntax and mustache expressions
       if (this.config.validateTemplates) {
@@ -280,10 +280,13 @@ export class TemplateValidator {
   private async validateTemplateStructure(
     templateDir: string,
     templateType: TemplateType,
+    language: Language,
     errors: ValidationError[],
     warnings: ValidationWarning[]
   ): Promise<void> {
-    const requiredFiles = ['src/index.ts', 'package.json'];
+    // Use appropriate file extension based on language
+    const indexFile = language === 'typescript' ? 'src/index.ts' : 'src/index.js';
+    const requiredFiles = [indexFile, 'package.json'];
     
     // Template-specific required files
     if (templateType === 'api-integration') {
@@ -527,7 +530,7 @@ export class TemplateValidator {
   private async validateTemplateContent(
     content: string,
     file: string,
-    errors: ValidationError[],
+    _errors: ValidationError[],
     warnings: ValidationWarning[]
   ): Promise<void> {
     // Check for potential variable naming issues
@@ -605,10 +608,10 @@ export class TemplateValidator {
         });
       }
 
-      // Check for invalid variable names
-      const invalidVarPattern = /(?:const|let|var)\s+([^a-zA-Z_$][a-zA-Z0-9_$]*)/;
+      // Check for invalid variable names (but not object destructuring or object literals)
+      const invalidVarPattern = /(?:const|let|var)\s+([^a-zA-Z_${}\s][a-zA-Z0-9_$]*)\s*=/;
       const match = line.match(invalidVarPattern);
-      if (match) {
+      if (match && !line.includes('{') && !line.includes('}')) {
         errors.push({
           code: 'INVALID_VARIABLE_NAME',
           message: `Invalid JavaScript variable name: ${match[1]}`,
@@ -698,7 +701,7 @@ export class TemplateValidator {
   private async validateProjectCompilation(
     projectDir: string,
     errors: ValidationError[],
-    warnings: ValidationWarning[]
+    _warnings: ValidationWarning[]
   ): Promise<void> {
     try {
       // Check if TypeScript is available
@@ -728,7 +731,7 @@ export class TemplateValidator {
    */
   private async validateProjectTests(
     projectDir: string,
-    errors: ValidationError[],
+    _errors: ValidationError[],
     warnings: ValidationWarning[]
   ): Promise<void> {
     try {

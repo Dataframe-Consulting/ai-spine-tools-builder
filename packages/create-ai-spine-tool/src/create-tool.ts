@@ -17,7 +17,7 @@ import { execSync } from 'child_process';
 import chalk from 'chalk';
 import ora from 'ora';
 import { CreateToolOptions, TemplateContext, TemplateType, Language } from './types';
-import { TemplateValidator, ValidationResult, printValidationResult } from './template-validator';
+import { TemplateValidator } from './template-validator';
 
 /**
  * Creates a new AI Spine tool from the specified options and template.
@@ -110,28 +110,50 @@ function generateTemplateContext(options: CreateToolOptions): TemplateContext {
   };
 
   const devDependencies: Record<string, string> = {
-    'typescript': '^5.0.0',
-    '@types/node': '^20.0.0',
-    'tsx': '^4.0.0',
-    'nodemon': '^3.0.0',
+    'typescript': '^5.3.0',
+    '@types/node': '^20.10.0',
+    'tsx': '^4.6.0',
+    'nodemon': '^3.0.2',
+    'rimraf': '^5.0.5',
   };
+
+  // Add code quality tools
+  devDependencies['eslint'] = '^8.55.0';
+  devDependencies['@typescript-eslint/parser'] = '^6.14.0';
+  devDependencies['@typescript-eslint/eslint-plugin'] = '^6.14.0';
+  devDependencies['eslint-plugin-security'] = '^1.7.1';
+  devDependencies['eslint-plugin-import'] = '^2.29.0';
+  devDependencies['eslint-plugin-node'] = '^11.1.0';
+  devDependencies['eslint-plugin-promise'] = '^6.1.1';
+  devDependencies['eslint-plugin-unicorn'] = '^49.0.0';
+  
+  devDependencies['prettier'] = '^3.1.0';
+  
+  // TypeScript tools
+  if (options.language === 'typescript') {
+    devDependencies['@types/eslint'] = '^8.44.8';
+    devDependencies['eslint-import-resolver-typescript'] = '^3.6.1';
+  }
 
   // Add template-specific dependencies
   if (options.template === 'api-integration') {
-    dependencies['axios'] = '^1.6.0';
+    dependencies['axios'] = '^1.6.2';
     devDependencies['@types/axios'] = '^0.14.0';
   }
 
   if (options.template === 'data-processing') {
     dependencies['lodash'] = '^4.17.21';
-    devDependencies['@types/lodash'] = '^4.14.0';
+    devDependencies['@types/lodash'] = '^4.17.7';
   }
 
   // Add test dependencies if tests are included
   if (options.includeTests) {
-    devDependencies['jest'] = '^29.0.0';
-    devDependencies['@types/jest'] = '^29.0.0';
-    devDependencies['ts-jest'] = '^29.0.0';
+    devDependencies['jest'] = '^29.7.0';
+    devDependencies['@types/jest'] = '^29.5.8';
+    devDependencies['ts-jest'] = '^29.1.1';
+    devDependencies['eslint-plugin-jest'] = '^27.6.0';
+    devDependencies['supertest'] = '^6.3.3';
+    devDependencies['@types/supertest'] = '^2.0.16';
   }
 
   // Convert dependency objects to arrays for Mustache iteration
@@ -570,7 +592,7 @@ async function validateProcessedContent(
  */
 async function validateTypeScriptContent(
   content: string,
-  sourcePath: string,
+  _sourcePath: string,
   errors: string[],
   warnings: string[]
 ): Promise<void> {
@@ -629,9 +651,9 @@ async function validateTypeScriptContent(
  */
 async function validateJsonContent(
   content: string,
-  sourcePath: string,
+  _sourcePath: string,
   errors: string[],
-  warnings: string[]
+  _warnings: string[]
 ): Promise<void> {
   try {
     JSON.parse(content);
@@ -645,7 +667,7 @@ async function validateJsonContent(
  */
 async function validatePackageJsonContent(
   content: string,
-  sourcePath: string,
+  _sourcePath: string,
   context: TemplateContext,
   errors: string[],
   warnings: string[]

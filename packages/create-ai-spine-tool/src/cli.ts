@@ -22,7 +22,7 @@ import { execSync } from 'child_process';
 import validatePackageName from 'validate-npm-package-name';
 import { createTool, generateEnhancedTemplateContext } from './create-tool';
 import { TemplateType, Language, CreateToolOptions, TeamConfig, SystemRequirements } from './types';
-import { TemplateValidator, printValidationResult } from './template-validator';
+import { TemplateValidator } from './template-validator';
 
 /**
  * System requirements for tool creation
