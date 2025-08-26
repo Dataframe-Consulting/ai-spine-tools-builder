@@ -27,7 +27,7 @@ interface {{toolNamePascalCase}}Config {
 }
 
 // Create the tool
-const {{toolName}}Tool = createTool<{{toolNamePascalCase}}Input, {{toolNamePascalCase}}Config>({
+const {{toolNameCamelCase}}Tool = createTool<{{toolNamePascalCase}}Input, {{toolNamePascalCase}}Config>({
   metadata: {
     name: '{{toolName}}',
     version: '1.0.0',
@@ -56,11 +56,10 @@ const {{toolName}}Tool = createTool<{{toolNamePascalCase}}Input, {{toolNamePasca
           required: false,
           description: 'Field name to filter by',
         }),
-        filterValue: {
-          type: 'string',
+        filterValue: stringField({
           required: false,
           description: 'Value to filter for',
-        },
+        }),
         transformField: stringField({
           required: false,
           description: 'Field name to transform',
@@ -132,7 +131,7 @@ const {{toolName}}Tool = createTool<{{toolNamePascalCase}}Input, {{toolNamePasca
   },
 
   async execute(input, config, context) {
-    console.log(`Executing {{toolName}} tool with execution ID: ${context.execution_id}`);
+    console.log(`Executing {{toolName}} tool with execution ID: ${context.executionId}`);
 
     try {
       // Validate input data size
@@ -178,14 +177,16 @@ const {{toolName}}Tool = createTool<{{toolNamePascalCase}}Input, {{toolNamePasca
       const formattedResult = formatOutput(result, outputFormat);
 
       return {
-        success: true,
-        data: formattedResult,
-        statistics: processingStats,
-        metadata: {
-          execution_id: context.execution_id,
-          timestamp: context.timestamp.toISOString(),
-          tool_version: '1.0.0',
-          output_format: outputFormat,
+        status: 'success',
+        data: {
+          result: formattedResult,
+          statistics: processingStats,
+          metadata: {
+            execution_id: context.executionId,
+            timestamp: context.timestamp.toISOString(),
+            tool_version: '1.0.0',
+            output_format: outputFormat,
+          },
         },
       };
     } catch (error) {
@@ -334,12 +335,16 @@ function formatOutput(data: any, format: string): any {
 // Start the tool server
 async function main() {
   try {
-    await {{toolName}}Tool.serve({
+    await {{toolNameCamelCase}}Tool.start({
       port: process.env.PORT ? parseInt(process.env.PORT) : 3000,
       host: process.env.HOST || '0.0.0.0',
-      logLevel: (process.env.LOG_LEVEL as any) || 'info',
-      apiKeyAuth: process.env.API_KEY_AUTH === 'true',
-      validApiKeys: process.env.VALID_API_KEYS?.split(','),
+      development: {
+        requestLogging: process.env.NODE_ENV === 'development'
+      },
+      security: {
+        requireAuth: process.env.API_KEY_AUTH === 'true',
+        apiKeys: process.env.VALID_API_KEYS?.split(','),
+      },
     });
   } catch (error) {
     console.error('Failed to start tool server:', error);
@@ -350,13 +355,13 @@ async function main() {
 // Handle graceful shutdown
 process.on('SIGINT', async () => {
   console.log('Shutting down gracefully...');
-  await {{toolName}}Tool.stop();
+  await {{toolNameCamelCase}}Tool.stop();
   process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
   console.log('Shutting down gracefully...');
-  await {{toolName}}Tool.stop();
+  await {{toolNameCamelCase}}Tool.stop();
   process.exit(0);
 });
 
@@ -365,4 +370,4 @@ if (require.main === module) {
   main();
 }
 
-export default {{toolName}}Tool;
+export default {{toolNameCamelCase}}Tool;

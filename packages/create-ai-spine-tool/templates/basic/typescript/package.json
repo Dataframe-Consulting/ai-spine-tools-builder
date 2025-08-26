@@ -21,12 +21,12 @@
   "license": "MIT",
   "dependencies": {
     {{#dependencies}}
-    "{{@key}}": "{{.}}"{{^@last}},{{/@last}}
+    "{{{key}}}": "{{{value}}}"{{^isLast}},{{/isLast}}
     {{/dependencies}}
   },
   "devDependencies": {
     {{#devDependencies}}
-    "{{@key}}": "{{.}}"{{^@last}},{{/@last}}
+    "{{{key}}}": "{{{value}}}"{{^isLast}},{{/isLast}}
     {{/devDependencies}}
   },
   "engines": {

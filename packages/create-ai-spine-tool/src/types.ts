@@ -60,6 +60,9 @@ export interface TemplateContext {
   /** Tool name converted to kebab-case for file names */
   toolNameKebabCase: string;
   
+  /** Tool name converted to camelCase for variable names */
+  toolNameCamelCase: string;
+  
   /** Tool description */
   description: string;
   
@@ -79,10 +82,10 @@ export interface TemplateContext {
   year: number;
   
   /** Runtime dependencies to include in package.json */
-  dependencies: Record<string, string>;
+  dependencies: Array<{ key: string; value: string; isLast: boolean }>;
   
   /** Development dependencies to include in package.json */
-  devDependencies: Record<string, string>;
+  devDependencies: Array<{ key: string; value: string; isLast: boolean }>;
 }
 
 /**

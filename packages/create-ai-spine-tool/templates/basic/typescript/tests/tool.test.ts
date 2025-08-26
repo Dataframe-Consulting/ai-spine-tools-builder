@@ -1,16 +1,16 @@
 {{#includeTests}}
 import request from 'supertest';
-import {{toolName}}Tool from '../src/index';
+import {{toolNameCamelCase}}Tool from '../src/index';
 
 describe('{{toolNamePascalCase}} Tool', () => {
   let app: any;
 
   beforeAll(async () => {
-    app = {{toolName}}Tool.getApp();
+    app = {{toolNameCamelCase}}Tool.getApp();
   });
 
   afterAll(async () => {
-    await {{toolName}}Tool.stop();
+    await {{toolNameCamelCase}}Tool.stop();
   });
 
   describe('Health Check', () => {
@@ -214,7 +214,7 @@ describe('{{toolNamePascalCase}} Tool', () => {
 
   describe('Statistics and Metadata', () => {
     it('should track execution statistics', () => {
-      const stats = {{toolName}}Tool.getStats();
+      const stats = {{toolNameCamelCase}}Tool.getStats();
       
       expect(stats).toMatchObject({
         executionCount: expect.any(Number),

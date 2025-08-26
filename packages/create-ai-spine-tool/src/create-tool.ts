@@ -84,6 +84,7 @@ export async function createTool(options: CreateToolOptions, targetDir: string):
 function generateTemplateContext(options: CreateToolOptions): TemplateContext {
   const toolNamePascalCase = toPascalCase(options.name);
   const toolNameKebabCase = toKebabCase(options.name);
+  const toolNameCamelCase = toCamelCase(options.name);
 
   // Base dependencies
   const dependencies: Record<string, string> = {
@@ -115,18 +116,32 @@ function generateTemplateContext(options: CreateToolOptions): TemplateContext {
     devDependencies['ts-jest'] = '^29.0.0';
   }
 
+  // Convert dependency objects to arrays for Mustache iteration
+  const dependencyArray = Object.entries(dependencies).map(([key, value], index, array) => ({
+    key,
+    value,
+    isLast: index === array.length - 1
+  }));
+  
+  const devDependencyArray = Object.entries(devDependencies).map(([key, value], index, array) => ({
+    key,
+    value,
+    isLast: index === array.length - 1
+  }));
+
   return {
     toolName: options.name,
     toolNamePascalCase,
     toolNameKebabCase,
+    toolNameCamelCase,
     description: options.description || 'An AI Spine tool',
     language: options.language,
     includeTests: options.includeTests,
     includeDocker: options.includeDocker,
     packageName: options.name,
     year: new Date().getFullYear(),
-    dependencies,
-    devDependencies,
+    dependencies: dependencyArray,
+    devDependencies: devDependencyArray,
   };
 }
 
@@ -320,6 +335,28 @@ function toPascalCase(str: string): string {
   return str
     .replace(/[\s\-_]+(.)?/g, (_, char) => (char ? char.toUpperCase() : ''))
     .replace(/^(.)/, (char) => char.toUpperCase());
+}
+
+/**
+ * Converts a string to camelCase format.
+ * 
+ * Used for generating JavaScript variable names and identifiers
+ * that should follow camelCase naming conventions.
+ * 
+ * @param str - Input string to convert
+ * @returns String in camelCase format
+ * 
+ * @example
+ * ```typescript
+ * toCamelCase('test-tool') // => 'testTool'
+ * toCamelCase('my-weather-tool') // => 'myWeatherTool'  
+ * toCamelCase('api_client') // => 'apiClient'
+ * ```
+ */
+function toCamelCase(str: string): string {
+  return str
+    .replace(/[\s\-_]+(.)?/g, (_, char) => (char ? char.toUpperCase() : ''))
+    .replace(/^(.)/, (char) => char.toLowerCase());
 }
 
 /**
