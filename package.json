@@ -11,14 +11,22 @@
   "scripts": {
     "bootstrap": "npm install && npm run build",
     "build": "npm run build --workspaces",
+    "build:prod": "cross-env NODE_ENV=production npm run build --workspaces",
+    "build:analyze": "cross-env ANALYZE=true npm run build --workspaces",
     "dev": "npm run dev --workspaces",
     "test": "npm run test --workspaces",
     "test:templates": "npm run test:templates --workspace=@ai-spine/tools-testing",
     "test:examples": "npm run test:examples --workspace=@ai-spine/tools-testing",
     "lint": "eslint packages/ templates/ examples/ --ext .ts,.js",
     "clean": "npm run clean --workspaces",
+    "clean:cache": "npm run clean && rm -rf node_modules/.cache",
+    "bundle:size": "npm run build:prod && node scripts/bundle-size-check.js",
+    "deps:analyze": "node scripts/dependency-analysis.js",
+    "build:verify": "node scripts/build-verification.js",
+    "build:verify:verbose": "node scripts/build-verification.js --verbose",
     "publish:all": "npm run publish --workspaces",
-    "deploy:docs": "npm run deploy:docs --workspace=@ai-spine/tools-docs"
+    "deploy:docs": "npm run deploy:docs --workspace=@ai-spine/tools-docs",
+    "prerelease": "npm run lint && npm run test && npm run build:prod && npm run build:verify && npm run bundle:size && npm run deps:analyze"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
@@ -29,7 +37,18 @@
     "eslint-plugin-prettier": "^5.0.0",
     "prettier": "^3.0.0",
     "typescript": "^5.0.0",
-    "lerna": "^8.0.0"
+    "lerna": "^8.0.0",
+    "@rollup/plugin-typescript": "^11.0.0",
+    "@rollup/plugin-node-resolve": "^15.0.0",
+    "@rollup/plugin-commonjs": "^25.0.0",
+    "@rollup/plugin-json": "^6.0.0",
+    "@rollup/plugin-terser": "^0.4.0",
+    "rollup": "^4.0.0",
+    "rollup-plugin-dts": "^6.0.0",
+    "rollup-plugin-visualizer": "^5.9.0",
+    "rollup-plugin-filesize": "^10.0.0",
+    "rollup-plugin-progress": "^1.1.0",
+    "cross-env": "^7.0.3"
   },
   "engines": {
     "node": ">=18.0.0",

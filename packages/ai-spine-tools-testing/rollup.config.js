@@ -1,116 +1,38 @@
-import typescript from '@rollup/plugin-typescript';
-import resolve from '@rollup/plugin-node-resolve';
-import commonjs from '@rollup/plugin-commonjs';
-import dts from 'rollup-plugin-dts';
+/**
+ * Rollup configuration for @ai-spine/tools-testing
+ * Testing utilities and AISpineTestClient with CLI tools
+ */
 
-const external = [
-  'axios',
-  'supertest',
-  '@ai-spine/tools-core',
-  'crypto',
-  'url',
-  'http',
-  'https',
-  'stream',
-  'util',
-  'events',
-  'fs-extra',
-  'path',
-  'mustache',
-  'child_process',
-  'chalk',
-  'os',
-];
+import { createRollupConfig, createCliConfig, EXTERNAL_DEPS, loadPackageJson } from '../../rollup.shared.js';
 
-const config = [
-  // ES Module build
-  {
-    input: 'src/index.ts',
-    output: {
-      file: 'dist/index.esm.js',
-      format: 'esm',
-      sourcemap: true,
-    },
-    plugins: [
-      resolve({ preferBuiltins: true }),
-      commonjs(),
-      typescript({
-        tsconfig: './tsconfig.json',
-        declaration: false,
-        declarationMap: false,
-      }),
-    ],
-    external,
-  },
-  // CommonJS build
-  {
-    input: 'src/index.ts',
-    output: {
-      file: 'dist/index.js',
-      format: 'cjs',
-      sourcemap: true,
-    },
-    plugins: [
-      resolve({ preferBuiltins: true }),
-      commonjs(),
-      typescript({
-        tsconfig: './tsconfig.json',
-        declaration: false,
-        declarationMap: false,
-      }),
-    ],
-    external,
-  },
-  // Template validator CLI
-  {
+const packageJson = loadPackageJson('.');
+
+// Main library builds
+const libraryConfigs = createRollupConfig({
+  packageName: 'testing',
+  input: 'src/index.ts',
+  external: EXTERNAL_DEPS.testing,
+  packageJson,
+  generateTypes: true,
+  bundleSizeLimit: 300, // 300KB limit for testing package
+  isCli: false
+});
+
+// CLI tool configurations
+const cliConfigs = [
+  createCliConfig({
     input: 'src/template-validator-cli.ts',
-    output: {
-      file: 'dist/template-validator.js',
-      format: 'cjs',
-      sourcemap: true,
-      banner: '#!/usr/bin/env node',
-    },
-    plugins: [
-      resolve({ preferBuiltins: true }),
-      commonjs(),
-      typescript({
-        tsconfig: './tsconfig.json',
-        declaration: false,
-        declarationMap: false,
-      }),
-    ],
-    external,
-  },
-  // Example validator CLI
-  {
+    output: 'dist/template-validator.js',
+    external: EXTERNAL_DEPS.testing
+  }),
+  createCliConfig({
     input: 'src/example-validator-cli.ts',
-    output: {
-      file: 'dist/example-validator.js',
-      format: 'cjs',
-      sourcemap: true,
-      banner: '#!/usr/bin/env node',
-    },
-    plugins: [
-      resolve({ preferBuiltins: true }),
-      commonjs(),
-      typescript({
-        tsconfig: './tsconfig.json',
-        declaration: false,
-        declarationMap: false,
-      }),
-    ],
-    external,
-  },
-  // TypeScript declarations
-  {
-    input: 'src/index.ts',
-    output: {
-      file: 'dist/index.d.ts',
-      format: 'esm',
-    },
-    plugins: [dts()],
-    external,
-  },
+    output: 'dist/example-validator.js',
+    external: EXTERNAL_DEPS.testing
+  })
 ];
 
-export default config;
+export default [
+  ...libraryConfigs,
+  ...cliConfigs
+];

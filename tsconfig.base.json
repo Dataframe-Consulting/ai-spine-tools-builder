@@ -1,0 +1,85 @@
+{
+  "compilerOptions": {
+    // Target and Module Configuration
+    "target": "ES2020",
+    "module": "ESNext",
+    "lib": ["ES2020", "DOM"],
+    "moduleResolution": "node",
+    
+    // Output Configuration
+    "outDir": "dist",
+    "rootDir": "src",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "removeComments": false,
+    "importHelpers": true,
+    
+    // Strict Type Checking
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": false,
+    "exactOptionalPropertyTypes": false,
+    
+    // Module System
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    
+    // Advanced Options
+    "skipLibCheck": true,
+    "incremental": true,
+    "tsBuildInfoFile": ".tsbuildinfo",
+    
+    // Emit Configuration
+    "newLine": "lf",
+    "stripInternal": true,
+    "noErrorTruncation": true,
+    
+    // Path Mapping (for monorepo packages)
+    "baseUrl": ".",
+    "paths": {
+      "@ai-spine/tools-core": ["packages/ai-spine-tools-core/src"],
+      "@ai-spine/tools-core/*": ["packages/ai-spine-tools-core/src/*"],
+      "@ai-spine/tools": ["packages/ai-spine-tools/src"],
+      "@ai-spine/tools/*": ["packages/ai-spine-tools/src/*"],
+      "@ai-spine/tools-testing": ["packages/ai-spine-tools-testing/src"],
+      "@ai-spine/tools-testing/*": ["packages/ai-spine-tools-testing/src/*"]
+    },
+    
+    // Performance Optimizations
+    "assumeChangesOnlyAffectDirectDependencies": true
+  },
+  
+  "include": [
+    "src/**/*",
+    "types/**/*"
+  ],
+  
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "**/*.test.js",
+    "**/__tests__/**",
+    "coverage",
+    "examples",
+    "templates"
+  ],
+  
+  "ts-node": {
+    "esm": true,
+    "experimentalSpecifierResolution": "node"
+  },
+  
+  "compileOnSave": false
+}
