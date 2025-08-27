@@ -1,15 +1,49 @@
 // Test client for integration testing
-export { AISpineTestClient, TestClientOptions, TestExecutionResult } from './test-client';
+export { 
+  AISpineTestClient, 
+  TestClientOptions, 
+  TestExecutionResult,
+  PerformanceMetrics,
+  LoadTestOptions,
+  LoadTestResult,
+  ScenarioResult,
+  ToolValidationResult,
+  RequestEvent,
+  ResponseEvent,
+  ErrorEvent
+} from './test-client';
 
-// Test helpers for unit testing
+// Enhanced test helpers for comprehensive testing
 export {
+  // Core testing functions
   testTool,
+  testToolDirect,
   testToolHealth,
+  
+  // Test data generation
   generateTestData,
   generateInvalidTestData,
   generateConfigTestData,
+  
+  // Test scenario management
   createTestScenarios,
+  
+  // Validation and assertions
+  validateToolResponse,
   toolAssertions,
+  
+  // Advanced testing utilities
+  MockManager,
+  PerformanceTester,
+  TestServer,
+  TestSuiteRunner,
+  
+  // Types and interfaces
+  TestToolOptions,
+  TestDataGenerationOptions,
+  TestScenariosOptions,
+  TestScenario,
+  InvalidDataType,
 } from './test-helpers';
 
 // Re-export core types for convenience

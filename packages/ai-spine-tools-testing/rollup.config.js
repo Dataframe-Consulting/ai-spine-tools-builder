@@ -37,6 +37,7 @@ const config = [
       typescript({
         tsconfig: './tsconfig.json',
         declaration: false,
+        declarationMap: false,
       }),
     ],
     external,
@@ -55,6 +56,7 @@ const config = [
       typescript({
         tsconfig: './tsconfig.json',
         declaration: false,
+        declarationMap: false,
       }),
     ],
     external,
@@ -74,6 +76,7 @@ const config = [
       typescript({
         tsconfig: './tsconfig.json',
         declaration: false,
+        declarationMap: false,
       }),
     ],
     external,
@@ -93,6 +96,7 @@ const config = [
       typescript({
         tsconfig: './tsconfig.json',
         declaration: false,
+        declarationMap: false,
       }),
     ],
     external,
