@@ -14,6 +14,7 @@ const config = [
       typescript({
         tsconfig: './tsconfig.json',
         declaration: false,
+        declarationMap: false,
       }),
     ],
     external: ['crypto', 'url'],
@@ -30,6 +31,7 @@ const config = [
       typescript({
         tsconfig: './tsconfig.json',
         declaration: false,
+        declarationMap: false,
       }),
     ],
     external: ['crypto', 'url'],

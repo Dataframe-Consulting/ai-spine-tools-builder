@@ -1598,6 +1598,53 @@ export class MockManager {
   private callLogs: Map<string, any[]> = new Map();
 
   /**
+   * Create a default mock function with jest if available, otherwise a simple mock
+   * 
+   * @private
+   * @returns Mock function
+   */
+  private createDefaultMock(): (...args: any[]) => any {
+    // Check if jest is available globally
+    if (typeof globalThis !== 'undefined' && (globalThis as any).jest && (globalThis as any).jest.fn) {
+      return (globalThis as any).jest.fn();
+    }
+    
+    // Check if jest is available in global scope (Node.js environment)
+    if (typeof global !== 'undefined' && (global as any).jest && (global as any).jest.fn) {
+      return (global as any).jest.fn();
+    }
+    
+    // Fallback to simple mock implementation
+    const calls: any[][] = [];
+    const mockFn = (...args: any[]) => {
+      calls.push(args);
+      return undefined;
+    };
+    
+    // Add jest-like properties for compatibility
+    (mockFn as any).mock = {
+      calls,
+      instances: [],
+      invocationCallOrder: [],
+      results: []
+    };
+    
+    (mockFn as any).mockReturnValue = (value: any) => {
+      const originalFn = mockFn;
+      return (...args: any[]) => {
+        originalFn(...args);
+        return value;
+      };
+    };
+    
+    (mockFn as any).mockImplementation = (fn: (...args: any[]) => any) => {
+      return fn;
+    };
+    
+    return mockFn;
+  }
+
+  /**
    * Mock a function or method with tracking
    */
   mock(target: any, methodName: string, mockImplementation?: (...args: any[]) => any): void {
@@ -1605,7 +1652,7 @@ export class MockManager {
     this.originalMethods.set(`${target.constructor.name}.${methodName}`, originalMethod);
     this.callLogs.set(methodName, []);
 
-    const mockFn = mockImplementation || jest.fn();
+    const mockFn = mockImplementation || this.createDefaultMock();
     target[methodName] = (...args: any[]) => {
       this.callLogs.get(methodName)?.push({ args, timestamp: Date.now() });
       return mockFn(...args);
