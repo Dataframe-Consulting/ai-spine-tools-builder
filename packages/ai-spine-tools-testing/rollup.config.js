@@ -7,13 +7,13 @@ import { createRollupConfig, createCliConfig, EXTERNAL_DEPS, loadPackageJson } f
 
 const packageJson = loadPackageJson('.');
 
-// Main library builds
+// Main library builds - skip types generation due to form-data conflicts
 const libraryConfigs = createRollupConfig({
   packageName: 'testing',
   input: 'src/index.ts',
   external: EXTERNAL_DEPS.testing,
   packageJson,
-  generateTypes: true,
+  generateTypes: false, // Skip rollup-plugin-dts due to form-data type conflicts
   bundleSizeLimit: 300, // 300KB limit for testing package
   isCli: false
 });

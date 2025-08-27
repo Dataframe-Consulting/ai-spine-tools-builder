@@ -393,7 +393,7 @@ export const EXTERNAL_DEPS = {
     '@ai-spine/tools-core', 'express', 'cors', 'helmet', 'compression'
   ],
   testing: [
-    '@ai-spine/tools-core', 'axios', 'supertest', 'fs-extra', 'mustache', 'chalk'
+    '@ai-spine/tools-core', 'axios', 'supertest', 'fs-extra', 'mustache', 'chalk', '@faker-js/faker', 'form-data'
   ],
   cli: [
     'commander', 'inquirer', 'chalk', 'ora', 'fs-extra', 'mustache', 'validate-npm-package-name'
