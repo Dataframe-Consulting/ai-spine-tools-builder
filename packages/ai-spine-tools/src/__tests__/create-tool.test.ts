@@ -3,6 +3,8 @@
  * These tests cover all aspects of tool creation, validation, and lifecycle management.
  */
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import {
   createTool,
   ToolBuilder,
@@ -13,6 +15,8 @@ import {
   arrayField,
   objectField,
   enumField,
+  dateField,
+  timeField,
   apiKeyField,
   configStringField,
   configNumberField,
@@ -22,11 +26,6 @@ import {
 } from '../create-tool';
 
 import {
-  ToolMetadata,
-  ToolInput,
-  ToolConfig,
-  ToolExecutionContext,
-  ToolExecutionResult,
   ConfigurationError,
   ValidationError
 } from '@ai-spine/tools-core';
@@ -58,7 +57,7 @@ describe('createTool Factory Function', () => {
         apiKey: apiKeyField({ required: true, description: 'Test API key' })
       }
     },
-    execute: async (input, config, context) => {
+    execute: async (input, _config, _context) => {
       return {
         status: 'success',
         data: { echo: input.message }
@@ -76,8 +75,8 @@ describe('createTool Factory Function', () => {
   describe('Basic Tool Creation', () => {
     it('should create a tool with valid definition', () => {
       expect(() => {
-        const tool = createTool(validToolDefinition);
-        expect(tool).toBeDefined();
+        const _tool = createTool(validToolDefinition);
+        expect(_tool).toBeDefined();
       }).not.toThrow();
     });
 
@@ -290,7 +289,7 @@ describe('createTool Factory Function', () => {
     it('should accept valid optional functions', () => {
       const definition: CreateToolOptions = {
         ...validToolDefinition,
-        setup: async (config) => { console.log('Setup'); },
+        setup: async (_config) => { console.log('Setup'); },
         cleanup: async () => { console.log('Cleanup'); },
         healthCheck: async () => {
           return { status: 'healthy' };
@@ -306,7 +305,7 @@ describe('createTool Factory Function', () => {
       process.env.NODE_ENV = 'development';
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
-      const tool = createTool(validToolDefinition);
+      const _tool = createTool(validToolDefinition);
 
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining('Created tool "test-tool"')
@@ -319,7 +318,7 @@ describe('createTool Factory Function', () => {
       process.env.AI_SPINE_DEBUG = 'true';
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
-      const tool = createTool(validToolDefinition);
+      const _tool = createTool(validToolDefinition);
 
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining('Created tool "test-tool"')
@@ -332,7 +331,7 @@ describe('createTool Factory Function', () => {
       process.env.NODE_ENV = 'production';
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
-      const tool = createTool(validToolDefinition);
+      const _tool = createTool(validToolDefinition);
 
       expect(consoleSpy).not.toHaveBeenCalledWith(
         expect.stringContaining('Created tool')
@@ -374,7 +373,7 @@ describe('ToolBuilder Class', () => {
 
     it('should build a valid tool', () => {
       expect(() => {
-        const tool = builder
+        const _tool = builder
           .metadata({
             name: 'build-test',
             version: '1.0.0',
@@ -386,7 +385,7 @@ describe('ToolBuilder Class', () => {
         })
           .build();
 
-        expect(tool).toBeDefined();
+        expect(_tool).toBeDefined();
       }).not.toThrow();
     });
   });
@@ -423,7 +422,7 @@ describe('ToolBuilder Class', () => {
     });
 
     it('should prevent modification after build', () => {
-      const tool = builder
+      const _tool = builder
         .metadata({
           name: 'prevent-modification-test',
           version: '1.0.0',
@@ -507,7 +506,7 @@ describe('ToolBuilder Class', () => {
   describe('Execution Function Configuration', () => {
     it('should set execute function', () => {
       expect(() => {
-        builder.execute(async (input, config, context) => {
+        builder.execute(async (input, _config, _context) => {
           return {
             status: 'success',
             data: { processed: input }
@@ -528,8 +527,8 @@ describe('ToolBuilder Class', () => {
   describe('Lifecycle Functions Configuration', () => {
     it('should set setup function', () => {
       expect(() => {
-        builder.onSetup(async (config) => {
-          console.log('Setting up with config:', config);
+        builder.onSetup(async (_config) => {
+          console.log('Setting up with config:', _config);
         });
       }).not.toThrow();
     });
@@ -592,7 +591,7 @@ describe('ToolBuilder Class', () => {
           return { status: 'success', data: {} };
         });
       
-      const tool1 = builder.build();
+      const _tool1 = builder.build();
       
       expect(() => builder.build()).toThrow(ConfigurationError);
     });
@@ -730,29 +729,29 @@ describe('Field Builder Functions', () => {
 describe('Convenience Functions', () => {
   describe('simpleCreateTool', () => {
     it('should create a simple tool', () => {
-      const tool = simpleCreateTool(
+      const _tool = simpleCreateTool(
         'simple-echo-tool',
         '1.0.0',
         'Simple echo tool for testing',
-        async (input) => {
-          return { echo: input };
+        async (_input) => {
+          return { echo: _input };
         }
       );
 
-      expect(tool).toBeDefined();
+      expect(_tool).toBeDefined();
     });
 
     it('should handle execution errors', () => {
-      const tool = simpleCreateTool(
+      const _tool = simpleCreateTool(
         'error-tool',
         '1.0.0',
         'Tool that throws errors',
-        async (input) => {
+        async (_input) => {
           throw new Error('Test error');
         }
       );
 
-      expect(tool).toBeDefined();
+      expect(_tool).toBeDefined();
     });
   });
 
@@ -782,8 +781,8 @@ describe('Error Handling', () => {
       });
     } catch (error) {
       expect(error).toBeInstanceOf(ConfigurationError);
-      expect(error.message).toContain('Tool name is required');
-      expect(error.message).toContain('Execute function is required');
+      expect((error as Error).message).toContain('Tool name is required');
+      expect((error as Error).message).toContain('Execute function is required');
     }
   });
 
@@ -795,8 +794,8 @@ describe('Error Handling', () => {
       builder.build();
     } catch (error) {
       expect(error).toBeInstanceOf(ConfigurationError);
-      expect(error.message).toContain('Tool metadata is required');
-      expect(error.message).toContain('Execute function is required');
+      expect((error as Error).message).toContain('Tool metadata is required');
+      expect((error as Error).message).toContain('Execute function is required');
     }
   });
 
@@ -805,8 +804,8 @@ describe('Error Handling', () => {
       const builder = new ToolBuilder();
       builder.build();
     } catch (error) {
-      expect(error.message).toContain('Call .metadata() with tool information');
-      expect(error.message).toContain('Call .execute() with your tool logic');
+      expect((error as Error).message).toContain('Call .metadata() with tool information');
+      expect((error as Error).message).toContain('Call .execute() with your tool logic');
     }
   });
 });
@@ -823,7 +822,7 @@ describe('Type Safety', () => {
       baseUrl?: string;
     }
 
-    const tool = createTool<TestInput, TestConfig>({
+    const _tool = createTool<TestInput, TestConfig>({
       metadata: {
         name: 'typed-tool',
         version: '1.0.0',
@@ -840,22 +839,22 @@ describe('Type Safety', () => {
           baseUrl: configStringField({ required: false })
         }
       },
-      execute: async (input, config, context) => {
+      execute: async (input, _config, _context) => {
         // TypeScript should enforce correct types
         expect(typeof input.message).toBe('string');
-        expect(typeof config.apiKey).toBe('string');
+        expect(typeof _config.apiKey).toBe('string');
         
         return {
           status: 'success',
           data: {
             processed: input.message,
             count: input.count || 0,
-            url: config.baseUrl || 'default'
+            url: _config.baseUrl || 'default'
           }
         };
       }
     });
 
-    expect(tool).toBeDefined();
+    expect(_tool).toBeDefined();
   });
 });

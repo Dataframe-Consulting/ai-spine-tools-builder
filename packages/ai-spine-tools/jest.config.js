@@ -14,7 +14,12 @@ module.exports = {
   
   // Transform TypeScript files
   transform: {
-    '^.+\\.ts$': 'ts-jest'
+    '^.+\\.ts$': ['ts-jest', {
+      tsconfig: {
+        noUnusedLocals: false,
+        noUnusedParameters: false
+      }
+    }]
   },
   
   // Module file extensions

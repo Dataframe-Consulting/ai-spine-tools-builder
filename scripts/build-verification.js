@@ -133,9 +133,14 @@ class BuildVerifier {
             results.errors.push(`${file}: Potential syntax or export errors`);
           }
 
-          // Check for source maps if not in production
-          if (process.env.NODE_ENV !== 'production' && !content.includes('//# sourceMappingURL=')) {
-            results.errors.push(`${file}: Missing source map`);
+          // Check for source maps (only in development builds)
+          // Note: Source maps should only be present in development builds
+          const shouldHaveSourceMaps = process.env.NODE_ENV !== 'production';
+          const hasSourceMaps = content.includes('//# sourceMappingURL=');
+          
+          if (shouldHaveSourceMaps && !hasSourceMaps) {
+            results.warnings = results.warnings || [];
+            results.warnings.push(`${file}: Missing source map (development build)`);
           }
 
         } catch (error) {

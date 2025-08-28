@@ -3,7 +3,7 @@
  * CLI tool for scaffolding AI Spine compatible tools
  */
 
-import { createCliConfig, EXTERNAL_DEPS, loadPackageJson } from '../../rollup.shared.js';
+import { createRollupConfig, createCliConfig, EXTERNAL_DEPS, loadPackageJson } from '../../rollup.shared.js';
 
 const packageJson = loadPackageJson('.');
 
@@ -15,10 +15,14 @@ export default [
     external: EXTERNAL_DEPS.cli
   }),
   
-  // Library entry point (for programmatic usage)
-  createCliConfig({
+  // Library builds (ESM, CJS, TypeScript definitions)
+  ...createRollupConfig({
+    packageName: 'cli',
     input: 'src/index.ts',
-    output: 'dist/index.js',
-    external: EXTERNAL_DEPS.cli
+    external: EXTERNAL_DEPS.cli,
+    packageJson,
+    generateTypes: true,
+    bundleSizeLimit: 500,
+    isCli: false
   })
 ];

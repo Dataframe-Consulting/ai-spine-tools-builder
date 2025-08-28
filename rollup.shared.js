@@ -136,14 +136,16 @@ export function createRollupConfig(options) {
       sourceMap: !isProduction,
       inlineSources: !isProduction,
       declaration: false, // Handled separately
-      declarationMap: false
+      declarationMap: false,
+      module: 'ESNext' // Ensure ES modules output
     })
   ];
 
   // Production-specific plugins
-  const productionPlugins = isProduction ? [
-    // Minification and optimization
+  const productionPlugins = isProduction && !isCli ? [
+    // Minification and optimization (disabled for CLI packages due to compatibility issues)
     terser({
+      ecma: 2018, // Support ES2018 syntax for broader compatibility
       compress: {
         drop_console: ['log', 'info'], // Keep warn and error
         drop_debugger: true,
@@ -279,7 +281,9 @@ export function createRollupConfig(options) {
         dts({
           respectExternal: true,
           compilerOptions: {
-            preserveSymlinks: false
+            preserveSymlinks: false,
+            declaration: true,
+            declarationMap: false
           }
         })
       ],
@@ -328,20 +332,11 @@ export function createCliConfig(options) {
       typescript({
         tsconfig: './tsconfig.json',
         sourceMap: !isProduction,
-        declaration: false
+        declaration: false,
+        module: 'ESNext' // Ensure ES modules output
       }),
-      ...(isProduction ? [
-        terser({
-          compress: {
-            drop_console: ['log'],
-            drop_debugger: true
-          },
-          format: {
-            comments: false
-          }
-        }),
-        filesize()
-      ] : [])
+      // Note: Production optimizations disabled for CLI builds to avoid compatibility issues
+      // CLI tools don't need aggressive minification and it can cause Terser issues
     ],
     external: allExternal,
     treeshake: {

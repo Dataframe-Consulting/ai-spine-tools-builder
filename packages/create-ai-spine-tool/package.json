@@ -3,8 +3,20 @@
   "version": "1.0.0",
   "description": "CLI tool for creating AI Spine compatible tools",
   "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
   "bin": {
     "create-ai-spine-tool": "dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.js"
+    },
+    "./cli": {
+      "default": "./dist/cli.js"
+    }
   },
   "files": [
     "dist",
