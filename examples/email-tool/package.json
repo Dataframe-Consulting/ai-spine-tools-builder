@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "rollup -c ../../rollup.shared.js",
+    "build": "rollup -c",
     "dev": "nodemon --watch src --ext ts --exec \"npm run build && node dist/index.js\"",
     "start": "node dist/index.js",
     "test": "jest",
@@ -25,13 +25,13 @@
   "author": "AI Spine Tools",
   "license": "MIT",
   "dependencies": {
-    "@ai-spine/tools": "workspace:*",
+    "@ai-spine/tools": "^1.0.0",
     "@sendgrid/mail": "^7.7.0",
     "dotenv": "^16.3.1",
     "validator": "^13.11.0"
   },
   "devDependencies": {
-    "@ai-spine/tools-testing": "workspace:*",
+    "@ai-spine/tools-testing": "^1.0.0",
     "@types/jest": "^29.5.5",
     "@types/node": "^18.17.0",
     "@types/validator": "^13.11.7",

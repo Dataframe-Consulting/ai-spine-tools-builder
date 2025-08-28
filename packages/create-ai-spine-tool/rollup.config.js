@@ -1,28 +1,25 @@
 /**
  * Rollup configuration for create-ai-spine-tool
- * CLI tool for scaffolding AI Spine compatible tools
+ * CLI tool for scaffolding new AI Spine tools
  */
 
-import { createRollupConfig, createCliConfig, EXTERNAL_DEPS, loadPackageJson } from '../../rollup.shared.js';
+const { createCliConfig, EXTERNAL_DEPS, loadPackageJson } = require('../../rollup.shared.js');
 
 const packageJson = loadPackageJson('.');
 
-export default [
-  // Main CLI executable
+module.exports = [
+  // Main library build
   createCliConfig({
-    input: 'src/cli.ts',
-    output: 'dist/cli.js',
+    input: 'src/index.ts',
+    output: 'dist/index.js',
     external: EXTERNAL_DEPS.cli
   }),
   
-  // Library builds (ESM, CJS, TypeScript definitions)
-  ...createRollupConfig({
-    packageName: 'cli',
-    input: 'src/index.ts',
+  // CLI executable build (skip banner since cli.ts already has shebang)
+  createCliConfig({
+    input: 'src/cli.ts',
+    output: 'dist/cli.js',
     external: EXTERNAL_DEPS.cli,
-    packageJson,
-    generateTypes: true,
-    bundleSizeLimit: 500,
-    isCli: false
+    skipBanner: true
   })
 ];
