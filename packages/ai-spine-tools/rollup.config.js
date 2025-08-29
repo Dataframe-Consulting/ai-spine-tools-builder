@@ -1,74 +1,18 @@
-import typescript from '@rollup/plugin-typescript';
-import resolve from '@rollup/plugin-node-resolve';
-import commonjs from '@rollup/plugin-commonjs';
-import dts from 'rollup-plugin-dts';
+/**
+ * Rollup configuration for @ai-spine/tools
+ * Main framework with createTool factory and field builders
+ */
 
-const external = [
-  'express',
-  'cors',
-  'helmet',
-  'compression',
-  '@ai-spine/tools-core',
-  'crypto',
-  'url',
-  'http',
-  'https',
-  'stream',
-  'util',
-  'events',
-];
+import { createRollupConfig, EXTERNAL_DEPS, loadPackageJson } from '../../rollup.shared.js';
 
-const config = [
-  // ES Module build
-  {
-    input: 'src/index.ts',
-    output: {
-      file: 'dist/index.esm.js',
-      format: 'esm',
-      sourcemap: true,
-      exports: 'named',
-    },
-    plugins: [
-      resolve({ preferBuiltins: true }),
-      commonjs(),
-      typescript({
-        tsconfig: './tsconfig.json',
-        declaration: false,
-        declarationMap: false,
-      }),
-    ],
-    external,
-  },
-  // CommonJS build
-  {
-    input: 'src/index.ts',
-    output: {
-      file: 'dist/index.js',
-      format: 'cjs',
-      sourcemap: true,
-      exports: 'named',
-    },
-    plugins: [
-      resolve({ preferBuiltins: true }),
-      commonjs(),
-      typescript({
-        tsconfig: './tsconfig.json',
-        declaration: false,
-        declarationMap: false,
-      }),
-    ],
-    external,
-  },
-  // TypeScript declarations
-  {
-    input: 'src/index.ts',
-    output: {
-      file: 'dist/index.d.ts',
-      format: 'esm',
-    },
-    plugins: [dts()],
-    external,
-  },
-];
+const packageJson = loadPackageJson('.');
 
-export default config;
+export default createRollupConfig({
+  packageName: 'tools',
+  input: 'src/index.ts',
+  external: EXTERNAL_DEPS.tools,
+  packageJson,
+  generateTypes: true,
+  bundleSizeLimit: 200, // 200KB limit for main tools package
+  isCli: false
+});

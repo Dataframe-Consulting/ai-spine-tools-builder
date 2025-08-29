@@ -55,5 +55,7 @@ pnpm-lock.yaml
 
 CLAUDE.md
 DEVELOPMENT_PLAN.md
+CHANGELOG.md
 
 documentation/
+qa/
