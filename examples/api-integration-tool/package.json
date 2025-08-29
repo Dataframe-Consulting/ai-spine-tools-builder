@@ -1,0 +1,27 @@
+{
+  "name": "@ai-spine/api-integration-tool-example",
+  "version": "1.0.0",
+  "description": "API integration tool example using AI Spine Tools SDK with REST API consumption",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "nodemon --watch src --ext ts --exec \"npm run build && node dist/index.js\"",
+    "start": "node dist/index.js",
+    "test": "jest",
+    "clean": "rimraf dist coverage"
+  },
+  "dependencies": {
+    "@ai-spine/tools": "^1.0.0",
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "@ai-spine/tools-testing": "^1.0.0",
+    "@types/jest": "^29.5.5",
+    "@types/node": "^18.17.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.2.2"
+  }
+}

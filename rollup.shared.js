@@ -4,23 +4,20 @@
  * tree shaking, bundle analysis, and performance optimizations.
  */
 
-import typescript from '@rollup/plugin-typescript';
-import resolve from '@rollup/plugin-node-resolve';
-import commonjs from '@rollup/plugin-commonjs';
-import json from '@rollup/plugin-json';
-import terser from '@rollup/plugin-terser';
-import { createRequire } from 'module';
-import dts from 'rollup-plugin-dts';
-import { visualizer } from 'rollup-plugin-visualizer';
-import filesize from 'rollup-plugin-filesize';
-import progress from 'rollup-plugin-progress';
-import { 
+const typescript = require('@rollup/plugin-typescript');
+const resolve = require('@rollup/plugin-node-resolve');
+const commonjs = require('@rollup/plugin-commonjs');
+const json = require('@rollup/plugin-json');
+const terser = require('@rollup/plugin-terser');
+const dts = require('rollup-plugin-dts').default;
+const { visualizer } = require('rollup-plugin-visualizer');
+const filesize = require('rollup-plugin-filesize');
+const progress = require('rollup-plugin-progress');
+const { 
   rollupPerformancePlugin, 
   rollupIncrementalPlugin, 
   rollupMemoryMonitorPlugin 
-} from './rollup.cache.js';
-
-const require = createRequire(import.meta.url);
+} = require('./rollup.cache.js');
 
 /**
  * Environment and build mode detection
@@ -61,7 +58,7 @@ const BUNDLE_SIZE_LIMITS = {
  * @param {boolean} options.isCli - Whether this is a CLI package
  * @returns {Array} Array of Rollup configurations
  */
-export function createRollupConfig(options) {
+function createRollupConfig(options) {
   const {
     packageName,
     input = 'src/index.ts',
@@ -302,10 +299,11 @@ export function createRollupConfig(options) {
  * @param {string} options.input - Entry point file
  * @param {string} options.output - Output file
  * @param {string[]} options.external - External dependencies
+ * @param {boolean} options.skipBanner - Skip adding shebang banner (when file already has one)
  * @returns {Object} Rollup configuration
  */
-export function createCliConfig(options) {
-  const { input, output, external = [] } = options;
+function createCliConfig(options) {
+  const { input, output, external = [], skipBanner = false } = options;
 
   const allExternal = [
     ...NODE_BUILTINS,
@@ -318,7 +316,7 @@ export function createCliConfig(options) {
       file: output,
       format: 'cjs',
       sourcemap: !isProduction,
-      banner: '#!/usr/bin/env node',
+      banner: skipBanner ? undefined : '#!/usr/bin/env node',
       exports: 'auto'
     },
     plugins: [
@@ -368,7 +366,7 @@ function handleWarnings(warning, warn) {
 /**
  * Utility to load package.json
  */
-export function loadPackageJson(packagePath) {
+function loadPackageJson(packagePath) {
   try {
     return require(`${packagePath}/package.json`);
   } catch (error) {
@@ -380,7 +378,7 @@ export function loadPackageJson(packagePath) {
 /**
  * Export commonly used external dependencies for different package types
  */
-export const EXTERNAL_DEPS = {
+const EXTERNAL_DEPS = {
   core: [
     'express', 'cors', 'helmet', 'express-rate-limit', 'zod'
   ],
@@ -393,4 +391,12 @@ export const EXTERNAL_DEPS = {
   cli: [
     'commander', 'inquirer', 'chalk', 'ora', 'fs-extra', 'mustache', 'validate-npm-package-name'
   ]
+};
+
+// Export functions and constants
+module.exports = {
+  createRollupConfig,
+  createCliConfig,
+  loadPackageJson,
+  EXTERNAL_DEPS
 };

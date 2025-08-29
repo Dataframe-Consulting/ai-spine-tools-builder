@@ -3,14 +3,14 @@
  * Implements caching strategies and incremental build optimizations
  */
 
-import { promises as fs } from 'fs';
-import path from 'path';
-import crypto from 'crypto';
+const fs = require('fs').promises;
+const path = require('path');
+const crypto = require('crypto');
 
 /**
  * Cache configuration for Rollup builds
  */
-export class RollupCache {
+class RollupCache {
   constructor(options = {}) {
     this.cacheDir = options.cacheDir || path.join(process.cwd(), 'node_modules', '.cache', 'rollup');
     this.enabled = options.enabled !== false && process.env.NODE_ENV !== 'production';
@@ -176,7 +176,7 @@ export class RollupCache {
 /**
  * Performance monitoring plugin for Rollup
  */
-export function rollupPerformancePlugin(options = {}) {
+function rollupPerformancePlugin(options = {}) {
   const startTimes = new Map();
   const verbose = options.verbose || false;
   
@@ -215,7 +215,7 @@ export function rollupPerformancePlugin(options = {}) {
  * Incremental build plugin
  * Skips rebuilds if source files haven't changed
  */
-export function rollupIncrementalPlugin(options = {}) {
+function rollupIncrementalPlugin(options = {}) {
   const cache = new RollupCache(options.cache);
   let cacheKey = null;
   let sourceFiles = [];
@@ -257,7 +257,7 @@ export function rollupIncrementalPlugin(options = {}) {
 /**
  * Memory usage monitoring plugin
  */
-export function rollupMemoryMonitorPlugin(options = {}) {
+function rollupMemoryMonitorPlugin(options = {}) {
   const threshold = options.threshold || 500 * 1024 * 1024; // 500MB default
   const verbose = options.verbose || false;
 
@@ -288,7 +288,7 @@ export function rollupMemoryMonitorPlugin(options = {}) {
 /**
  * Build stats collector
  */
-export class BuildStats {
+class BuildStats {
   constructor() {
     this.stats = {
       builds: 0,
@@ -333,4 +333,14 @@ export class BuildStats {
 }
 
 // Global build stats instance
-export const globalBuildStats = new BuildStats();
+const globalBuildStats = new BuildStats();
+
+// Export functions and classes
+module.exports = {
+  RollupCache,
+  rollupPerformancePlugin,
+  rollupIncrementalPlugin,
+  rollupMemoryMonitorPlugin,
+  BuildStats,
+  globalBuildStats
+};

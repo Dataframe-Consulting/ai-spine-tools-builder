@@ -1,38 +1,18 @@
 /**
  * Rollup configuration for @ai-spine/tools-testing
- * Testing utilities and AISpineTestClient with CLI tools
+ * Testing utilities and mock data generators
  */
 
-import { createRollupConfig, createCliConfig, EXTERNAL_DEPS, loadPackageJson } from '../../rollup.shared.js';
+const { createRollupConfig, EXTERNAL_DEPS, loadPackageJson } = require('../../rollup.shared.js');
 
 const packageJson = loadPackageJson('.');
 
-// Main library builds - skip types generation due to form-data conflicts
-const libraryConfigs = createRollupConfig({
+module.exports = createRollupConfig({
   packageName: 'testing',
   input: 'src/index.ts',
   external: EXTERNAL_DEPS.testing,
   packageJson,
-  generateTypes: false, // Skip rollup-plugin-dts due to form-data type conflicts
+  generateTypes: false, // Skip due to superagent type conflicts
   bundleSizeLimit: 300, // 300KB limit for testing package
   isCli: false
 });
-
-// CLI tool configurations
-const cliConfigs = [
-  createCliConfig({
-    input: 'src/template-validator-cli.ts',
-    output: 'dist/template-validator.js',
-    external: EXTERNAL_DEPS.testing
-  }),
-  createCliConfig({
-    input: 'src/example-validator-cli.ts',
-    output: 'dist/example-validator.js',
-    external: EXTERNAL_DEPS.testing
-  })
-];
-
-export default [
-  ...libraryConfigs,
-  ...cliConfigs
-];
