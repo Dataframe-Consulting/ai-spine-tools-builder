@@ -3,11 +3,11 @@
  * Core types, validation, and Tool class implementation
  */
 
-import { createRollupConfig, EXTERNAL_DEPS, loadPackageJson } from '../../rollup.shared.js';
+const { createRollupConfig, EXTERNAL_DEPS, loadPackageJson } = require('../../rollup.shared.js');
 
 const packageJson = loadPackageJson('.');
 
-export default createRollupConfig({
+module.exports = createRollupConfig({
   packageName: 'core',
   input: 'src/index.ts',
   external: EXTERNAL_DEPS.core,

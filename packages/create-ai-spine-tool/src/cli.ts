@@ -40,6 +40,60 @@ const SYSTEM_REQUIREMENTS: SystemRequirements = {
 const TEAM_CONFIG_FILENAME = '.ai-spine-tool.json';
 
 /**
+ * Generate help text with proper chalk formatting
+ */
+function generateHelpText(): string {
+  try {
+    return `
+${chalk.bold('Examples:')}
+  ${chalk.cyan('create-ai-spine-tool my-weather-tool')}
+  ${chalk.cyan('create-ai-spine-tool my-api-tool --template api-integration --lang typescript')}
+  ${chalk.cyan('create-ai-spine-tool my-tool --yes --no-git --no-install')}
+  ${chalk.cyan('create-ai-spine-tool --check-system')}
+  ${chalk.cyan('create-ai-spine-tool my-tool --dry-run')}
+  ${chalk.cyan('create-ai-spine-tool --validate-templates')}
+
+${chalk.bold('Configuration:')}
+  Create a ${chalk.yellow(TEAM_CONFIG_FILENAME)} file in your project or home directory
+  to set team-wide defaults for templates, language, and other options.
+
+${chalk.bold('Templates:')}
+  ${chalk.green('basic')}          - Simple tool with minimal setup (recommended for beginners)
+  ${chalk.green('api-integration')} - Tool that integrates with external APIs
+  ${chalk.green('data-processing')} - Tool for data transformation and analysis
+
+${chalk.bold('Support:')}
+  Documentation: ${chalk.blue('https://docs.ai-spine.com/tools')}
+  Issues: ${chalk.blue('https://github.com/ai-spine/tools/issues')}
+`;
+  } catch (error) {
+    // Fallback without colors if chalk fails
+    return `
+Examples:
+  create-ai-spine-tool my-weather-tool
+  create-ai-spine-tool my-api-tool --template api-integration --lang typescript
+  create-ai-spine-tool my-tool --yes --no-git --no-install
+  create-ai-spine-tool --check-system
+  create-ai-spine-tool my-tool --dry-run
+  create-ai-spine-tool --validate-templates
+
+Configuration:
+  Create a ${TEAM_CONFIG_FILENAME} file in your project or home directory
+  to set team-wide defaults for templates, language, and other options.
+
+Templates:
+  basic          - Simple tool with minimal setup (recommended for beginners)
+  api-integration - Tool that integrates with external APIs
+  data-processing - Tool for data transformation and analysis
+
+Support:
+  Documentation: https://docs.ai-spine.com/tools
+  Issues: https://github.com/ai-spine/tools/issues
+`;
+  }
+}
+
+/**
  * Commander program instance
  */
 const program = new Command();
@@ -93,28 +147,7 @@ program
   });
 
 // Add help examples
-program.addHelpText('after', `
-${chalk.bold('Examples:')}
-  ${chalk.cyan('create-ai-spine-tool my-weather-tool')}
-  ${chalk.cyan('create-ai-spine-tool my-api-tool --template api-integration --lang typescript')}
-  ${chalk.cyan('create-ai-spine-tool my-tool --yes --no-git --no-install')}
-  ${chalk.cyan('create-ai-spine-tool --check-system')}
-  ${chalk.cyan('create-ai-spine-tool my-tool --dry-run')}
-  ${chalk.cyan('create-ai-spine-tool --validate-templates')}
-
-${chalk.bold('Configuration:')}
-  Create a ${chalk.yellow(TEAM_CONFIG_FILENAME)} file in your project or home directory
-  to set team-wide defaults for templates, language, and other options.
-
-${chalk.bold('Templates:')}
-  ${chalk.green('basic')}          - Simple tool with minimal setup (recommended for beginners)
-  ${chalk.green('api-integration')} - Tool that integrates with external APIs
-  ${chalk.green('data-processing')} - Tool for data transformation and analysis
-
-${chalk.bold('Support:')}
-  Documentation: ${chalk.blue('https://docs.ai-spine.com/tools')}
-  Issues: ${chalk.blue('https://github.com/ai-spine/tools/issues')}
-`);
+program.addHelpText('after', generateHelpText());
 
 program.parse();
 
