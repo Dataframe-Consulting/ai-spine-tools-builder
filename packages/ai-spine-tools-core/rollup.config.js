@@ -1,50 +1,18 @@
-import typescript from '@rollup/plugin-typescript';
-import dts from 'rollup-plugin-dts';
+/**
+ * Rollup configuration for @ai-spine/tools-core
+ * Core types, validation, and Tool class implementation
+ */
 
-const config = [
-  // ES Module build
-  {
-    input: 'src/index.ts',
-    output: {
-      file: 'dist/index.esm.js',
-      format: 'esm',
-      sourcemap: true,
-    },
-    plugins: [
-      typescript({
-        tsconfig: './tsconfig.json',
-        declaration: false,
-        declarationMap: false,
-      }),
-    ],
-    external: ['crypto', 'url'],
-  },
-  // CommonJS build
-  {
-    input: 'src/index.ts',
-    output: {
-      file: 'dist/index.js',
-      format: 'cjs',
-      sourcemap: true,
-    },
-    plugins: [
-      typescript({
-        tsconfig: './tsconfig.json',
-        declaration: false,
-        declarationMap: false,
-      }),
-    ],
-    external: ['crypto', 'url'],
-  },
-  // TypeScript declarations
-  {
-    input: 'src/index.ts',
-    output: {
-      file: 'dist/index.d.ts',
-      format: 'esm',
-    },
-    plugins: [dts()],
-  },
-];
+import { createRollupConfig, EXTERNAL_DEPS, loadPackageJson } from '../../rollup.shared.js';
 
-export default config;
+const packageJson = loadPackageJson('.');
+
+export default createRollupConfig({
+  packageName: 'core',
+  input: 'src/index.ts',
+  external: EXTERNAL_DEPS.core,
+  packageJson,
+  generateTypes: true,
+  bundleSizeLimit: 150, // 150KB limit for core package
+  isCli: false
+});

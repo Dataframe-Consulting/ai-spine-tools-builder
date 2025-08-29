@@ -25,9 +25,9 @@ describe('createTool Factory Function', () => {
         apiKey: apiKeyField({ required: true, description: 'Test API key' })
       }
     },
-    execute: async (input, config, context) => {
+    execute: async (input: any, _config: any, _context: any) => {
       return {
-        status: 'success',
+        status: 'success' as const,
         data: { echo: input.message }
       };
     }
@@ -45,7 +45,7 @@ describe('createTool Factory Function', () => {
       const invalidDefinition = {
         ...validToolDefinition,
         metadata: undefined
-      };
+      } as any;
 
       expect(() => {
         createTool(invalidDefinition);
@@ -55,8 +55,8 @@ describe('createTool Factory Function', () => {
     it('should validate tool definition for missing execute function', () => {
       const invalidDefinition = {
         ...validToolDefinition,
-        execute: undefined as any
-      };
+        execute: undefined
+      } as any;
 
       expect(() => {
         createTool(invalidDefinition);
@@ -82,7 +82,7 @@ describe('createTool Factory Function', () => {
             capabilities: ['test']
           })
           .execute(async () => {
-            return { status: 'success', data: {} };
+            return { status: 'success' as const, data: {} };
           })
           .build();
 

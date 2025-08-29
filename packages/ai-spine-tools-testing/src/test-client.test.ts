@@ -1,29 +1,27 @@
-import { describe, it, expect, beforeEach, afterEach, vi, Mock } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import axios from 'axios';
 import { EventEmitter } from 'events';
 import {
   AISpineTestClient,
   TestClientOptions,
-  TestExecutionResult,
   TestScenario,
-  LoadTestOptions,
-  ToolValidationResult
+  LoadTestOptions
 } from './test-client';
 import { ToolError } from '@ai-spine/tools-core';
 
 // Mock axios
-vi.mock('axios');
-const mockedAxios = vi.mocked(axios, true);
+jest.mock('axios');
+const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 describe('AISpineTestClient', () => {
   let client: AISpineTestClient;
   let mockAxiosInstance: {
-    get: Mock;
-    post: Mock;
-    create: Mock;
+    get: jest.Mock;
+    post: jest.Mock;
+    create: jest.Mock;
     interceptors: {
-      request: { use: Mock };
-      response: { use: Mock };
+      request: { use: jest.Mock };
+      response: { use: jest.Mock };
     };
   };
 
@@ -36,22 +34,22 @@ describe('AISpineTestClient', () => {
 
   beforeEach(() => {
     mockAxiosInstance = {
-      get: vi.fn(),
-      post: vi.fn(),
-      create: vi.fn(),
+      get: jest.fn(),
+      post: jest.fn(),
+      create: jest.fn(),
       interceptors: {
-        request: { use: vi.fn() },
-        response: { use: vi.fn() }
+        request: { use: jest.fn() },
+        response: { use: jest.fn() }
       }
     };
 
-    mockedAxios.create = vi.fn().mockReturnValue(mockAxiosInstance);
+    mockedAxios.create = jest.fn().mockReturnValue(mockAxiosInstance);
     
     client = new AISpineTestClient(defaultOptions);
   });
 
   afterEach(() => {
-    vi.resetAllMocks();
+    jest.resetAllMocks();
   });
 
   describe('constructor', () => {
@@ -70,7 +68,7 @@ describe('AISpineTestClient', () => {
         enableMetrics: false
       };
 
-      const testClient = new AISpineTestClient(customOptions);
+      new AISpineTestClient(customOptions);
       expect(mockedAxios.create).toHaveBeenCalledWith(
         expect.objectContaining({
           baseURL: 'https://api.example.com',
@@ -502,9 +500,9 @@ describe('AISpineTestClient', () => {
         enableDetailedLogs: true
       });
 
-      const requestSpy = vi.fn();
-      const responseSpy = vi.fn();
-      const executionSpy = vi.fn();
+      const requestSpy = jest.fn();
+      const responseSpy = jest.fn();
+      const executionSpy = jest.fn();
 
       eventClient.on('request', requestSpy);
       eventClient.on('response', responseSpy);
@@ -533,8 +531,8 @@ describe('AISpineTestClient', () => {
 
   describe('close', () => {
     it('should emit closing and closed events', async () => {
-      const closingSpy = vi.fn();
-      const closedSpy = vi.fn();
+      const closingSpy = jest.fn();
+      const closedSpy = jest.fn();
 
       client.on('client_closing', closingSpy);
       client.on('client_closed', closedSpy);
