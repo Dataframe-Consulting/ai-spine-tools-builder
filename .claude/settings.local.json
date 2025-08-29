@@ -8,7 +8,9 @@
       "Bash(npx tsc:*)",
       "mcp__ide__getDiagnostics",
       "Bash(npm start)",
-      "Bash(npm run lint)"
+      "Bash(npm run lint)",
+      "Bash(npm run monorepo:status:*)",
+      "Bash(npm run monorepo:health:*)"
     ],
     "deny": [],
     "ask": []

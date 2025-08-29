@@ -101,7 +101,7 @@ const myFirstToolTool = createTool<MyFirstToolInput, MyFirstToolConfig>({
    * @param context - Execution context with metadata and tracking information
    * @returns Promise resolving to structured execution results
    */
-  async execute(input, config, context) {
+  async execute(input, _config, context) {
     console.log(`Executing my-first-tool tool with execution ID: ${context.executionId}`);
 
     try {
