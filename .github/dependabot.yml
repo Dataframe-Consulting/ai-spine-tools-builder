@@ -1,0 +1,146 @@
+# Dependabot Configuration for AI Spine Tools SDK
+#
+# Automated dependency management for security updates and version maintenance
+# across the monorepo packages
+
+version: 2
+updates:
+  # Main package dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "ai-spine-team"
+    assignees:
+      - "ai-spine-team"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps-dev"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "automated"
+    ignore:
+      # Ignore major version updates for stable dependencies
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "node"
+        update-types: ["version-update:semver-major"]
+    groups:
+      rollup:
+        patterns:
+          - "rollup*"
+          - "@rollup/*"
+      eslint:
+        patterns:
+          - "eslint*"
+          - "@typescript-eslint/*"
+      jest:
+        patterns:
+          - "jest*"
+          - "@jest/*"
+          - "@types/jest"
+
+  # Core tools package
+  - package-ecosystem: "npm"
+    directory: "/packages/ai-spine-tools-core"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "10:00"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "ai-spine-tools-core"
+    commit-message:
+      prefix: "deps(core)"
+
+  # Main tools package  
+  - package-ecosystem: "npm"
+    directory: "/packages/ai-spine-tools"
+    schedule:
+      interval: "weekly" 
+      day: "monday"
+      time: "11:00"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "ai-spine-tools"
+    commit-message:
+      prefix: "deps(tools)"
+
+  # Testing package
+  - package-ecosystem: "npm"
+    directory: "/packages/ai-spine-tools-testing"
+    schedule:
+      interval: "weekly"
+      day: "monday" 
+      time: "12:00"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "ai-spine-tools-testing"
+    commit-message:
+      prefix: "deps(testing)"
+
+  # CLI package
+  - package-ecosystem: "npm"
+    directory: "/packages/create-ai-spine-tool"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "13:00"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "create-ai-spine-tool"
+    commit-message:
+      prefix: "deps(cli)"
+
+  # Example projects dependencies
+  - package-ecosystem: "npm"
+    directory: "/examples/calculator-tool"
+    schedule:
+      interval: "monthly"
+      day: "first monday"
+    open-pull-requests-limit: 2
+    labels:
+      - "dependencies"
+      - "examples"
+
+  - package-ecosystem: "npm"
+    directory: "/examples/email-tool"
+    schedule:
+      interval: "monthly"
+      day: "first monday"
+    open-pull-requests-limit: 2
+    labels:
+      - "dependencies"
+      - "examples"
+
+  - package-ecosystem: "npm"
+    directory: "/examples/database-tool"
+    schedule:
+      interval: "monthly"
+      day: "first monday"
+    open-pull-requests-limit: 2
+    labels:
+      - "dependencies"
+      - "examples"
+
+  # GitHub Actions dependencies
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "first tuesday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "ci"
