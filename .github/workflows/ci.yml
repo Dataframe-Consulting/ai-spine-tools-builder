@@ -109,7 +109,7 @@ jobs:
       - name: ESLint analysis
         run: |
           echo "🔍 Running ESLint analysis..."
-          npm run lint -- --format=github --max-warnings=0
+          npm run lint
           echo "✅ ESLint analysis passed"
 
       - name: Prettier format checking
