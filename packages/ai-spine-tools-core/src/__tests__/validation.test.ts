@@ -35,11 +35,7 @@ describe('ZodSchemaValidator', () => {
     describe('String Fields', () => {
       it('should validate basic string fields', async () => {
         const schema = {
-          name: stringField()
-            .required()
-            .minLength(2)
-            .maxLength(50)
-            .build(),
+          name: stringField().required().minLength(2).maxLength(50).build(),
         };
 
         const validData = { name: 'John Doe' };
@@ -52,10 +48,7 @@ describe('ZodSchemaValidator', () => {
 
       it('should reject strings that are too short', async () => {
         const schema = {
-          name: stringField()
-            .required()
-            .minLength(5)
-            .build(),
+          name: stringField().required().minLength(5).build(),
         };
 
         const invalidData = { name: 'Jo' };
@@ -69,10 +62,7 @@ describe('ZodSchemaValidator', () => {
 
       it('should reject strings that are too long', async () => {
         const schema = {
-          description: stringField()
-            .required()
-            .maxLength(10)
-            .build(),
+          description: stringField().required().maxLength(10).build(),
         };
 
         const invalidData = { description: 'This is a very long description' };
@@ -84,17 +74,17 @@ describe('ZodSchemaValidator', () => {
 
       it('should validate string patterns', async () => {
         const schema = {
-          code: stringField()
-            .required()
-            .pattern('^[A-Z]{2}[0-9]{4}$')
-            .build(),
+          code: stringField().required().pattern('^[A-Z]{2}[0-9]{4}$').build(),
         };
 
         const validData = { code: 'AB1234' };
         const invalidData = { code: 'ab1234' };
 
         const validResult = await validator.validateInput(validData, schema);
-        const invalidResult = await validator.validateInput(invalidData, schema);
+        const invalidResult = await validator.validateInput(
+          invalidData,
+          schema
+        );
 
         expect(validResult.success).toBe(true);
         expect(invalidResult.success).toBe(false);
@@ -103,14 +93,13 @@ describe('ZodSchemaValidator', () => {
 
       it('should apply string transformations', async () => {
         const schema = {
-          email: stringField()
-            .required()
-            .transform('lowercase')
-            .build(),
+          email: stringField().required().transform('lowercase').build(),
         };
 
         const inputData = { email: 'USER@EXAMPLE.COM' };
-        const result = await validator.validateInput(inputData, schema, { transform: true });
+        const result = await validator.validateInput(inputData, schema, {
+          transform: true,
+        });
 
         expect(result.success).toBe(true);
         expect(result.data.email).toBe('user@example.com');
@@ -120,16 +109,17 @@ describe('ZodSchemaValidator', () => {
     describe('Email Fields', () => {
       it('should validate email addresses', async () => {
         const schema = {
-          email: emailField()
-            .required()
-            .build(),
+          email: emailField().required().build(),
         };
 
         const validData = { email: 'user@example.com' };
         const invalidData = { email: 'invalid-email' };
 
         const validResult = await validator.validateInput(validData, schema);
-        const invalidResult = await validator.validateInput(invalidData, schema);
+        const invalidResult = await validator.validateInput(
+          invalidData,
+          schema
+        );
 
         expect(validResult.success).toBe(true);
         expect(invalidResult.success).toBe(false);
@@ -140,12 +130,7 @@ describe('ZodSchemaValidator', () => {
     describe('Number Fields', () => {
       it('should validate number ranges', async () => {
         const schema = {
-          age: numberField()
-            .required()
-            .min(0)
-            .max(120)
-            .integer()
-            .build(),
+          age: numberField().required().min(0).max(120).integer().build(),
         };
 
         const validData = { age: 25 };
@@ -154,9 +139,18 @@ describe('ZodSchemaValidator', () => {
         const invalidTypeData = { age: 25.5 };
 
         const validResult = await validator.validateInput(validData, schema);
-        const invalidMinResult = await validator.validateInput(invalidMinData, schema);
-        const invalidMaxResult = await validator.validateInput(invalidMaxData, schema);
-        const invalidTypeResult = await validator.validateInput(invalidTypeData, schema);
+        const invalidMinResult = await validator.validateInput(
+          invalidMinData,
+          schema
+        );
+        const invalidMaxResult = await validator.validateInput(
+          invalidMaxData,
+          schema
+        );
+        const invalidTypeResult = await validator.validateInput(
+          invalidTypeData,
+          schema
+        );
 
         expect(validResult.success).toBe(true);
         expect(invalidMinResult.success).toBe(false);
@@ -168,16 +162,17 @@ describe('ZodSchemaValidator', () => {
     describe('Boolean Fields', () => {
       it('should validate boolean values', async () => {
         const schema = {
-          enabled: booleanField()
-            .required()
-            .build(),
+          enabled: booleanField().required().build(),
         };
 
         const validData = { enabled: true };
         const invalidData = { enabled: 'yes' };
 
         const validResult = await validator.validateInput(validData, schema);
-        const invalidResult = await validator.validateInput(invalidData, schema);
+        const invalidResult = await validator.validateInput(
+          invalidData,
+          schema
+        );
 
         expect(validResult.success).toBe(true);
         expect(invalidResult.success).toBe(false);
@@ -196,7 +191,10 @@ describe('ZodSchemaValidator', () => {
         const invalidData = { status: 'unknown' };
 
         const validResult = await validator.validateInput(validData, schema);
-        const invalidResult = await validator.validateInput(invalidData, schema);
+        const invalidResult = await validator.validateInput(
+          invalidData,
+          schema
+        );
 
         expect(validResult.success).toBe(true);
         expect(invalidResult.success).toBe(false);
@@ -220,9 +218,18 @@ describe('ZodSchemaValidator', () => {
         const invalidLengthData = { tags: ['1', '2', '3', '4', '5', '6'] };
 
         const validResult = await validator.validateInput(validData, schema);
-        const invalidEmptyResult = await validator.validateInput(invalidEmptyData, schema);
-        const invalidItemResult = await validator.validateInput(invalidItemData, schema);
-        const invalidLengthResult = await validator.validateInput(invalidLengthData, schema);
+        const invalidEmptyResult = await validator.validateInput(
+          invalidEmptyData,
+          schema
+        );
+        const invalidItemResult = await validator.validateInput(
+          invalidItemData,
+          schema
+        );
+        const invalidLengthResult = await validator.validateInput(
+          invalidLengthData,
+          schema
+        );
 
         expect(validResult.success).toBe(true);
         expect(invalidEmptyResult.success).toBe(false);
@@ -256,7 +263,10 @@ describe('ZodSchemaValidator', () => {
         };
 
         const validResult = await validator.validateInput(validData, schema);
-        const invalidResult = await validator.validateInput(invalidData, schema);
+        const invalidResult = await validator.validateInput(
+          invalidData,
+          schema
+        );
 
         expect(validResult.success).toBe(true);
         expect(invalidResult.success).toBe(false);
@@ -297,7 +307,11 @@ describe('ZodSchemaValidator', () => {
         };
 
         const invalidData = {};
-        const result = await validator.validateInput(invalidData, schema, options);
+        const result = await validator.validateInput(
+          invalidData,
+          schema,
+          options
+        );
 
         expect(result.success).toBe(false);
         // Note: Custom messages for required fields would need to be implemented
@@ -332,7 +346,10 @@ describe('ZodSchemaValidator', () => {
       };
 
       const validResult = await validator.validateConfig(validConfig, schema);
-      const invalidResult = await validator.validateConfig(invalidConfig, schema);
+      const invalidResult = await validator.validateConfig(
+        invalidConfig,
+        schema
+      );
 
       expect(validResult.success).toBe(true);
       expect(validResult.data.environment).toBe('production'); // default applied
@@ -354,7 +371,10 @@ describe('ZodSchemaValidator', () => {
       const invalidConfig = { webhookUrl: 'http://api.example.com/webhook' };
 
       const validResult = await validator.validateConfig(validConfig, schema);
-      const invalidResult = await validator.validateConfig(invalidConfig, schema);
+      const invalidResult = await validator.validateConfig(
+        invalidConfig,
+        schema
+      );
 
       expect(validResult.success).toBe(true);
       expect(invalidResult.success).toBe(false);
@@ -376,9 +396,7 @@ describe('ZodSchemaValidator', () => {
             .build(),
         },
         config: {
-          apiKey: apiKeyField()
-            .required()
-            .build(),
+          apiKey: apiKeyField().required().build(),
           timeout: {
             type: 'number',
             required: false,
@@ -413,7 +431,9 @@ describe('ZodSchemaValidator', () => {
           type: enumField(['basic', 'advanced']).required().build(),
           advancedOptions: objectField({
             complexity: numberField().min(1).max(10).build(),
-          }).optional().build(),
+          })
+            .optional()
+            .build(),
         },
         config: {
           apiKey: apiKeyField().required().build(),
@@ -424,7 +444,8 @@ describe('ZodSchemaValidator', () => {
               rule: 'conditional',
               condition: 'input.type === "advanced"',
               requires: ['input.advancedOptions'],
-              errorMessage: 'Advanced options are required when type is advanced',
+              errorMessage:
+                'Advanced options are required when type is advanced',
             },
           ],
         },
@@ -448,14 +469,25 @@ describe('ZodSchemaValidator', () => {
         config: { apiKey: 'test-key' },
       };
 
-      const basicResult = await validator.validateToolSchema(validBasicData, toolSchema);
-      const advancedResult = await validator.validateToolSchema(validAdvancedData, toolSchema);
-      const invalidResult = await validator.validateToolSchema(invalidAdvancedData, toolSchema);
+      const basicResult = await validator.validateToolSchema(
+        validBasicData,
+        toolSchema
+      );
+      const advancedResult = await validator.validateToolSchema(
+        validAdvancedData,
+        toolSchema
+      );
+      const invalidResult = await validator.validateToolSchema(
+        invalidAdvancedData,
+        toolSchema
+      );
 
       expect(basicResult.success).toBe(true);
       expect(advancedResult.success).toBe(true);
       expect(invalidResult.success).toBe(false);
-      expect(invalidResult.errors![0].code).toBe('CROSS_FIELD_VALIDATION_FAILED');
+      expect(invalidResult.errors![0].code).toBe(
+        'CROSS_FIELD_VALIDATION_FAILED'
+      );
     });
   });
 
@@ -470,7 +502,7 @@ describe('ZodSchemaValidator', () => {
 
       // First validation - should not use cache
       const result1 = await validator.validateInput(data, schema);
-      
+
       // Second validation - should use cache
       const result2 = await validator.validateInput(data, schema);
 
@@ -500,15 +532,15 @@ describe('ZodSchemaValidator', () => {
 
     it('should reset metrics and cache', () => {
       const schema = { name: stringField().required().build() };
-      
+
       // Add some data to cache and metrics
       validator.validateInput({ name: 'test' }, schema);
-      
+
       const metricsBeforeReset = validator.getMetrics();
       expect(metricsBeforeReset.totalValidations).toBeGreaterThanOrEqual(0);
-      
+
       validator.reset();
-      
+
       const metricsAfterReset = validator.getMetrics();
       expect(metricsAfterReset.totalValidations).toBe(0);
       expect(metricsAfterReset.currentCacheSize).toBe(0);
@@ -523,15 +555,18 @@ describe('ZodSchemaValidator', () => {
       };
 
       const startTime = Date.now();
-      
+
       // Run multiple validations
-      const promises = Array.from({ length: 100 }, (_, i) => 
-        validator.validateInput({
-          id: i + 1,
-          name: `User ${i + 1}`,
-          email: `user${i + 1}@example.com`,
-          tags: [`tag${i}`, `category${i % 5}`],
-        }, schema)
+      const promises = Array.from({ length: 100 }, (_, i) =>
+        validator.validateInput(
+          {
+            id: i + 1,
+            name: `User ${i + 1}`,
+            email: `user${i + 1}@example.com`,
+            tags: [`tag${i}`, `category${i % 5}`],
+          },
+          schema
+        )
       );
 
       const results = await Promise.all(promises);
@@ -539,7 +574,7 @@ describe('ZodSchemaValidator', () => {
 
       // All validations should succeed
       expect(results.every(r => r.success)).toBe(true);
-      
+
       // Should complete in reasonable time (adjust threshold as needed)
       expect(duration).toBeLessThan(5000); // 5 seconds max for 100 validations
 
@@ -591,7 +626,10 @@ describe('ZodSchemaValidator', () => {
         },
       };
 
-      const result = await validator.validateInput({ enumField: 'test' }, invalidSchema);
+      const result = await validator.validateInput(
+        { enumField: 'test' },
+        invalidSchema
+      );
 
       expect(result.success).toBe(false);
       expect(result.errors![0].code).toBe('VALIDATION_SYSTEM_ERROR');
@@ -621,14 +659,8 @@ describe('ZodSchemaValidator', () => {
 
     it('should transform values when transform option is enabled', async () => {
       const schema = {
-        name: stringField()
-          .required()
-          .transform('trim')
-          .build(),
-        email: stringField()
-          .required()
-          .transform('lowercase')
-          .build(),
+        name: stringField().required().transform('trim').build(),
+        email: stringField().required().transform('lowercase').build(),
       };
 
       const dataWithSpaces = {
@@ -658,12 +690,14 @@ describe('Legacy SchemaValidator Compatibility', () => {
     const invalidData = { name: 'J' }; // too short
 
     // Should not throw for valid data
-    await expect(SchemaValidator.validateInput(validData, schema))
-      .resolves.not.toThrow();
+    await expect(
+      SchemaValidator.validateInput(validData, schema)
+    ).resolves.not.toThrow();
 
     // Should throw ValidationError for invalid data
-    await expect(SchemaValidator.validateInput(invalidData, schema))
-      .rejects.toThrow('Input validation failed');
+    await expect(
+      SchemaValidator.validateInput(invalidData, schema)
+    ).rejects.toThrow('Input validation failed');
   });
 
   it('should maintain backward compatibility for config validation', async () => {
@@ -679,11 +713,13 @@ describe('Legacy SchemaValidator Compatibility', () => {
     const validConfig = { apiKey: 'test-key' };
     const invalidConfig = {}; // missing required apiKey
 
-    await expect(SchemaValidator.validateConfig(validConfig, schema))
-      .resolves.not.toThrow();
+    await expect(
+      SchemaValidator.validateConfig(validConfig, schema)
+    ).resolves.not.toThrow();
 
-    await expect(SchemaValidator.validateConfig(invalidConfig, schema))
-      .rejects.toThrow('Configuration validation failed');
+    await expect(
+      SchemaValidator.validateConfig(invalidConfig, schema)
+    ).rejects.toThrow('Configuration validation failed');
   });
 });
 
@@ -698,13 +734,13 @@ describe('Real-world Usage Scenarios', () => {
           .description('City name for weather lookup')
           .example('Madrid')
           .build(),
-        
+
         units: enumField(['celsius', 'fahrenheit', 'kelvin'])
           .optional()
           .default('celsius')
           .description('Temperature units')
           .build(),
-        
+
         includeHourly: booleanField()
           .optional()
           .default(false)
@@ -717,7 +753,7 @@ describe('Real-world Usage Scenarios', () => {
           .description('OpenWeatherMap API key')
           .envVar('OPENWEATHER_API_KEY')
           .build(),
-        
+
         baseUrl: {
           type: 'url',
           required: false,
@@ -743,12 +779,17 @@ describe('Real-world Usage Scenarios', () => {
       },
     };
 
-    const result = await validator.validateToolSchema(validRequest, weatherToolSchema);
+    const result = await validator.validateToolSchema(
+      validRequest,
+      weatherToolSchema
+    );
 
     expect(result.success).toBe(true);
     expect(result.data.input.city).toBe('Madrid');
     expect(result.data.input.units).toBe('celsius');
-    expect(result.data.config.baseUrl).toBe('https://api.openweathermap.org/data/2.5');
+    expect(result.data.config.baseUrl).toBe(
+      'https://api.openweathermap.org/data/2.5'
+    );
   });
 
   it('should validate an email tool with file attachments', async () => {
@@ -759,23 +800,19 @@ describe('Real-world Usage Scenarios', () => {
           .minItems(1)
           .maxItems(10)
           .build(),
-        
-        subject: stringField()
-          .required()
-          .minLength(1)
-          .maxLength(200)
-          .build(),
-        
-        body: stringField()
-          .required()
-          .minLength(1)
-          .maxLength(10000)
-          .build(),
-        
+
+        subject: stringField().required().minLength(1).maxLength(200).build(),
+
+        body: stringField().required().minLength(1).maxLength(10000).build(),
+
         attachments: arrayField(
           objectField({
             name: stringField().required().build(),
-            size: numberField().required().min(1).max(25 * 1024 * 1024).build(), // 25MB max
+            size: numberField()
+              .required()
+              .min(1)
+              .max(25 * 1024 * 1024)
+              .build(), // 25MB max
             type: stringField().required().build(),
           }).build()
         )
@@ -828,7 +865,10 @@ describe('Real-world Usage Scenarios', () => {
       },
     };
 
-    const result = await validator.validateToolSchema(validRequest, emailToolSchema);
+    const result = await validator.validateToolSchema(
+      validRequest,
+      emailToolSchema
+    );
 
     expect(result.success).toBe(true);
     expect(result.data.input.to).toHaveLength(2);

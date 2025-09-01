@@ -1,11 +1,11 @@
 /**
  * Field builder system for creating tool input and configuration schemas.
  * This module provides a fluent API for defining validation rules in a type-safe manner.
- * 
+ *
  * @example
  * ```typescript
  * import { stringField, numberField, enumField } from '@ai-spine/tools-core';
- * 
+ *
  * const schema = {
  *   input: {
  *     city: stringField()
@@ -14,12 +14,12 @@
  *       .maxLength(100)
  *       .description('Name of the city to get weather for')
  *       .example('Madrid'),
- *     
+ *
  *     temperature_units: enumField(['celsius', 'fahrenheit', 'kelvin'])
  *       .optional()
  *       .default('celsius')
  *       .description('Temperature units for response'),
- *     
+ *
  *     max_results: numberField()
  *       .optional()
  *       .min(1)
@@ -37,12 +37,12 @@
  * ```
  */
 
-import { 
-  ToolInputField, 
-  ToolConfigField, 
-  StringFormat 
-} from './types.js';
-import { ZodSchemaValidator, ValidationResult, ValidationOptions } from './validation.js';
+import { ToolInputField, ToolConfigField, StringFormat } from './types.js';
+import {
+  ZodSchemaValidator,
+  ValidationResult,
+  ValidationOptions,
+} from './validation.js';
 
 // ===== INPUT FIELD BUILDERS =====
 
@@ -113,7 +113,9 @@ abstract class BaseInputFieldBuilder<T extends ToolInputField> {
   /**
    * Set transformation to apply before validation
    */
-  transform(transformation: 'trim' | 'lowercase' | 'uppercase' | 'normalize'): this {
+  transform(
+    transformation: 'trim' | 'lowercase' | 'uppercase' | 'normalize'
+  ): this {
     this.field.transform = transformation;
     return this;
   }
@@ -587,7 +589,10 @@ class UrlConfigFieldBuilder extends BaseConfigFieldBuilder<ToolConfigField> {
    * Set allowed protocols (e.g., ['https', 'http'])
    */
   protocols(protocols: string[]): this {
-    this.field.validation = { ...this.field.validation, allowedProtocols: protocols };
+    this.field.validation = {
+      ...this.field.validation,
+      allowedProtocols: protocols,
+    };
     return this;
   }
 
@@ -651,7 +656,9 @@ export function arrayField(itemType: ToolInputField): ArrayFieldBuilder {
 /**
  * Create an object input field builder
  */
-export function objectField(properties: Record<string, ToolInputField>): ObjectFieldBuilder {
+export function objectField(
+  properties: Record<string, ToolInputField>
+): ObjectFieldBuilder {
   return new ObjectFieldBuilder(properties);
 }
 
@@ -731,7 +738,7 @@ export function uuidField(): StringFieldBuilder {
  * Quick builder for time fields
  */
 export function timeField(): BaseInputFieldBuilder<ToolInputField> {
-  return new class extends BaseInputFieldBuilder<ToolInputField> {
+  return new (class extends BaseInputFieldBuilder<ToolInputField> {
     constructor() {
       super();
       this.field.type = 'time';
@@ -739,7 +746,7 @@ export function timeField(): BaseInputFieldBuilder<ToolInputField> {
     build(): ToolInputField {
       return { ...this.field } as ToolInputField;
     }
-  }();
+  })();
 }
 
 // ===== DOCUMENTATION GENERATION UTILITIES =====
@@ -810,64 +817,84 @@ export class DocumentationGenerator {
 
   private static mapToOpenAPIType(type: string): string {
     const typeMap: Record<string, string> = {
-      'string': 'string',
-      'number': 'number',
-      'boolean': 'boolean',
-      'array': 'array',
-      'object': 'object',
-      'date': 'string',
-      'datetime': 'string',
-      'time': 'string',
-      'email': 'string',
-      'url': 'string',
-      'uuid': 'string',
-      'json': 'object',
-      'file': 'string',
-      'enum': 'string',
-      'apiKey': 'string',
+      string: 'string',
+      number: 'number',
+      boolean: 'boolean',
+      array: 'array',
+      object: 'object',
+      date: 'string',
+      datetime: 'string',
+      time: 'string',
+      email: 'string',
+      url: 'string',
+      uuid: 'string',
+      json: 'object',
+      file: 'string',
+      enum: 'string',
+      apiKey: 'string',
     };
     return typeMap[type] || 'string';
   }
 
-  private static addStringProperties(schema: any, field: ToolInputField | ToolConfigField) {
-    if ('minLength' in field && field.minLength !== undefined) schema.minLength = field.minLength;
-    if ('maxLength' in field && field.maxLength !== undefined) schema.maxLength = field.maxLength;
+  private static addStringProperties(
+    schema: any,
+    field: ToolInputField | ToolConfigField
+  ) {
+    if ('minLength' in field && field.minLength !== undefined)
+      schema.minLength = field.minLength;
+    if ('maxLength' in field && field.maxLength !== undefined)
+      schema.maxLength = field.maxLength;
     if ('pattern' in field && field.pattern) schema.pattern = field.pattern;
     if ('format' in field && field.format) schema.format = field.format;
-    
+
     // Add validation properties
     if ('validation' in field && field.validation) {
-      if (field.validation.min !== undefined) schema.minLength = field.validation.min;
-      if (field.validation.max !== undefined) schema.maxLength = field.validation.max;
+      if (field.validation.min !== undefined)
+        schema.minLength = field.validation.min;
+      if (field.validation.max !== undefined)
+        schema.maxLength = field.validation.max;
       if (field.validation.pattern) schema.pattern = field.validation.pattern;
     }
   }
 
-  private static addNumberProperties(schema: any, field: ToolInputField | ToolConfigField) {
+  private static addNumberProperties(
+    schema: any,
+    field: ToolInputField | ToolConfigField
+  ) {
     if ('min' in field && field.min !== undefined) schema.minimum = field.min;
     if ('max' in field && field.max !== undefined) schema.maximum = field.max;
     if ('integer' in field && field.integer) schema.type = 'integer';
-    
+
     // Add validation properties
     if ('validation' in field && field.validation) {
-      if (field.validation.min !== undefined) schema.minimum = field.validation.min;
-      if (field.validation.max !== undefined) schema.maximum = field.validation.max;
+      if (field.validation.min !== undefined)
+        schema.minimum = field.validation.min;
+      if (field.validation.max !== undefined)
+        schema.maximum = field.validation.max;
     }
   }
 
-  private static addArrayProperties(schema: any, field: ToolInputField | ToolConfigField) {
+  private static addArrayProperties(
+    schema: any,
+    field: ToolInputField | ToolConfigField
+  ) {
     if ('items' in field && field.items) {
       schema.items = this.generateOpenAPISchema(field.items);
     }
-    if ('minItems' in field && field.minItems !== undefined) schema.minItems = field.minItems;
-    if ('maxItems' in field && field.maxItems !== undefined) schema.maxItems = field.maxItems;
+    if ('minItems' in field && field.minItems !== undefined)
+      schema.minItems = field.minItems;
+    if ('maxItems' in field && field.maxItems !== undefined)
+      schema.maxItems = field.maxItems;
     if ('uniqueItems' in field && field.uniqueItems) schema.uniqueItems = true;
-    
+
     // Add validation properties from field.validation
     // Note: Array validation properties would need to be added to the validation type interface
   }
 
-  private static addObjectProperties(schema: any, field: ToolInputField | ToolConfigField) {
+  private static addObjectProperties(
+    schema: any,
+    field: ToolInputField | ToolConfigField
+  ) {
     if ('properties' in field && field.properties) {
       schema.properties = {};
       for (const [key, prop] of Object.entries(field.properties)) {
@@ -877,27 +904,43 @@ export class DocumentationGenerator {
     if ('requiredProperties' in field && field.requiredProperties?.length) {
       schema.required = field.requiredProperties;
     }
-    if ('additionalProperties' in field && field.additionalProperties !== undefined) {
+    if (
+      'additionalProperties' in field &&
+      field.additionalProperties !== undefined
+    ) {
       schema.additionalProperties = field.additionalProperties;
     }
   }
 
-  private static addEnumProperties(schema: any, field: ToolInputField | ToolConfigField) {
+  private static addEnumProperties(
+    schema: any,
+    field: ToolInputField | ToolConfigField
+  ) {
     if ('enum' in field && field.enum) {
       schema.enum = field.enum;
     }
     // Handle config enum fields that store enum in validation
-    if ('validation' in field && field.validation && 'enum' in field.validation) {
+    if (
+      'validation' in field &&
+      field.validation &&
+      'enum' in field.validation
+    ) {
       schema.enum = field.validation.enum;
     }
   }
 
-  private static addDateProperties(schema: any, field: ToolInputField | ToolConfigField) {
+  private static addDateProperties(
+    schema: any,
+    field: ToolInputField | ToolConfigField
+  ) {
     if ('minDate' in field && field.minDate) schema.minimum = field.minDate;
     if ('maxDate' in field && field.maxDate) schema.maximum = field.maxDate;
   }
 
-  private static addFileProperties(schema: any, field: ToolInputField | ToolConfigField) {
+  private static addFileProperties(
+    schema: any,
+    field: ToolInputField | ToolConfigField
+  ) {
     if ('allowedMimeTypes' in field && field.allowedMimeTypes?.length) {
       schema.contentMediaType = field.allowedMimeTypes[0];
       if (field.allowedMimeTypes.length > 1) {
@@ -912,10 +955,13 @@ export class DocumentationGenerator {
   /**
    * Generate complete tool documentation from schema
    */
-  static generateToolDocumentation(schema: {
-    input?: Record<string, ToolInputField>;
-    config?: Record<string, ToolConfigField>;
-  }, metadata?: { name?: string; description?: string; version?: string }) {
+  static generateToolDocumentation(
+    schema: {
+      input?: Record<string, ToolInputField>;
+      config?: Record<string, ToolConfigField>;
+    },
+    metadata?: { name?: string; description?: string; version?: string }
+  ) {
     const doc: any = {
       openapi: '3.0.3',
       info: {
@@ -970,7 +1016,10 @@ export class DocumentationGenerator {
                           items: {
                             type: 'object',
                             properties: {
-                              path: { type: 'array', items: { type: 'string' } },
+                              path: {
+                                type: 'array',
+                                items: { type: 'string' },
+                              },
                               code: { type: 'string' },
                               message: { type: 'string' },
                             },
@@ -995,7 +1044,10 @@ export class DocumentationGenerator {
                     schema: {
                       type: 'object',
                       properties: {
-                        status: { type: 'string', enum: ['healthy', 'degraded', 'unhealthy'] },
+                        status: {
+                          type: 'string',
+                          enum: ['healthy', 'degraded', 'unhealthy'],
+                        },
                         uptime: { type: 'number' },
                         version: { type: 'string' },
                         metrics: { type: 'object' },
@@ -1033,8 +1085,10 @@ export class DocumentationGenerator {
     };
 
     // Add input and config properties to request schema
-    const requestSchema = doc.paths['/api/execute'].post.requestBody.content['application/json'].schema;
-    
+    const requestSchema =
+      doc.paths['/api/execute'].post.requestBody.content['application/json']
+        .schema;
+
     if (schema.input && Object.keys(schema.input).length > 0) {
       requestSchema.properties.input_data = {
         type: 'object',
@@ -1043,7 +1097,8 @@ export class DocumentationGenerator {
       };
 
       for (const [key, field] of Object.entries(schema.input)) {
-        requestSchema.properties.input_data.properties[key] = this.generateOpenAPISchema(field);
+        requestSchema.properties.input_data.properties[key] =
+          this.generateOpenAPISchema(field);
         if (field.required) {
           requestSchema.properties.input_data.required.push(key);
         }
@@ -1060,7 +1115,8 @@ export class DocumentationGenerator {
       };
 
       for (const [key, field] of Object.entries(schema.config)) {
-        requestSchema.properties.config.properties[key] = this.generateOpenAPISchema(field);
+        requestSchema.properties.config.properties[key] =
+          this.generateOpenAPISchema(field);
         if (field.required) {
           requestSchema.properties.config.required.push(key);
         }
@@ -1112,7 +1168,7 @@ export class SchemaBuilder {
    * Validate input data against the current schema
    */
   async validateInput(
-    data: any, 
+    data: any,
     options?: ValidationOptions
   ): Promise<ValidationResult> {
     return this.validator.validateInput(data, this.inputFields, options);
@@ -1122,7 +1178,7 @@ export class SchemaBuilder {
    * Validate config data against the current schema
    */
   async validateConfig(
-    data: any, 
+    data: any,
     options?: ValidationOptions
   ): Promise<ValidationResult> {
     return this.validator.validateConfig(data, this.configFields, options);
@@ -1139,7 +1195,7 @@ export class SchemaBuilder {
       input: this.inputFields,
       config: this.configFields,
     };
-    
+
     return this.validator.validateToolSchema(data, schema, options);
   }
 
@@ -1147,31 +1203,39 @@ export class SchemaBuilder {
    * Test a single field value against its definition
    */
   async testField(
-    fieldName: string, 
-    value: any, 
+    fieldName: string,
+    value: any,
     type: 'input' | 'config' = 'input'
   ): Promise<ValidationResult> {
     const fields = type === 'input' ? this.inputFields : this.configFields;
     const field = fields[fieldName];
-    
+
     if (!field) {
       return {
         success: false,
-        errors: [{
-          path: [fieldName],
-          code: 'FIELD_NOT_FOUND',
-          message: `Field '${fieldName}' not found in ${type} schema`,
-        }],
+        errors: [
+          {
+            path: [fieldName],
+            code: 'FIELD_NOT_FOUND',
+            message: `Field '${fieldName}' not found in ${type} schema`,
+          },
+        ],
       };
     }
 
     const testSchema = { [fieldName]: field };
     const testData = { [fieldName]: value };
-    
+
     if (type === 'input') {
-      return this.validator.validateInput(testData, testSchema as Record<string, ToolInputField>);
+      return this.validator.validateInput(
+        testData,
+        testSchema as Record<string, ToolInputField>
+      );
     } else {
-      return this.validator.validateConfig(testData, testSchema as Record<string, ToolConfigField>);
+      return this.validator.validateConfig(
+        testData,
+        testSchema as Record<string, ToolConfigField>
+      );
     }
   }
 
@@ -1192,7 +1256,11 @@ export class SchemaBuilder {
   /**
    * Generate OpenAPI documentation for the current schema
    */
-  generateDocumentation(metadata?: { name?: string; description?: string; version?: string }) {
+  generateDocumentation(metadata?: {
+    name?: string;
+    description?: string;
+    version?: string;
+  }) {
     const schema = this.build();
     return DocumentationGenerator.generateToolDocumentation(schema, metadata);
   }
@@ -1242,30 +1310,36 @@ export class SchemaBuilder {
         if ('format' in field) {
           if (field.format === 'email') return 'user@example.com';
           if (field.format === 'url') return 'https://example.com';
-          if (field.format === 'uuid') return '550e8400-e29b-41d4-a716-446655440000';
+          if (field.format === 'uuid')
+            return '550e8400-e29b-41d4-a716-446655440000';
         }
         if ('enum' in field && field.enum) return field.enum[0];
         return 'example string';
-      
+
       case 'number':
-        if ('min' in field && 'max' in field && field.min !== undefined && field.max !== undefined) {
+        if (
+          'min' in field &&
+          'max' in field &&
+          field.min !== undefined &&
+          field.max !== undefined
+        ) {
           return Math.floor((field.min + field.max) / 2);
         }
         if ('min' in field && field.min !== undefined) return field.min;
         if ('max' in field && field.max !== undefined) return field.max;
         const isInteger = 'integer' in field && field.integer;
         return isInteger ? 42 : 42.5;
-      
+
       case 'boolean':
         return true;
-      
+
       case 'array':
         if ('items' in field && field.items) {
           const itemExample = this.generateExampleValue(field.items);
           return [itemExample];
         }
         return ['item'];
-      
+
       case 'object':
         const objExample: any = {};
         if ('properties' in field && field.properties) {
@@ -1274,30 +1348,35 @@ export class SchemaBuilder {
           }
         }
         return objExample;
-      
+
       case 'date':
         return '2023-12-25';
-      
+
       case 'datetime':
         return '2023-12-25T12:00:00Z';
-      
+
       case 'time':
         return '12:00:00';
-      
+
       case 'enum':
         if ('enum' in field && field.enum) return field.enum[0];
         // Handle config enum fields
-        if ('validation' in field && field.validation && 'enum' in field.validation && field.validation.enum) {
+        if (
+          'validation' in field &&
+          field.validation &&
+          'enum' in field.validation &&
+          field.validation.enum
+        ) {
           return field.validation.enum[0];
         }
         return 'option1';
-      
+
       case 'apiKey':
         return 'sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
-      
+
       case 'file':
         return 'file.txt';
-      
+
       default:
         return 'example value';
     }
@@ -1325,19 +1404,29 @@ export async function validateField(
   const data = { [fieldName]: value };
 
   // Check if this is a config field by looking at the type
-  const isConfigField = 'type' in field && (
-    field.type === 'apiKey' || 
-    field.type === 'secret' || 
-    (field.type === 'url' && 'validation' in field) ||
-    (field.type === 'json' && 'validation' in field && 'jsonSchema' in (field.validation || {}))
-  );
+  const isConfigField =
+    'type' in field &&
+    (field.type === 'apiKey' ||
+      field.type === 'secret' ||
+      (field.type === 'url' && 'validation' in field) ||
+      (field.type === 'json' &&
+        'validation' in field &&
+        'jsonSchema' in (field.validation || {})));
 
   if (isConfigField) {
     // This is a config field
-    return validator.validateConfig(data, schema as Record<string, ToolConfigField>, options);
+    return validator.validateConfig(
+      data,
+      schema as Record<string, ToolConfigField>,
+      options
+    );
   } else {
     // This is an input field
-    return validator.validateInput(data, schema as Record<string, ToolInputField>, options);
+    return validator.validateInput(
+      data,
+      schema as Record<string, ToolInputField>,
+      options
+    );
   }
 }
 
@@ -1374,20 +1463,31 @@ export function createValidator(schema: {
     /**
      * Validate complete tool data
      */
-    validateToolData: async (data: { input: any; config: any }, options?: ValidationOptions) => {
+    validateToolData: async (
+      data: { input: any; config: any },
+      options?: ValidationOptions
+    ) => {
       if (!schema.input || !schema.config) {
         throw new Error('Both input and config schemas must be defined');
       }
-      return validator.validateToolSchema(data, {
-        input: schema.input,
-        config: schema.config,
-      }, options);
+      return validator.validateToolSchema(
+        data,
+        {
+          input: schema.input,
+          config: schema.config,
+        },
+        options
+      );
     },
 
     /**
      * Generate OpenAPI documentation for the schema
      */
-    generateDocumentation: (metadata?: { name?: string; description?: string; version?: string }) => {
+    generateDocumentation: (metadata?: {
+      name?: string;
+      description?: string;
+      version?: string;
+    }) => {
       return DocumentationGenerator.generateToolDocumentation(schema, metadata);
     },
 
@@ -1466,7 +1566,11 @@ export const validate = {
   /**
    * Validate an array of strings
    */
-  stringArray: async (value: any, minItems?: number, maxItems?: number): Promise<ValidationResult> => {
+  stringArray: async (
+    value: any,
+    minItems?: number,
+    maxItems?: number
+  ): Promise<ValidationResult> => {
     const field = arrayField(stringField().required().build()).required();
     if (minItems !== undefined) field.minItems(minItems);
     if (maxItems !== undefined) field.maxItems(maxItems);

@@ -5,7 +5,7 @@ import {
   AISpineTestClient,
   TestClientOptions,
   TestScenario,
-  LoadTestOptions
+  LoadTestOptions,
 } from './test-client';
 import { ToolError } from '@ai-spine/tools-core';
 
@@ -29,7 +29,7 @@ describe('AISpineTestClient', () => {
     baseURL: 'http://localhost:3000',
     timeout: 5000,
     enableMetrics: true,
-    enableDetailedLogs: false
+    enableDetailedLogs: false,
   };
 
   beforeEach(() => {
@@ -39,12 +39,12 @@ describe('AISpineTestClient', () => {
       create: jest.fn(),
       interceptors: {
         request: { use: jest.fn() },
-        response: { use: jest.fn() }
-      }
+        response: { use: jest.fn() },
+      },
     };
 
     mockedAxios.create = jest.fn().mockReturnValue(mockAxiosInstance);
-    
+
     client = new AISpineTestClient(defaultOptions);
   });
 
@@ -65,7 +65,7 @@ describe('AISpineTestClient', () => {
         timeout: 15000,
         apiKey: 'test-key',
         retries: 5,
-        enableMetrics: false
+        enableMetrics: false,
       };
 
       new AISpineTestClient(customOptions);
@@ -74,8 +74,8 @@ describe('AISpineTestClient', () => {
           baseURL: 'https://api.example.com',
           timeout: 15000,
           headers: expect.objectContaining({
-            'Authorization': 'Bearer test-key'
-          })
+            Authorization: 'Bearer test-key',
+          }),
         })
       );
     });
@@ -93,11 +93,11 @@ describe('AISpineTestClient', () => {
         version: '1.0.0',
         tool_metadata: { name: 'test-tool', version: '1.0.0' },
         capabilities: ['test'],
-        uptime_seconds: 300
+        uptime_seconds: 300,
       };
 
       mockAxiosInstance.get.mockResolvedValueOnce({
-        data: mockHealthResponse
+        data: mockHealthResponse,
       });
 
       const result = await client.healthCheck();
@@ -115,17 +115,17 @@ describe('AISpineTestClient', () => {
 
     it('should validate health response when validation is enabled', async () => {
       const invalidHealthResponse = {
-        status: 'healthy'
+        status: 'healthy',
         // Missing required fields
       };
 
       mockAxiosInstance.get.mockResolvedValueOnce({
-        data: invalidHealthResponse
+        data: invalidHealthResponse,
       });
 
       const validatingClient = new AISpineTestClient({
         ...defaultOptions,
-        validateResponses: true
+        validateResponses: true,
       });
 
       await expect(validatingClient.healthCheck()).rejects.toThrow(ToolError);
@@ -138,12 +138,12 @@ describe('AISpineTestClient', () => {
         metadata: { name: 'test-tool' },
         schema: {
           input: { city: { type: 'string', required: true } },
-          config: {}
-        }
+          config: {},
+        },
       };
 
       mockAxiosInstance.get.mockResolvedValueOnce({
-        data: mockSchemaResponse
+        data: mockSchemaResponse,
       });
 
       const result = await client.getSchema();
@@ -158,11 +158,11 @@ describe('AISpineTestClient', () => {
       const mockMetricsResponse = {
         requests_count: 100,
         avg_response_time_ms: 250,
-        error_rate_percent: 2.5
+        error_rate_percent: 2.5,
       };
 
       mockAxiosInstance.get.mockResolvedValueOnce({
-        data: mockMetricsResponse
+        data: mockMetricsResponse,
       });
 
       const result = await client.getMetrics();
@@ -180,13 +180,13 @@ describe('AISpineTestClient', () => {
         status: 'success',
         output_data: { temperature: 22 },
         execution_time_ms: 500,
-        timestamp: '2024-01-15T10:30:00.000Z'
+        timestamp: '2024-01-15T10:30:00.000Z',
       };
 
       mockAxiosInstance.post.mockResolvedValueOnce({
         status: 200,
         data: mockResponse,
-        headers: { 'content-type': 'application/json' }
+        headers: { 'content-type': 'application/json' },
       });
 
       const result = await client.execute(inputData);
@@ -195,7 +195,7 @@ describe('AISpineTestClient', () => {
         '/api/execute',
         expect.objectContaining({
           tool_id: 'test-tool',
-          input_data: inputData
+          input_data: inputData,
         }),
         expect.any(Object)
       );
@@ -223,7 +223,7 @@ describe('AISpineTestClient', () => {
       const inputData = { city: 'Madrid' };
       const networkError = {
         message: 'Network error',
-        request: {} // This makes it a network error
+        request: {}, // This makes it a network error
       };
 
       // First call fails, second succeeds
@@ -232,10 +232,12 @@ describe('AISpineTestClient', () => {
         .mockResolvedValueOnce({
           status: 200,
           data: { status: 'success' },
-          headers: {}
+          headers: {},
         });
 
-      const result = await client.execute(inputData, undefined, { retryCount: 1 });
+      const result = await client.execute(inputData, undefined, {
+        retryCount: 1,
+      });
 
       expect(mockAxiosInstance.post).toHaveBeenCalledTimes(2);
       expect(result.success).toBe(true);
@@ -248,13 +250,13 @@ describe('AISpineTestClient', () => {
       const options = {
         executionId: 'custom-exec-id',
         timeout: 3000,
-        metadata: { source: 'test' }
+        metadata: { source: 'test' },
       };
 
       mockAxiosInstance.post.mockResolvedValueOnce({
         status: 200,
         data: { status: 'success' },
-        headers: {}
+        headers: {},
       });
 
       await client.execute(inputData, config, options);
@@ -266,10 +268,10 @@ describe('AISpineTestClient', () => {
           input_data: inputData,
           config,
           execution_id: 'custom-exec-id',
-          metadata: { source: 'test' }
+          metadata: { source: 'test' },
         }),
         expect.objectContaining({
-          timeout: 3000
+          timeout: 3000,
         })
       );
     });
@@ -281,29 +283,32 @@ describe('AISpineTestClient', () => {
         {
           name: 'Valid input',
           input: { city: 'Madrid' },
-          expectSuccess: true
+          expectSuccess: true,
         },
         {
           name: 'Invalid input',
           input: { city: '' },
           expectSuccess: false,
-          expectedError: 'VALIDATION_ERROR'
-        }
+          expectedError: 'VALIDATION_ERROR',
+        },
       ];
 
       // Mock successful response for first scenario
       mockAxiosInstance.post.mockResolvedValueOnce({
         status: 200,
         data: { status: 'success', output_data: {} },
-        headers: {}
+        headers: {},
       });
 
       // Mock error response for second scenario
       mockAxiosInstance.post.mockRejectedValueOnce({
         response: {
           status: 400,
-          data: { error_code: 'VALIDATION_ERROR', error_message: 'Invalid input' }
-        }
+          data: {
+            error_code: 'VALIDATION_ERROR',
+            error_message: 'Invalid input',
+          },
+        },
       });
 
       const result = await client.testToolScenarios(scenarios);
@@ -319,18 +324,18 @@ describe('AISpineTestClient', () => {
     it('should run scenarios in parallel when specified', async () => {
       const scenarios: TestScenario[] = [
         { name: 'Test 1', input: { city: 'Madrid' }, expectSuccess: true },
-        { name: 'Test 2', input: { city: 'Barcelona' }, expectSuccess: true }
+        { name: 'Test 2', input: { city: 'Barcelona' }, expectSuccess: true },
       ];
 
       mockAxiosInstance.post.mockResolvedValue({
         status: 200,
         data: { status: 'success' },
-        headers: {}
+        headers: {},
       });
 
       const result = await client.testToolScenarios(scenarios, {
         parallel: true,
-        maxConcurrency: 2
+        maxConcurrency: 2,
       });
 
       expect(result.summary.total).toBe(2);
@@ -341,7 +346,7 @@ describe('AISpineTestClient', () => {
   describe('validateTool', () => {
     it('should perform comprehensive tool validation', async () => {
       // Mock health check
-      mockAxiosInstance.get.mockImplementation((url) => {
+      mockAxiosInstance.get.mockImplementation(url => {
         switch (url) {
           case '/health':
             return Promise.resolve({
@@ -350,19 +355,19 @@ describe('AISpineTestClient', () => {
                 version: '1.0.0',
                 tool_metadata: { name: 'test-tool', version: '1.0.0' },
                 capabilities: ['test'],
-                uptime_seconds: 300
-              }
+                uptime_seconds: 300,
+              },
             });
           case '/schema':
             return Promise.resolve({
               data: {
                 metadata: { name: 'test-tool' },
-                schema: { input: {}, config: {} }
-              }
+                schema: { input: {}, config: {} },
+              },
             });
           case '/metrics':
             return Promise.resolve({
-              data: { requests: 100 }
+              data: { requests: 100 },
             });
           default:
             return Promise.reject(new Error('Not found'));
@@ -373,7 +378,7 @@ describe('AISpineTestClient', () => {
       mockAxiosInstance.post.mockResolvedValueOnce({
         status: 200,
         data: { status: 'success' },
-        headers: {}
+        headers: {},
       });
 
       const result = await client.validateTool({ city: 'Madrid' });
@@ -396,7 +401,9 @@ describe('AISpineTestClient', () => {
       const result = await client.validateTool();
 
       expect(result.healthy).toBe(false);
-      expect(result.issues).toContain('Health check failed: Health check failed');
+      expect(result.issues).toContain(
+        'Health check failed: Health check failed'
+      );
       expect(result.score).toBeLessThan(70);
       expect(result.recommendations.length).toBeGreaterThan(0);
     });
@@ -407,13 +414,13 @@ describe('AISpineTestClient', () => {
       const inputData = { city: 'Madrid' };
       const options: LoadTestOptions = {
         concurrency: 2,
-        requests: 4
+        requests: 4,
       };
 
       mockAxiosInstance.post.mockResolvedValue({
         status: 200,
         data: { status: 'success' },
-        headers: {}
+        headers: {},
       });
 
       const result = await client.loadTest(inputData, options);
@@ -430,14 +437,14 @@ describe('AISpineTestClient', () => {
       const inputData = { city: 'Madrid' };
       const options: LoadTestOptions = {
         concurrency: 1,
-        requests: 2
+        requests: 2,
       };
 
       mockAxiosInstance.post
         .mockResolvedValueOnce({
           status: 200,
           data: { status: 'success' },
-          headers: {}
+          headers: {},
         })
         .mockRejectedValueOnce(new Error('Server error'));
 
@@ -456,7 +463,7 @@ describe('AISpineTestClient', () => {
       mockAxiosInstance.post.mockResolvedValue({
         status: 200,
         data: { status: 'success' },
-        headers: {}
+        headers: {},
       });
 
       await client.execute({ city: 'Madrid' });
@@ -497,7 +504,7 @@ describe('AISpineTestClient', () => {
     it('should emit events during operations', async () => {
       const eventClient = new AISpineTestClient({
         ...defaultOptions,
-        enableDetailedLogs: true
+        enableDetailedLogs: true,
       });
 
       const requestSpy = jest.fn();
@@ -511,7 +518,7 @@ describe('AISpineTestClient', () => {
       mockAxiosInstance.post.mockResolvedValueOnce({
         status: 200,
         data: { status: 'success' },
-        headers: {}
+        headers: {},
       });
 
       await eventClient.execute({ city: 'Madrid' });
@@ -552,9 +559,9 @@ describe('AISpineTestClient', () => {
           statusText: 'Internal Server Error',
           data: {
             error_code: 'INTERNAL_ERROR',
-            error_message: 'Something went wrong'
-          }
-        }
+            error_message: 'Something went wrong',
+          },
+        },
       };
 
       mockAxiosInstance.post.mockRejectedValueOnce(serverError);
@@ -571,11 +578,11 @@ describe('AISpineTestClient', () => {
     it('should categorize different error types correctly', async () => {
       const networkError = {
         request: {},
-        message: 'Network Error'
+        message: 'Network Error',
       };
 
       const requestError = {
-        message: 'Request setup error'
+        message: 'Request setup error',
       };
 
       // Test network error
@@ -583,7 +590,7 @@ describe('AISpineTestClient', () => {
       let result = await client.execute({ city: 'Madrid' });
       expect(result.error?.code).toBe('NETWORK_ERROR');
 
-      // Test request error  
+      // Test request error
       mockAxiosInstance.post.mockRejectedValueOnce(requestError);
       result = await client.execute({ city: 'Madrid' });
       expect(result.error?.code).toBe('REQUEST_ERROR');

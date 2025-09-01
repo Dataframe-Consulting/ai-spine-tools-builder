@@ -19,7 +19,7 @@ import {
   configStringField,
   emailField,
   urlField,
-  uuidField
+  uuidField,
 } from '../index.js';
 
 describe('Core Types', () => {
@@ -29,7 +29,7 @@ describe('Core Types', () => {
         name: 'test-tool',
         version: '1.0.0',
         description: 'A test tool',
-        capabilities: ['test.execute']
+        capabilities: ['test.execute'],
       };
 
       expect(metadata.name).toBe('test-tool');
@@ -51,11 +51,11 @@ describe('Core Types', () => {
         requirements: {
           apiKeys: ['TEST_API_KEY'],
           permissions: ['network-access'],
-          runtimeDependencies: ['node:18+']
+          runtimeDependencies: ['node:18+'],
         },
         deprecation: {
-          deprecated: false
-        }
+          deprecated: false,
+        },
       };
 
       expect(metadata.tags).toContain('ai');
@@ -69,7 +69,7 @@ describe('Core Types', () => {
         executionId: 'exec_123',
         toolId: 'test-tool',
         toolVersion: '1.0.0',
-        timestamp: new Date()
+        timestamp: new Date(),
       };
 
       expect(context.executionId).toBe('exec_123');
@@ -89,24 +89,24 @@ describe('Core Types', () => {
         performance: {
           startTime: Date.now(),
           timeoutMs: 30000,
-          priority: 'normal'
+          priority: 'normal',
         },
         security: {
           apiKeyHash: 'sha256:abc123',
-          permissions: ['read', 'write']
+          permissions: ['read', 'write'],
         },
         agent: {
           type: 'gpt-4',
           version: '1.0',
-          model: 'gpt-4-turbo'
+          model: 'gpt-4-turbo',
         },
         debug: {
-          enabled: false
+          enabled: false,
         },
         flags: {
           dryRun: false,
-          noCache: false
-        }
+          noCache: false,
+        },
       };
 
       expect(context.performance?.priority).toBe('normal');
@@ -122,8 +122,8 @@ describe('Core Types', () => {
         timing: {
           executionTimeMs: 150,
           startedAt: '2024-01-15T10:30:00.000Z',
-          completedAt: '2024-01-15T10:30:00.150Z'
-        }
+          completedAt: '2024-01-15T10:30:00.150Z',
+        },
       };
 
       expect(result.status).toBe('success');
@@ -139,13 +139,13 @@ describe('Core Types', () => {
           message: 'Invalid input provided',
           type: 'validation_error',
           retryable: false,
-          field: 'email'
+          field: 'email',
         },
         timing: {
           executionTimeMs: 50,
           startedAt: '2024-01-15T10:30:00.000Z',
-          completedAt: '2024-01-15T10:30:00.050Z'
-        }
+          completedAt: '2024-01-15T10:30:00.050Z',
+        },
       };
 
       expect(result.status).toBe('error');
@@ -251,7 +251,7 @@ describe('Field Builders', () => {
     it('should create object field with properties', () => {
       const properties = {
         name: stringField().required().build(),
-        age: numberField().optional().min(0).build()
+        age: numberField().optional().min(0).build(),
       };
 
       const field = objectField(properties)
@@ -295,10 +295,7 @@ describe('Field Builders', () => {
     });
 
     it('should create URL field with proper format', () => {
-      const field = urlField()
-        .required()
-        .description('Website URL')
-        .build();
+      const field = urlField().required().description('Website URL').build();
 
       expect(field.type).toBe('string');
       expect(field.format).toBe('url');
@@ -325,7 +322,7 @@ describe('Complete Schema Creation', () => {
           .description('User email address')
           .example('user@example.com')
           .build(),
-        
+
         age: numberField()
           .optional()
           .min(0)
@@ -333,19 +330,19 @@ describe('Complete Schema Creation', () => {
           .integer()
           .description('User age')
           .build(),
-        
+
         preferences: objectField({
           theme: enumField(['light', 'dark']).default('light').build(),
-          notifications: booleanField().default(true).build()
+          notifications: booleanField().default(true).build(),
         })
           .requiredProperties(['theme'])
           .build(),
-        
+
         tags: arrayField(stringField().build())
           .optional()
           .minItems(0)
           .maxItems(10)
-          .build()
+          .build(),
       },
       config: {
         apiKey: apiKeyField()
@@ -353,13 +350,13 @@ describe('Complete Schema Creation', () => {
           .description('Service API key')
           .envVar('SERVICE_API_KEY')
           .build(),
-        
+
         baseUrl: configStringField()
           .optional()
           .default('https://api.example.com')
           .description('API base URL')
-          .build()
-      }
+          .build(),
+      },
     };
 
     // Verify input fields
@@ -384,21 +381,18 @@ describe('Tool Definition', () => {
         name: 'test-tool',
         version: '1.0.0',
         description: 'A complete test tool',
-        capabilities: ['test.execute']
+        capabilities: ['test.execute'],
       },
       schema: {
         input: {
           message: stringField()
             .required()
             .description('Message to process')
-            .build()
+            .build(),
         },
         config: {
-          apiKey: apiKeyField()
-            .required()
-            .description('API key')
-            .build()
-        }
+          apiKey: apiKeyField().required().description('API key').build(),
+        },
       },
       execute: async (input, _config, context) => {
         return {
@@ -407,10 +401,10 @@ describe('Tool Definition', () => {
           timing: {
             executionTimeMs: 100,
             startedAt: context.timestamp.toISOString(),
-            completedAt: new Date().toISOString()
-          }
+            completedAt: new Date().toISOString(),
+          },
         };
-      }
+      },
     };
 
     // Test the execution function
@@ -418,7 +412,7 @@ describe('Tool Definition', () => {
       executionId: 'test_exec',
       toolId: 'test-tool',
       toolVersion: '1.0.0',
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     const result = await toolDef.execute(

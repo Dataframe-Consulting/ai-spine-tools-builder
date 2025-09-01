@@ -15,7 +15,9 @@ interface ExampleValidationResult {
   warnings: string[];
 }
 
-async function validateExample(examplePath: string): Promise<ExampleValidationResult> {
+async function validateExample(
+  examplePath: string
+): Promise<ExampleValidationResult> {
   const exampleName = path.basename(examplePath);
   const result: ExampleValidationResult = {
     name: exampleName,
@@ -36,7 +38,7 @@ async function validateExample(examplePath: string): Promise<ExampleValidationRe
     // Validate package.json structure
     try {
       const packageJson = await fs.readJson(packageJsonPath);
-      
+
       if (!packageJson.name) {
         result.errors.push('package.json missing name field');
         result.isValid = false;
@@ -51,7 +53,10 @@ async function validateExample(examplePath: string): Promise<ExampleValidationRe
         result.warnings.push('package.json missing build script');
       }
 
-      if (!packageJson.dependencies || !packageJson.dependencies['@ai-spine/tools']) {
+      if (
+        !packageJson.dependencies ||
+        !packageJson.dependencies['@ai-spine/tools']
+      ) {
         result.errors.push('Missing core dependency: @ai-spine/tools');
         result.isValid = false;
       }
@@ -69,9 +74,11 @@ async function validateExample(examplePath: string): Promise<ExampleValidationRe
       return result;
     }
 
-    const indexFile = (await fs.pathExists(path.join(srcPath, 'index.ts'))) ? 'index.ts' : 'index.js';
+    const indexFile = (await fs.pathExists(path.join(srcPath, 'index.ts')))
+      ? 'index.ts'
+      : 'index.js';
     const mainFilePath = path.join(srcPath, indexFile);
-    
+
     if (!(await fs.pathExists(mainFilePath))) {
       result.errors.push('Missing main source file (index.ts or index.js)');
       result.isValid = false;
@@ -80,7 +87,7 @@ async function validateExample(examplePath: string): Promise<ExampleValidationRe
 
     // Validate main file content
     const mainContent = await fs.readFile(mainFilePath, 'utf-8');
-    
+
     if (!mainContent.includes('createTool')) {
       result.errors.push('Main file does not use createTool function');
       result.isValid = false;
@@ -96,19 +103,19 @@ async function validateExample(examplePath: string): Promise<ExampleValidationRe
         // Check if TypeScript config exists
         const tsConfigPath = path.join(examplePath, 'tsconfig.json');
         if (await fs.pathExists(tsConfigPath)) {
-          execSync('npx tsc --noEmit', { 
-            cwd: examplePath, 
+          execSync('npx tsc --noEmit', {
+            cwd: examplePath,
             stdio: 'pipe',
-            timeout: 15000 
+            timeout: 15000,
           });
         }
       } catch (error) {
-        const message = (error as any).stdout?.toString() || (error as Error).message;
+        const message =
+          (error as any).stdout?.toString() || (error as Error).message;
         result.errors.push(`TypeScript compilation failed: ${message}`);
         result.isValid = false;
       }
     }
-
   } catch (error) {
     result.errors.push(`Validation error: ${(error as Error).message}`);
     result.isValid = false;
@@ -122,7 +129,7 @@ async function main() {
   console.log(chalk.gray('Validating all examples in the SDK...\n'));
 
   const examplesDir = path.resolve(__dirname, '../../../examples');
-  
+
   if (!(await fs.pathExists(examplesDir))) {
     console.log(chalk.red('❌ Examples directory not found'));
     process.exit(1);
@@ -191,7 +198,7 @@ async function main() {
 }
 
 // Run the CLI
-main().catch((error) => {
+main().catch(error => {
   console.error(chalk.red.bold('Fatal error:'), error.message);
   process.exit(1);
 });

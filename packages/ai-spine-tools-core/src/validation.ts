@@ -40,18 +40,18 @@ import {
 export interface ValidationResult<T = any> {
   /** Whether validation was successful */
   success: boolean;
-  
+
   /** Validated and transformed data (only present on success) */
   data?: T;
-  
+
   /** Validation errors (only present on failure) */
   errors?: ValidationErrorDetail[];
-  
+
   /** Performance information */
   timing?: {
     /** Validation duration in milliseconds */
     durationMs: number;
-    
+
     /** Whether schema was served from cache */
     fromCache: boolean;
   };
@@ -63,19 +63,19 @@ export interface ValidationResult<T = any> {
 export interface ValidationErrorDetail {
   /** Field path where error occurred */
   path: string[];
-  
+
   /** Error code for programmatic handling */
   code: string;
-  
+
   /** Human-readable error message */
   message: string;
-  
+
   /** Field value that caused the error */
   value?: any;
-  
+
   /** Expected value or format */
   expected?: string;
-  
+
   /** Additional error context */
   context?: Record<string, any>;
 }
@@ -86,16 +86,16 @@ export interface ValidationErrorDetail {
 export interface ValidationOptions {
   /** Whether to abort on first error or collect all errors */
   abortEarly?: boolean;
-  
+
   /** Whether to transform values during validation */
   transform?: boolean;
-  
+
   /** Whether to strip unknown fields */
   stripUnknown?: boolean;
-  
+
   /** Custom error messages for specific fields */
   customMessages?: Record<string, string>;
-  
+
   /** Context for conditional validations */
   context?: Record<string, any>;
 }
@@ -106,13 +106,13 @@ export interface ValidationOptions {
 interface SchemaCache {
   /** Compiled Zod schema */
   schema: z.ZodSchema;
-  
+
   /** When the schema was cached */
   timestamp: number;
-  
+
   /** Number of times this schema has been used */
   hitCount: number;
-  
+
   /** Hash of the original field definition for cache invalidation */
   hash: string;
 }
@@ -124,10 +124,10 @@ interface SchemaCache {
 export class ZodSchemaValidator {
   private static readonly CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
   private static readonly MAX_CACHE_SIZE = 1000;
-  
+
   /** Schema cache for performance optimization */
   private readonly schemaCache = new Map<string, SchemaCache>();
-  
+
   /** Performance metrics */
   private readonly metrics = {
     totalValidations: 0,
@@ -145,17 +145,17 @@ export class ZodSchemaValidator {
     _options: ValidationOptions = {}
   ): Promise<ValidationResult> {
     const startTime = Date.now();
-    
+
     try {
       // Build Zod schema for input validation
       const zodSchema = this.buildInputSchema(schema, _options);
-      
+
       // Perform validation
       const result = await this.performValidation(zodSchema, input, _options);
-      
+
       const duration = Date.now() - startTime;
       this.updateMetrics(duration, result.fromCache);
-      
+
       if (result.success) {
         return {
           success: true,
@@ -177,15 +177,17 @@ export class ZodSchemaValidator {
       }
     } catch (error) {
       const duration = Date.now() - startTime;
-      
+
       return {
         success: false,
-        errors: [{
-          path: [],
-          code: 'VALIDATION_SYSTEM_ERROR',
-          message: `Validation system error: ${error instanceof Error ? error.message : String(error)}`,
-          context: { originalError: error },
-        }],
+        errors: [
+          {
+            path: [],
+            code: 'VALIDATION_SYSTEM_ERROR',
+            message: `Validation system error: ${error instanceof Error ? error.message : String(error)}`,
+            context: { originalError: error },
+          },
+        ],
         timing: {
           durationMs: duration,
           fromCache: false,
@@ -203,17 +205,17 @@ export class ZodSchemaValidator {
     _options: ValidationOptions = {}
   ): Promise<ValidationResult> {
     const startTime = Date.now();
-    
+
     try {
       // Build Zod schema for config validation
       const zodSchema = this.buildConfigSchema(schema, _options);
-      
+
       // Perform validation
       const result = await this.performValidation(zodSchema, config, _options);
-      
+
       const duration = Date.now() - startTime;
       this.updateMetrics(duration, result.fromCache);
-      
+
       if (result.success) {
         return {
           success: true,
@@ -235,15 +237,17 @@ export class ZodSchemaValidator {
       }
     } catch (error) {
       const duration = Date.now() - startTime;
-      
+
       return {
         success: false,
-        errors: [{
-          path: [],
-          code: 'VALIDATION_SYSTEM_ERROR',
-          message: `Configuration validation system error: ${error instanceof Error ? error.message : String(error)}`,
-          context: { originalError: error },
-        }],
+        errors: [
+          {
+            path: [],
+            code: 'VALIDATION_SYSTEM_ERROR',
+            message: `Configuration validation system error: ${error instanceof Error ? error.message : String(error)}`,
+            context: { originalError: error },
+          },
+        ],
         timing: {
           durationMs: duration,
           fromCache: false,
@@ -261,19 +265,27 @@ export class ZodSchemaValidator {
     _options: ValidationOptions = {}
   ): Promise<ValidationResult> {
     const startTime = Date.now();
-    
+
     try {
       // Validate input and config separately first
-      const inputResult = await this.validateInput(data.input, schema.input, _options);
+      const inputResult = await this.validateInput(
+        data.input,
+        schema.input,
+        _options
+      );
       if (!inputResult.success) {
         return inputResult;
       }
-      
-      const configResult = await this.validateConfig(data.config, schema.config, _options);
+
+      const configResult = await this.validateConfig(
+        data.config,
+        schema.config,
+        _options
+      );
       if (!configResult.success) {
         return configResult;
       }
-      
+
       // Perform cross-field validations if defined
       if (schema.validation?.crossFieldValidation) {
         const crossFieldResult = await this.validateCrossFieldRules(
@@ -281,14 +293,14 @@ export class ZodSchemaValidator {
           schema.validation.crossFieldValidation,
           _options
         );
-        
+
         if (!crossFieldResult.success) {
           return crossFieldResult;
         }
       }
-      
+
       const duration = Date.now() - startTime;
-      
+
       return {
         success: true,
         data: {
@@ -302,15 +314,17 @@ export class ZodSchemaValidator {
       };
     } catch (error) {
       const duration = Date.now() - startTime;
-      
+
       return {
         success: false,
-        errors: [{
-          path: [],
-          code: 'SCHEMA_VALIDATION_ERROR',
-          message: `Tool schema validation error: ${error instanceof Error ? error.message : String(error)}`,
-          context: { originalError: error },
-        }],
+        errors: [
+          {
+            path: [],
+            code: 'SCHEMA_VALIDATION_ERROR',
+            message: `Tool schema validation error: ${error instanceof Error ? error.message : String(error)}`,
+            context: { originalError: error },
+          },
+        ],
         timing: {
           durationMs: duration,
           fromCache: false,
@@ -328,23 +342,27 @@ export class ZodSchemaValidator {
   ): z.ZodSchema {
     const cacheKey = this.generateCacheKey('input', schema, _options);
     const cached = this.getFromCache(cacheKey);
-    
+
     if (cached) {
       return cached.schema;
     }
-    
+
     const zodFields: Record<string, z.ZodSchema> = {};
-    
+
     for (const [fieldName, fieldDef] of Object.entries(schema)) {
-      zodFields[fieldName] = this.buildFieldSchema(fieldDef, fieldName, _options);
+      zodFields[fieldName] = this.buildFieldSchema(
+        fieldDef,
+        fieldName,
+        _options
+      );
     }
-    
+
     const zodSchema = z.object(zodFields);
     const finalSchema = _options.stripUnknown ? zodSchema.strip() : zodSchema;
-    
+
     // Cache the schema
     this.setCache(cacheKey, finalSchema, schema);
-    
+
     return finalSchema;
   }
 
@@ -357,23 +375,27 @@ export class ZodSchemaValidator {
   ): z.ZodSchema {
     const cacheKey = this.generateCacheKey('config', schema, _options);
     const cached = this.getFromCache(cacheKey);
-    
+
     if (cached) {
       return cached.schema;
     }
-    
+
     const zodFields: Record<string, z.ZodSchema> = {};
-    
+
     for (const [fieldName, fieldDef] of Object.entries(schema)) {
-      zodFields[fieldName] = this.buildConfigFieldSchema(fieldDef, fieldName, _options);
+      zodFields[fieldName] = this.buildConfigFieldSchema(
+        fieldDef,
+        fieldName,
+        _options
+      );
     }
-    
+
     const zodSchema = z.object(zodFields);
     const finalSchema = _options.stripUnknown ? zodSchema.strip() : zodSchema;
-    
+
     // Cache the schema
     this.setCache(cacheKey, finalSchema, schema);
-    
+
     return finalSchema;
   }
 
@@ -386,125 +408,153 @@ export class ZodSchemaValidator {
     _options: ValidationOptions
   ): z.ZodSchema {
     let schema: z.ZodSchema;
-    
+
     // Build base schema based on field type
     switch (field.type) {
       case 'string':
         schema = z.string();
-        
+
         // Apply string-specific validations
         if (field.minLength !== undefined) {
-          schema = (schema as z.ZodString).min(field.minLength, 
-            _options.customMessages?.[`${fieldName}.minLength`] || 
-            `${fieldName} must be at least ${field.minLength} characters long`
+          schema = (schema as z.ZodString).min(
+            field.minLength,
+            _options.customMessages?.[`${fieldName}.minLength`] ||
+              `${fieldName} must be at least ${field.minLength} characters long`
           );
         }
-        
+
         if (field.maxLength !== undefined) {
-          schema = (schema as z.ZodString).max(field.maxLength,
-            _options.customMessages?.[`${fieldName}.maxLength`] || 
-            `${fieldName} must be at most ${field.maxLength} characters long`
+          schema = (schema as z.ZodString).max(
+            field.maxLength,
+            _options.customMessages?.[`${fieldName}.maxLength`] ||
+              `${fieldName} must be at most ${field.maxLength} characters long`
           );
         }
-        
+
         if (field.pattern) {
-          schema = (schema as z.ZodString).regex(new RegExp(field.pattern),
-            _options.customMessages?.[`${fieldName}.pattern`] || 
-            `${fieldName} does not match required pattern`
+          schema = (schema as z.ZodString).regex(
+            new RegExp(field.pattern),
+            _options.customMessages?.[`${fieldName}.pattern`] ||
+              `${fieldName} does not match required pattern`
           );
         }
-        
+
         if (field.format) {
-          schema = this.applyStringFormat(schema as z.ZodString, field.format, fieldName);
+          schema = this.applyStringFormat(
+            schema as z.ZodString,
+            field.format,
+            fieldName
+          );
         }
-        
+
         // Apply transformations
         if (_options.transform && field.transform) {
-          schema = this.applyStringTransform(schema as z.ZodString, field.transform);
+          schema = this.applyStringTransform(
+            schema as z.ZodString,
+            field.transform
+          );
         }
         break;
-      
+
       case 'email':
-        schema = z.string().email(
-          _options.customMessages?.[`${fieldName}.email`] || 
-          `${fieldName} must be a valid email address`
-        );
+        schema = z
+          .string()
+          .email(
+            _options.customMessages?.[`${fieldName}.email`] ||
+              `${fieldName} must be a valid email address`
+          );
         break;
-      
+
       case 'url':
-        schema = z.string().url(
-          _options.customMessages?.[`${fieldName}.url`] || 
-          `${fieldName} must be a valid URL`
-        );
+        schema = z
+          .string()
+          .url(
+            _options.customMessages?.[`${fieldName}.url`] ||
+              `${fieldName} must be a valid URL`
+          );
         break;
-      
+
       case 'uuid':
-        schema = z.string().uuid(
-          _options.customMessages?.[`${fieldName}.uuid`] || 
-          `${fieldName} must be a valid UUID`
-        );
+        schema = z
+          .string()
+          .uuid(
+            _options.customMessages?.[`${fieldName}.uuid`] ||
+              `${fieldName} must be a valid UUID`
+          );
         break;
-      
+
       case 'number':
         schema = z.number();
-        
+
         if (field.min !== undefined) {
-          schema = (schema as z.ZodNumber).min(field.min,
-            _options.customMessages?.[`${fieldName}.min`] || 
-            `${fieldName} must be at least ${field.min}`
+          schema = (schema as z.ZodNumber).min(
+            field.min,
+            _options.customMessages?.[`${fieldName}.min`] ||
+              `${fieldName} must be at least ${field.min}`
           );
         }
-        
+
         if (field.max !== undefined) {
-          schema = (schema as z.ZodNumber).max(field.max,
-            _options.customMessages?.[`${fieldName}.max`] || 
-            `${fieldName} must be at most ${field.max}`
+          schema = (schema as z.ZodNumber).max(
+            field.max,
+            _options.customMessages?.[`${fieldName}.max`] ||
+              `${fieldName} must be at most ${field.max}`
           );
         }
-        
+
         if (field.integer) {
           schema = (schema as z.ZodNumber).int(
-            _options.customMessages?.[`${fieldName}.integer`] || 
-            `${fieldName} must be an integer`
+            _options.customMessages?.[`${fieldName}.integer`] ||
+              `${fieldName} must be an integer`
           );
         }
         break;
-      
+
       case 'boolean':
         schema = z.boolean();
         break;
-      
+
       case 'array':
         let itemSchema: z.ZodSchema = z.any();
         if (field.items) {
-          itemSchema = this.buildFieldSchema(field.items, `${fieldName}[item]`, _options);
-        }
-        
-        schema = z.array(itemSchema);
-        
-        if (field.minItems !== undefined) {
-          schema = (schema as z.ZodArray<any>).min(field.minItems,
-            _options.customMessages?.[`${fieldName}.minItems`] || 
-            `${fieldName} must contain at least ${field.minItems} items`
+          itemSchema = this.buildFieldSchema(
+            field.items,
+            `${fieldName}[item]`,
+            _options
           );
         }
-        
+
+        schema = z.array(itemSchema);
+
+        if (field.minItems !== undefined) {
+          schema = (schema as z.ZodArray<any>).min(
+            field.minItems,
+            _options.customMessages?.[`${fieldName}.minItems`] ||
+              `${fieldName} must contain at least ${field.minItems} items`
+          );
+        }
+
         if (field.maxItems !== undefined) {
-          schema = (schema as z.ZodArray<any>).max(field.maxItems,
-            _options.customMessages?.[`${fieldName}.maxItems`] || 
-            `${fieldName} must contain at most ${field.maxItems} items`
+          schema = (schema as z.ZodArray<any>).max(
+            field.maxItems,
+            _options.customMessages?.[`${fieldName}.maxItems`] ||
+              `${fieldName} must contain at most ${field.maxItems} items`
           );
         }
         break;
-      
+
       case 'object':
         if (field.properties) {
           const objectFields: Record<string, z.ZodSchema> = {};
           for (const [propName, propDef] of Object.entries(field.properties)) {
-            objectFields[propName] = this.buildFieldSchema(propDef, `${fieldName}.${propName}`, _options);
+            objectFields[propName] = this.buildFieldSchema(
+              propDef,
+              `${fieldName}.${propName}`,
+              _options
+            );
           }
           schema = z.object(objectFields);
-          
+
           if (!field.additionalProperties) {
             schema = (schema as z.ZodObject<any>).strict();
           }
@@ -512,59 +562,70 @@ export class ZodSchemaValidator {
           schema = z.record(z.string(), z.any());
         }
         break;
-      
+
       case 'date':
         schema = z.coerce.date();
-        
+
         if (field.minDate) {
           const minDate = new Date(field.minDate);
-          schema = (schema as z.ZodDate).min(minDate,
-            _options.customMessages?.[`${fieldName}.minDate`] || 
-            `${fieldName} must be after ${field.minDate}`
+          schema = (schema as z.ZodDate).min(
+            minDate,
+            _options.customMessages?.[`${fieldName}.minDate`] ||
+              `${fieldName} must be after ${field.minDate}`
           );
         }
-        
+
         if (field.maxDate) {
           const maxDate = new Date(field.maxDate);
-          schema = (schema as z.ZodDate).max(maxDate,
-            _options.customMessages?.[`${fieldName}.maxDate`] || 
-            `${fieldName} must be before ${field.maxDate}`
+          schema = (schema as z.ZodDate).max(
+            maxDate,
+            _options.customMessages?.[`${fieldName}.maxDate`] ||
+              `${fieldName} must be before ${field.maxDate}`
           );
         }
         break;
-      
+
       case 'datetime':
         schema = z.coerce.date();
         // Additional datetime-specific validations could be added here
         break;
-      
+
       case 'time':
-        schema = z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/,
-          _options.customMessages?.[`${fieldName}.time`] || 
-          `${fieldName} must be in HH:MM:SS format`
-        );
+        schema = z
+          .string()
+          .regex(
+            /^([01]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/,
+            _options.customMessages?.[`${fieldName}.time`] ||
+              `${fieldName} must be in HH:MM:SS format`
+          );
         break;
-      
+
       case 'enum':
         if (!field.enum || field.enum.length === 0) {
-          throw new Error(`Enum field ${fieldName} must have enum values defined`);
+          throw new Error(
+            `Enum field ${fieldName} must have enum values defined`
+          );
         }
         schema = z.enum(field.enum as [string, ...string[]]);
         break;
-      
+
       case 'json':
-        schema = z.any().refine((val) => {
-          try {
-            if (typeof val === 'string') {
-              JSON.parse(val);
+        schema = z.any().refine(
+          val => {
+            try {
+              if (typeof val === 'string') {
+                JSON.parse(val);
+              }
+              return true;
+            } catch {
+              return false;
             }
-            return true;
-          } catch {
-            return false;
-          }
-        }, _options.customMessages?.[`${fieldName}.json`] || `${fieldName} must be valid JSON`);
+          },
+          _options.customMessages?.[`${fieldName}.json`] ||
+            `${fieldName} must be valid JSON`
+        );
         break;
-      
+
       case 'file':
         // File validation would typically be handled at a higher level
         schema = z.object({
@@ -572,44 +633,47 @@ export class ZodSchemaValidator {
           size: z.number(),
           type: z.string(),
         });
-        
+
         if (field.maxFileSize) {
-          schema = schema.refine((file: any) => file.size <= field.maxFileSize!,
-            _options.customMessages?.[`${fieldName}.maxFileSize`] || 
-            `${fieldName} file size must not exceed ${field.maxFileSize} bytes`
+          schema = schema.refine(
+            (file: any) => file.size <= field.maxFileSize!,
+            _options.customMessages?.[`${fieldName}.maxFileSize`] ||
+              `${fieldName} file size must not exceed ${field.maxFileSize} bytes`
           );
         }
-        
+
         if (field.allowedMimeTypes && field.allowedMimeTypes.length > 0) {
-          schema = schema.refine((file: any) => field.allowedMimeTypes!.includes(file.type),
-            _options.customMessages?.[`${fieldName}.mimeType`] || 
-            `${fieldName} must be one of the allowed file types: ${field.allowedMimeTypes.join(', ')}`
+          schema = schema.refine(
+            (file: any) => field.allowedMimeTypes!.includes(file.type),
+            _options.customMessages?.[`${fieldName}.mimeType`] ||
+              `${fieldName} must be one of the allowed file types: ${field.allowedMimeTypes.join(', ')}`
           );
         }
         break;
-      
+
       default:
         schema = z.any();
         break;
     }
-    
+
     // Apply enum validation if defined (for non-enum types)
     if (field.enum && field.type !== 'enum') {
-      schema = schema.refine((val) => field.enum!.includes(val),
-        _options.customMessages?.[`${fieldName}.enum`] || 
-        `${fieldName} must be one of: ${field.enum.join(', ')}`
+      schema = schema.refine(
+        val => field.enum!.includes(val),
+        _options.customMessages?.[`${fieldName}.enum`] ||
+          `${fieldName} must be one of: ${field.enum.join(', ')}`
       );
     }
-    
+
     // Handle required/optional and defaults
     if (!field.required) {
       schema = schema.optional();
-      
+
       if (field.default !== undefined) {
         schema = schema.default(field.default);
       }
     }
-    
+
     return schema;
   }
 
@@ -622,54 +686,61 @@ export class ZodSchemaValidator {
     _options: ValidationOptions
   ): z.ZodSchema {
     let schema: z.ZodSchema;
-    
+
     switch (field.type) {
       case 'string':
         schema = z.string();
         break;
-      
+
       case 'apiKey':
       case 'secret':
         schema = z.string().min(1, `${fieldName} cannot be empty`);
         break;
-      
+
       case 'url':
         schema = z.string().url(`${fieldName} must be a valid URL`);
-        
+
         if (field.validation?.allowedProtocols) {
-          schema = schema.refine((url) => {
-            try {
-              const parsed = new URL(url as string);
-              return field.validation!.allowedProtocols!.includes(parsed.protocol.slice(0, -1));
-            } catch {
-              return false;
-            }
-          }, `${fieldName} must use one of the allowed protocols: ${field.validation.allowedProtocols.join(', ')}`);
+          schema = schema.refine(
+            url => {
+              try {
+                const parsed = new URL(url as string);
+                return field.validation!.allowedProtocols!.includes(
+                  parsed.protocol.slice(0, -1)
+                );
+              } catch {
+                return false;
+              }
+            },
+            `${fieldName} must use one of the allowed protocols: ${field.validation.allowedProtocols.join(', ')}`
+          );
         }
         break;
-      
+
       case 'number':
         schema = z.number();
         break;
-      
+
       case 'boolean':
         schema = z.boolean();
         break;
-      
+
       case 'enum':
         if (!field.validation?.enum || field.validation.enum.length === 0) {
-          throw new Error(`Enum config field ${fieldName} must have enum values defined`);
+          throw new Error(
+            `Enum config field ${fieldName} must have enum values defined`
+          );
         }
         schema = z.enum(field.validation.enum as [string, ...string[]]);
         break;
-      
+
       case 'json':
         schema = z.any();
-        
+
         if (field.validation?.jsonSchema) {
           // Here you could integrate with a JSON Schema validator if needed
           // For now, we'll just ensure it's valid JSON
-          schema = schema.refine((val) => {
+          schema = schema.refine(val => {
             try {
               if (typeof val === 'string') {
                 JSON.parse(val);
@@ -681,83 +752,113 @@ export class ZodSchemaValidator {
           }, `${fieldName} must be valid JSON`);
         }
         break;
-      
+
       default:
         schema = z.any();
         break;
     }
-    
+
     // Apply validation rules
     if (field.validation) {
       const validation = field.validation;
-      
+
       if (validation.min !== undefined && schema instanceof z.ZodString) {
-        schema = schema.min(validation.min,
-          validation.errorMessage || `${fieldName} must be at least ${validation.min} characters long`
+        schema = schema.min(
+          validation.min,
+          validation.errorMessage ||
+            `${fieldName} must be at least ${validation.min} characters long`
         );
       }
-      
+
       if (validation.max !== undefined && schema instanceof z.ZodString) {
-        schema = schema.max(validation.max,
-          validation.errorMessage || `${fieldName} must be at most ${validation.max} characters long`
+        schema = schema.max(
+          validation.max,
+          validation.errorMessage ||
+            `${fieldName} must be at most ${validation.max} characters long`
         );
       }
-      
+
       if (validation.pattern && schema instanceof z.ZodString) {
-        schema = schema.regex(new RegExp(validation.pattern),
-          validation.errorMessage || `${fieldName} does not match required pattern`
+        schema = schema.regex(
+          new RegExp(validation.pattern),
+          validation.errorMessage ||
+            `${fieldName} does not match required pattern`
         );
       }
     }
-    
+
     // Handle required/optional and defaults
     if (!field.required) {
       schema = schema.optional();
-      
+
       if (field.default !== undefined) {
         schema = schema.default(field.default);
       }
     }
-    
+
     return schema;
   }
 
   /**
    * Applies string format validation
    */
-  private applyStringFormat(schema: z.ZodString, format: StringFormat, fieldName: string): z.ZodType<string> {
+  private applyStringFormat(
+    schema: z.ZodString,
+    format: StringFormat,
+    fieldName: string
+  ): z.ZodType<string> {
     switch (format) {
       case 'email':
         return schema.email(`${fieldName} must be a valid email address`);
-      
+
       case 'url':
         return schema.url(`${fieldName} must be a valid URL`);
-      
+
       case 'uuid':
         return schema.uuid(`${fieldName} must be a valid UUID`);
-      
+
       case 'ipv4':
-        return schema.regex(/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/, `${fieldName} must be a valid IPv4 address`);
-      
+        return schema.regex(
+          /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/,
+          `${fieldName} must be a valid IPv4 address`
+        );
+
       case 'ipv6':
-        return schema.regex(/^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::1$|^::$/, `${fieldName} must be a valid IPv6 address`);
-      
+        return schema.regex(
+          /^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::1$|^::$/,
+          `${fieldName} must be a valid IPv6 address`
+        );
+
       case 'base64':
-        return schema.regex(/^[A-Za-z0-9+/]*={0,2}$/, `${fieldName} must be valid base64`);
-      
+        return schema.regex(
+          /^[A-Za-z0-9+/]*={0,2}$/,
+          `${fieldName} must be valid base64`
+        );
+
       case 'jwt':
-        return schema.regex(/^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]*$/, `${fieldName} must be a valid JWT`);
-      
+        return schema.regex(
+          /^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]*$/,
+          `${fieldName} must be a valid JWT`
+        );
+
       case 'slug':
-        return schema.regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, `${fieldName} must be a valid slug`);
-      
+        return schema.regex(
+          /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+          `${fieldName} must be a valid slug`
+        );
+
       case 'color-hex':
-        return schema.regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, `${fieldName} must be a valid hex color`);
-      
+        return schema.regex(
+          /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/,
+          `${fieldName} must be a valid hex color`
+        );
+
       case 'semver':
-        return schema.regex(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/, 
-          `${fieldName} must be a valid semantic version`);
-      
+        return schema.regex(
+          /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/,
+          `${fieldName} must be a valid semantic version`
+        );
+
       default:
         return schema;
     }
@@ -766,20 +867,23 @@ export class ZodSchemaValidator {
   /**
    * Applies string transformations
    */
-  private applyStringTransform(schema: z.ZodString, transform: string): z.ZodType<string> {
+  private applyStringTransform(
+    schema: z.ZodString,
+    transform: string
+  ): z.ZodType<string> {
     switch (transform) {
       case 'trim':
         return schema.transform(val => val.trim());
-      
+
       case 'lowercase':
         return schema.transform(val => val.toLowerCase());
-      
+
       case 'uppercase':
         return schema.transform(val => val.toUpperCase());
-      
+
       case 'normalize':
         return schema.transform(val => val.normalize());
-      
+
       default:
         return schema;
     }
@@ -792,10 +896,15 @@ export class ZodSchemaValidator {
     schema: z.ZodSchema,
     data: any,
     _options: ValidationOptions
-  ): Promise<{ success: boolean; data?: any; errors?: ValidationErrorDetail[]; fromCache: boolean }> {
+  ): Promise<{
+    success: boolean;
+    data?: any;
+    errors?: ValidationErrorDetail[];
+    fromCache: boolean;
+  }> {
     try {
       const result = schema.safeParse(data);
-      
+
       if (result.success) {
         return {
           success: true,
@@ -804,7 +913,7 @@ export class ZodSchemaValidator {
         };
       } else {
         const errors = this.convertZodErrors(result.error);
-        
+
         return {
           success: false,
           errors,
@@ -814,12 +923,14 @@ export class ZodSchemaValidator {
     } catch (error) {
       return {
         success: false,
-        errors: [{
-          path: [],
-          code: 'PARSE_ERROR',
-          message: `Parsing error: ${error instanceof Error ? error.message : String(error)}`,
-          context: { originalError: error },
-        }],
+        errors: [
+          {
+            path: [],
+            code: 'PARSE_ERROR',
+            message: `Parsing error: ${error instanceof Error ? error.message : String(error)}`,
+            context: { originalError: error },
+          },
+        ],
         fromCache: false,
       };
     }
@@ -834,16 +945,19 @@ export class ZodSchemaValidator {
     _options: ValidationOptions
   ): Promise<ValidationResult> {
     const errors: ValidationErrorDetail[] = [];
-    
+
     for (const rule of rules) {
       try {
         const isValid = await this.evaluateCrossFieldRule(data, rule, _options);
-        
+
         if (!isValid) {
           errors.push({
             path: ['cross-field'],
             code: 'CROSS_FIELD_VALIDATION_FAILED',
-            message: rule.errorMessage || rule.description || 'Cross-field validation failed',
+            message:
+              rule.errorMessage ||
+              rule.description ||
+              'Cross-field validation failed',
             context: { rule },
           });
         }
@@ -856,7 +970,7 @@ export class ZodSchemaValidator {
         });
       }
     }
-    
+
     return {
       success: errors.length === 0,
       ...(errors.length > 0 && { errors }),
@@ -876,7 +990,7 @@ export class ZodSchemaValidator {
         if (rule.condition) {
           // Simple condition evaluation (in production, you might want a safer evaluator)
           const conditionMet = this.evaluateCondition(rule.condition, data);
-          
+
           if (conditionMet) {
             // Check if required fields are present
             if (rule.requires) {
@@ -886,7 +1000,7 @@ export class ZodSchemaValidator {
                 }
               }
             }
-            
+
             // Check if forbidden fields are absent
             if (rule.forbids) {
               for (const fieldPath of rule.forbids) {
@@ -898,22 +1012,24 @@ export class ZodSchemaValidator {
           }
         }
         return true;
-      
+
       case 'mutual_exclusion':
         // Check that only one of the specified fields is present
         if (rule.fields) {
-          const presentFields = rule.fields.filter((fieldPath: string) => 
-            this.getNestedValue(data, fieldPath) !== undefined
+          const presentFields = rule.fields.filter(
+            (fieldPath: string) =>
+              this.getNestedValue(data, fieldPath) !== undefined
           );
           return presentFields.length <= 1;
         }
         return true;
-      
+
       case 'dependency':
         // Check that if one field is present, others are required
         if (rule.trigger && rule.requires) {
-          const triggerPresent = this.getNestedValue(data, rule.trigger) !== undefined;
-          
+          const triggerPresent =
+            this.getNestedValue(data, rule.trigger) !== undefined;
+
           if (triggerPresent) {
             for (const requiredField of rule.requires) {
               if (this.getNestedValue(data, requiredField) === undefined) {
@@ -923,12 +1039,12 @@ export class ZodSchemaValidator {
           }
         }
         return true;
-      
+
       case 'custom':
         // For custom validations, you would implement your own logic here
         // This is a placeholder for custom validation functions
         return true;
-      
+
       default:
         throw new Error(`Unknown cross-field validation rule: ${rule.rule}`);
     }
@@ -942,21 +1058,27 @@ export class ZodSchemaValidator {
       // This is a simplified evaluator. In production, you should use a safer
       // expression evaluator that doesn't use eval()
       const context = { input: data.input, config: data.config };
-      
+
       // Replace field references with actual values
       let processedCondition = condition;
-      
+
       // Simple regex-based replacement for common patterns
-      processedCondition = processedCondition.replace(/input\.(\w+)/g, (_, fieldName) => {
-        const value = context.input[fieldName];
-        return typeof value === 'string' ? `"${value}"` : String(value);
-      });
-      
-      processedCondition = processedCondition.replace(/config\.(\w+)/g, (_, fieldName) => {
-        const value = context.config[fieldName];
-        return typeof value === 'string' ? `"${value}"` : String(value);
-      });
-      
+      processedCondition = processedCondition.replace(
+        /input\.(\w+)/g,
+        (_, fieldName) => {
+          const value = context.input[fieldName];
+          return typeof value === 'string' ? `"${value}"` : String(value);
+        }
+      );
+
+      processedCondition = processedCondition.replace(
+        /config\.(\w+)/g,
+        (_, fieldName) => {
+          const value = context.config[fieldName];
+          return typeof value === 'string' ? `"${value}"` : String(value);
+        }
+      );
+
       // WARNING: This uses eval() which is dangerous in production
       // Consider using a proper expression evaluator library
       return Boolean(eval(processedCondition));
@@ -993,7 +1115,11 @@ export class ZodSchemaValidator {
   /**
    * Cache management methods
    */
-  private generateCacheKey(type: string, schema: any, options: ValidationOptions): string {
+  private generateCacheKey(
+    type: string,
+    schema: any,
+    options: ValidationOptions
+  ): string {
     const schemaHash = this.hashObject(schema);
     const optionsHash = this.hashObject(options);
     return `${type}:${schemaHash}:${optionsHash}`;
@@ -1001,32 +1127,37 @@ export class ZodSchemaValidator {
 
   private getFromCache(cacheKey: string): SchemaCache | null {
     const cached = this.schemaCache.get(cacheKey);
-    
+
     if (!cached) {
       return null;
     }
-    
+
     // Check if cache entry is still valid
-    const isExpired = Date.now() - cached.timestamp > ZodSchemaValidator.CACHE_TTL_MS;
-    
+    const isExpired =
+      Date.now() - cached.timestamp > ZodSchemaValidator.CACHE_TTL_MS;
+
     if (isExpired) {
       this.schemaCache.delete(cacheKey);
       return null;
     }
-    
+
     // Update hit count
     cached.hitCount++;
     this.metrics.cacheHits++;
-    
+
     return cached;
   }
 
-  private setCache(cacheKey: string, schema: z.ZodSchema, originalSchema: any): void {
+  private setCache(
+    cacheKey: string,
+    schema: z.ZodSchema,
+    originalSchema: any
+  ): void {
     // Cleanup old entries if cache is full
     if (this.schemaCache.size >= ZodSchemaValidator.MAX_CACHE_SIZE) {
       this.cleanupCache();
     }
-    
+
     this.schemaCache.set(cacheKey, {
       schema,
       timestamp: Date.now(),
@@ -1039,7 +1170,7 @@ export class ZodSchemaValidator {
     // Remove least recently used entries
     const entries = Array.from(this.schemaCache.entries());
     entries.sort((a, b) => a[1].timestamp - b[1].timestamp);
-    
+
     // Remove oldest 25% of entries
     const toRemove = Math.floor(entries.length * 0.25);
     for (let i = 0; i < toRemove; i++) {
@@ -1051,13 +1182,13 @@ export class ZodSchemaValidator {
     // Simple hash function for caching purposes
     const str = JSON.stringify(obj, Object.keys(obj).sort());
     let hash = 0;
-    
+
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // Convert to 32-bit integer
     }
-    
+
     return hash.toString(36);
   }
 
@@ -1067,8 +1198,9 @@ export class ZodSchemaValidator {
   private updateMetrics(durationMs: number, fromCache: boolean): void {
     this.metrics.totalValidations++;
     this.metrics.totalDurationMs += durationMs;
-    this.metrics.averageDurationMs = this.metrics.totalDurationMs / this.metrics.totalValidations;
-    
+    this.metrics.averageDurationMs =
+      this.metrics.totalDurationMs / this.metrics.totalValidations;
+
     if (fromCache) {
       this.metrics.cacheHits++;
     }
@@ -1080,9 +1212,10 @@ export class ZodSchemaValidator {
   getMetrics() {
     return {
       ...this.metrics,
-      cacheHitRate: this.metrics.totalValidations > 0 
-        ? this.metrics.cacheHits / this.metrics.totalValidations 
-        : 0,
+      cacheHitRate:
+        this.metrics.totalValidations > 0
+          ? this.metrics.cacheHits / this.metrics.totalValidations
+          : 0,
       currentCacheSize: this.schemaCache.size,
     };
   }
@@ -1114,7 +1247,7 @@ export class SchemaValidator {
     schema: Record<string, ToolInputField>
   ): Promise<void> {
     const result = await this.validator.validateInput(input, schema);
-    
+
     if (!result.success) {
       const errorMessages = result.errors!.map(e => e.message);
       throw new ValidationError(
@@ -1133,13 +1266,13 @@ export class SchemaValidator {
     schema: Record<string, ToolConfigField>
   ): Promise<void> {
     const result = await this.validator.validateConfig(config, schema);
-    
+
     if (!result.success) {
       const errorMessages = result.errors!.map(e => e.message);
-      const missingKeys = result.errors!
-        .filter(e => e.code === 'REQUIRED')
+      const missingKeys = result
+        .errors!.filter(e => e.code === 'REQUIRED')
         .map(e => e.path.join('.'));
-      
+
       throw new ConfigurationError(
         `Configuration validation failed: ${errorMessages.join(', ')}`,
         missingKeys

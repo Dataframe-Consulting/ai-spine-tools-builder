@@ -3,7 +3,11 @@
  * Testing utilities and mock data generators
  */
 
-const { createRollupConfig, EXTERNAL_DEPS, loadPackageJson } = require('../../rollup.shared.js');
+const {
+  createRollupConfig,
+  EXTERNAL_DEPS,
+  loadPackageJson,
+} = require('../../rollup.shared.js');
 
 const packageJson = loadPackageJson('.');
 
@@ -14,5 +18,5 @@ module.exports = createRollupConfig({
   packageJson,
   generateTypes: false, // Skip due to superagent type conflicts
   bundleSizeLimit: 300, // 300KB limit for testing package
-  isCli: false
+  isCli: false,
 });

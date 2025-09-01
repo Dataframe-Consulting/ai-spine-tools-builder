@@ -6,7 +6,7 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "CommonJS",
     "moduleResolution": "Node",
-    
+
     // Module Detection and Resolution
     "allowJs": false,
     "checkJs": false,
@@ -15,7 +15,7 @@
     "esModuleInterop": true,
     "isolatedModules": true,
     "verbatimModuleSyntax": false,
-    
+
     // Emit
     "outDir": "./dist",
     "rootDir": "./src",
@@ -27,10 +27,10 @@
     "downlevelIteration": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    
+
     // Interop Constraints
     "forceConsistentCasingInFileNames": true,
-    
+
     // Type Checking - Strict Mode
     "strict": true,
     "noImplicitAny": true,
@@ -43,7 +43,7 @@
     "noImplicitThis": true,
     "useUnknownInCatchVariables": true,
     "alwaysStrict": true,
-    
+
     // Additional Type Checking
     "noUnusedLocals": true,
     "noUnusedParameters": true,
@@ -51,25 +51,22 @@
     "noPropertyAccessFromIndexSignature": false,
     "noUncheckedIndexedAccess": true,
     "noFallthroughCasesInSwitch": true,
-    
+
     // Performance and Debugging
     "skipLibCheck": true,
     "incremental": true,
     "tsBuildInfoFile": ".tsbuildinfo",
-    
+
     // Advanced Options
     "newLine": "lf",
     "stripInternal": true,
     "preserveWatchOutput": true,
     "pretty": true
   },
-  "include": [
-    "src/**/*",
-    "src/**/*.json"
-  ],
+  "include": ["src/**/*", "src/**/*.json"],
   "exclude": [
     "dist",
-    "build", 
+    "build",
     "node_modules",
     "**/*.test.ts",
     "**/*.spec.ts",

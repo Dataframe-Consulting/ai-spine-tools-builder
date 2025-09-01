@@ -3,7 +3,7 @@ export {
   // Core factory functions
   createTool,
   ToolBuilder,
-  
+
   // Input field builders
   stringField,
   numberField,
@@ -13,19 +13,19 @@ export {
   dateField,
   timeField,
   enumField,
-  
+
   // Config field builders
   apiKeyField,
   configStringField,
   configNumberField,
   configUrlField,
-  
+
   // Convenience functions
   simpleCreateTool,
   createToolBuilder,
-  
+
   // Types
-  CreateToolOptions
+  CreateToolOptions,
 } from './create-tool';
 
 // Re-export core types and utilities
