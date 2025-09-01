@@ -57,7 +57,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: 📦 Install Dependencies
-        run: npm ci --prefer-offline --no-audit
+        run: npm ci --prefer-offline --no-audit --ignore-scripts
 
       - name: 🏷️ Extract Version
         id: version
@@ -130,7 +130,7 @@ jobs:
           cache: 'npm'
 
       - name: 📦 Install Dependencies  
-        run: npm ci --prefer-offline --no-audit
+        run: npm ci --prefer-offline --no-audit --ignore-scripts
 
       - name: 🔧 Configure Git
         run: |
@@ -187,7 +187,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: 📦 Install Dependencies
-        run: npm ci --prefer-offline --no-audit
+        run: npm ci --prefer-offline --no-audit --ignore-scripts
 
       - name: 🔨 Build Package
         run: |
@@ -249,7 +249,7 @@ jobs:
           cache: 'npm'
 
       - name: 📦 Install Dependencies
-        run: npm ci --prefer-offline --no-audit
+        run: npm ci --prefer-offline --no-audit --ignore-scripts
 
       - name: 📝 Generate Release Notes
         id: notes

@@ -96,7 +96,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci --prefer-offline --no-audit
+        run: npm ci --prefer-offline --no-audit --ignore-scripts
 
       - name: Detect API changes
         run: |
@@ -110,7 +110,7 @@ jobs:
           
           # Checkout base branch and build
           git checkout origin/main
-          npm ci --prefer-offline --no-audit  
+          npm ci --prefer-offline --no-audit --ignore-scripts  
           npm run build
           node scripts/extract-api.js > baseline-api.json || echo "[]" > baseline-api.json
           
@@ -220,7 +220,7 @@ jobs:
             git diff origin/main...HEAD -- '**/package.json' | grep -E '^\+.*".*":|^\-.*".*":' || echo "No dependency changes detected"
             
             # Install and check for new vulnerabilities
-            npm ci --prefer-offline --no-audit
+            npm ci --prefer-offline --no-audit --ignore-scripts
             npm audit --audit-level=moderate || echo "New vulnerabilities detected - please review"
             
           else
@@ -232,14 +232,14 @@ jobs:
           echo "📊 Analyzing bundle size impact..."
           
           # Install and build current version
-          npm ci --prefer-offline --no-audit
+          npm ci --prefer-offline --no-audit --ignore-scripts
           npm run build:prod
           npm run bundle:size > current-bundle-size.txt || echo "Bundle size analysis failed"
           
           # Checkout main and compare
           git stash
           git checkout origin/main
-          npm ci --prefer-offline --no-audit
+          npm ci --prefer-offline --no-audit --ignore-scripts
           npm run build:prod  
           npm run bundle:size > baseline-bundle-size.txt || echo "Baseline bundle size analysis failed"
           
@@ -269,7 +269,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci --prefer-offline --no-audit
+        run: npm ci --prefer-offline --no-audit --ignore-scripts
 
       - name: Build packages
         run: npm run build
