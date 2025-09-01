@@ -24,6 +24,7 @@
     "test:examples": "npm run test:examples --workspace=@ai-spine/tools-testing",
     "test:scripts": "cd scripts && npm test",
     "test:scripts:coverage": "cd scripts && npm run test:coverage",
+    "test:release": "cd scripts && npm test -- --testPathPattern=release-automation.test.js",
     "lint": "eslint packages/ templates/ examples/ --ext .ts,.js",
     "clean": "npm run clean --workspaces",
     "clean:cache": "npm run clean && rm -rf node_modules/.cache",

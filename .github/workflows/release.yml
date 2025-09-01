@@ -1,0 +1,357 @@
+# Release Automation Pipeline
+# Handles automated publishing to npm registry with proper versioning and documentation
+name: 🚀 Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Triggers on version tags like v1.2.3
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Release type (patch, minor, major)'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor  
+          - major
+      skip_checks:
+        description: 'Skip pre-release checks'
+        required: false
+        default: false
+        type: boolean
+      dry_run:
+        description: 'Dry run (no actual publishing)'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  NODE_OPTIONS: '--max-old-space-size=4096'
+  HUSKY: 0
+  CI: true
+
+jobs:
+  # Pre-release validation and preparation
+  pre-release:
+    name: 🔍 Pre-release Validation
+    runs-on: ubuntu-latest
+    outputs:
+      release_version: ${{ steps.version.outputs.version }}
+      is_prerelease: ${{ steps.check.outputs.prerelease }}
+      
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history needed for changelog
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: 📦 Install Dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: 🏷️ Extract Version
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref_type }}" == "tag" ]]; then
+            VERSION=${GITHUB_REF#refs/tags/v}
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "Release triggered by tag: v$VERSION"
+          else
+            # Manual dispatch - will be set by release script
+            echo "version=manual" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 🔍 Pre-release Checks
+        if: ${{ !inputs.skip_checks }}
+        run: |
+          echo "Running pre-release validation..."
+          
+          # Check git status
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "❌ Working directory not clean"
+            git status --porcelain
+            exit 1
+          fi
+          
+          # Run linting
+          npm run lint
+          
+          # Run tests
+          npm run test
+          
+          # Run build
+          npm run build:prod
+          
+          # Verify build output
+          npm run build:verify
+          
+          echo "✅ All pre-release checks passed"
+
+      - name: 🔍 Check Release Type
+        id: check
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          if [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "prerelease=false" >> $GITHUB_OUTPUT
+          else
+            echo "prerelease=true" >> $GITHUB_OUTPUT
+          fi
+
+  # Version and changelog management
+  prepare-release:
+    name: 📝 Prepare Release
+    runs-on: ubuntu-latest
+    needs: pre-release
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    outputs:
+      new_version: ${{ steps.release.outputs.version }}
+      
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
+          
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies  
+        run: npm ci --prefer-offline --no-audit
+
+      - name: 🔧 Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: 🚀 Perform Release
+        id: release
+        run: |
+          RELEASE_FLAGS=""
+          if [[ "${{ inputs.dry_run }}" == "true" ]]; then
+            RELEASE_FLAGS="$RELEASE_FLAGS --dry-run"
+          fi
+          if [[ "${{ inputs.skip_checks }}" == "true" ]]; then
+            RELEASE_FLAGS="$RELEASE_FLAGS --skip-checks"
+          fi
+          
+          # Run release process
+          RELEASE_OUTPUT=$(node scripts/release-manager.js release ${{ inputs.release_type }} $RELEASE_FLAGS --verbose 2>&1)
+          echo "$RELEASE_OUTPUT"
+          
+          # Extract new version from output
+          NEW_VERSION=$(echo "$RELEASE_OUTPUT" | grep -o "Release [0-9]\+\.[0-9]\+\.[0-9]\+ completed" | grep -o "[0-9]\+\.[0-9]\+\.[0-9]\+")
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "New version: $NEW_VERSION"
+
+      - name: 📤 Push Changes
+        if: ${{ !inputs.dry_run }}
+        run: |
+          git push origin main
+          git push origin --tags
+
+  # NPM package publishing
+  publish-packages:
+    name: 📦 Publish Packages
+    runs-on: ubuntu-latest
+    needs: [pre-release, prepare-release]
+    if: ${{ always() && (needs.pre-release.result == 'success') && (!inputs.dry_run) }}
+    strategy:
+      matrix:
+        package: ['ai-spine-tools-core', 'ai-spine-tools', 'ai-spine-tools-testing', 'create-ai-spine-tool']
+        
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: 📦 Install Dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: 🔨 Build Package
+        run: |
+          cd packages/${{ matrix.package }}
+          npm run build
+
+      - name: 🔍 Package Verification
+        run: |
+          cd packages/${{ matrix.package }}
+          
+          # Check if package builds correctly
+          if [ ! -d "dist" ]; then
+            echo "❌ Build output not found"
+            exit 1
+          fi
+          
+          # Check package.json validity
+          npm pack --dry-run
+          
+          # Verify exports
+          node -e "console.log('✅ Package can be imported:', require('./dist/index.js'))"
+
+      - name: 📤 Publish to npm
+        run: |
+          cd packages/${{ matrix.package }}
+          
+          # Check if version already exists
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          
+          if npm view "$PACKAGE_NAME@$PACKAGE_VERSION" version 2>/dev/null; then
+            echo "⚠️ Version $PACKAGE_VERSION already exists for $PACKAGE_NAME, skipping"
+            exit 0
+          fi
+          
+          # Publish package
+          npm publish --access public
+          echo "✅ Published $PACKAGE_NAME@$PACKAGE_VERSION"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  # Create GitHub release
+  create-release:
+    name: 📋 Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [pre-release, prepare-release, publish-packages]
+    if: ${{ always() && (needs.pre-release.result == 'success') && (needs.publish-packages.result == 'success' || needs.publish-packages.result == 'skipped') }}
+    
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: 📝 Generate Release Notes
+        id: notes
+        run: |
+          VERSION="${{ needs.prepare-release.outputs.new_version || needs.pre-release.outputs.release_version }}"
+          
+          # Generate detailed release notes
+          RELEASE_NOTES=$(node scripts/release-manager.js changelog ${VERSION} 2>/dev/null || echo "## Release ${VERSION}")
+          
+          # Escape and prepare for GitHub
+          echo "notes<<EOF" >> $GITHUB_OUTPUT
+          echo "$RELEASE_NOTES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: 🏷️ Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ needs.prepare-release.outputs.new_version || needs.pre-release.outputs.release_version }}
+          release_name: Release ${{ needs.prepare-release.outputs.new_version || needs.pre-release.outputs.release_version }}
+          body: ${{ steps.notes.outputs.notes }}
+          draft: false
+          prerelease: ${{ needs.pre-release.outputs.is_prerelease == 'true' }}
+
+  # Post-release verification
+  verify-release:
+    name: ✅ Verify Release
+    runs-on: ubuntu-latest
+    needs: [pre-release, prepare-release, publish-packages, create-release]
+    if: ${{ always() && (needs.create-release.result == 'success') }}
+    
+    strategy:
+      matrix:
+        package: ['@ai-spine/tools-core', '@ai-spine/tools', '@ai-spine/tools-testing', 'create-ai-spine-tool']
+    
+    steps:
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: ⏳ Wait for npm propagation
+        run: sleep 30
+
+      - name: 🔍 Verify npm Package
+        run: |
+          PACKAGE_NAME="${{ matrix.package }}"
+          VERSION="${{ needs.prepare-release.outputs.new_version || needs.pre-release.outputs.release_version }}"
+          
+          echo "Verifying $PACKAGE_NAME@$VERSION is available..."
+          
+          # Try to fetch package info
+          if npm view "$PACKAGE_NAME@$VERSION" version; then
+            echo "✅ Package $PACKAGE_NAME@$VERSION is available on npm"
+          else
+            echo "❌ Package $PACKAGE_NAME@$VERSION not found on npm"
+            exit 1
+          fi
+          
+          # Try to install package
+          mkdir -p /tmp/verify-install
+          cd /tmp/verify-install
+          npm init -y
+          npm install "$PACKAGE_NAME@$VERSION"
+          echo "✅ Package $PACKAGE_NAME@$VERSION installs successfully"
+
+  # Release notification and cleanup
+  notify-completion:
+    name: 🎉 Release Complete
+    runs-on: ubuntu-latest
+    needs: [pre-release, prepare-release, publish-packages, create-release, verify-release]
+    if: ${{ always() }}
+    
+    steps:
+      - name: 📊 Release Summary
+        run: |
+          echo "🎉 Release Automation Summary"
+          echo "=================================="
+          
+          VERSION="${{ needs.prepare-release.outputs.new_version || needs.pre-release.outputs.release_version }}"
+          echo "📦 Version: $VERSION"
+          echo "🔗 Release: https://github.com/${{ github.repository }}/releases/tag/v$VERSION"
+          
+          echo ""
+          echo "📋 Job Results:"
+          echo "- Pre-release: ${{ needs.pre-release.result }}"
+          echo "- Prepare: ${{ needs.prepare-release.result }}"  
+          echo "- Publish: ${{ needs.publish-packages.result }}"
+          echo "- GitHub Release: ${{ needs.create-release.result }}"
+          echo "- Verification: ${{ needs.verify-release.result }}"
+          
+          if [[ "${{ needs.verify-release.result }}" == "success" ]]; then
+            echo ""
+            echo "✅ Release completed successfully!"
+            echo "📦 Packages are now available on npm:"
+            echo "- npm install @ai-spine/tools@$VERSION"
+            echo "- npm install @ai-spine/tools-core@$VERSION" 
+            echo "- npm install @ai-spine/tools-testing@$VERSION"
+            echo "- npm install create-ai-spine-tool@$VERSION"
+          else
+            echo ""
+            echo "❌ Release encountered issues. Check job logs for details."
+          fi
