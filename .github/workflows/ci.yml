@@ -94,6 +94,12 @@ jobs:
           npm ci --prefer-offline --no-audit
           echo "✅ Dependencies installed successfully"
 
+      - name: Build packages
+        run: |
+          echo "🔨 Building monorepo packages..."
+          npm run build
+          echo "✅ All packages built successfully"
+
       - name: TypeScript type checking
         run: |
           echo "🔍 Running TypeScript type checking..."
