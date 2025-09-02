@@ -3,7 +3,11 @@
  * Main SDK package with Tool creation utilities
  */
 
-const { createRollupConfig, EXTERNAL_DEPS, loadPackageJson } = require('../../rollup.shared.js');
+const {
+  createRollupConfig,
+  EXTERNAL_DEPS,
+  loadPackageJson,
+} = require('../../rollup.shared.js');
 
 const packageJson = loadPackageJson('.');
 
@@ -14,5 +18,5 @@ module.exports = createRollupConfig({
   packageJson,
   generateTypes: true,
   bundleSizeLimit: 200, // 200KB limit for tools package
-  isCli: false
+  isCli: false,
 });

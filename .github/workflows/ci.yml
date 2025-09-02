@@ -1,0 +1,444 @@
+# AI Spine Tools SDK - Continuous Integration Pipeline
+# 
+# This workflow implements comprehensive CI/CD automation including:
+# - Multi-platform testing (Windows, macOS, Linux)
+# - Multiple Node.js versions support
+# - Parallel test execution with cross-package integration
+# - Security vulnerability scanning and code quality gates
+# - Build verification with bundle size monitoring
+# - Performance regression detection
+
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop, 'feature/**', 'hotfix/**' ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run daily at 02:00 UTC for dependency vulnerability checks
+    - cron: '0 2 * * *'
+
+# Security: Restrict permissions by default
+permissions:
+  contents: read
+  security-events: write
+  checks: write
+  pull-requests: write
+
+env:
+  # Performance and caching optimizations
+  NODE_OPTIONS: '--max-old-space-size=4096'
+  HUSKY: 0  # Disable husky hooks in CI
+  CI: true
+
+jobs:
+  # ============================================================================
+  # Pre-flight Checks - Fast feedback for basic issues
+  # ============================================================================
+  preflight:
+    name: Pre-flight Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      should_run_tests: ${{ steps.changes.outputs.should_run_tests }}
+      node_matrix: ${{ steps.setup.outputs.node_matrix }}
+      os_matrix: ${{ steps.setup.outputs.os_matrix }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # Needed for change detection
+
+      - name: Detect changes
+        id: changes
+        run: |
+          # Detect if we should run full test suite
+          if git diff --name-only HEAD~1 HEAD | grep -E '\.(ts|js|json)$|package\.json$|tsconfig|workflows'; then
+            echo "should_run_tests=true" >> $GITHUB_OUTPUT
+          else
+            echo "should_run_tests=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Setup test matrices
+        id: setup
+        run: |
+          # Define Node.js versions to test (LTS + Current)
+          echo "node_matrix=[\"18.x\", \"20.x\", \"21.x\"]" >> $GITHUB_OUTPUT
+          # Define OS matrix for comprehensive testing
+          echo "os_matrix=[\"ubuntu-latest\", \"windows-latest\", \"macos-latest\"]" >> $GITHUB_OUTPUT
+
+  # ============================================================================
+  # Code Quality Gates - Linting, formatting, and type checking
+  # ============================================================================
+  quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: preflight
+    if: needs.preflight.outputs.should_run_tests == 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies (skip workspace scripts)
+        run: |
+          npx rimraf node_modules package-lock.json
+          npm install --prefer-offline --no-audit --ignore-scripts
+          echo "✅ Dependencies installed successfully"
+
+      - name: Build packages in correct order
+        run: |
+          echo "🔨 Building monorepo packages in dependency order..."
+          npm run build
+          echo "✅ All packages built successfully"
+
+      - name: TypeScript type checking
+        run: |
+          echo "🔍 Running TypeScript type checking..."
+          npx tsc --noEmit --project tsconfig.json
+          echo "✅ TypeScript type checking passed"
+
+      - name: ESLint analysis
+        run: |
+          echo "🔍 Running ESLint analysis..."
+          npm run lint
+          echo "✅ ESLint analysis passed"
+
+      - name: Prettier format checking
+        run: |
+          echo "🔍 Checking code formatting..."
+          npx prettier --check packages/ scripts/
+          echo "✅ Code formatting is correct"
+
+      - name: Package.json validation
+        run: |
+          echo "🔍 Validating package.json files..."
+          find . -name "package.json" -not -path "./node_modules/*" -exec npm pkg lint {} \;
+          echo "✅ All package.json files are valid"
+
+  # ============================================================================  
+  # Security Scanning - Vulnerability and secret detection
+  # ============================================================================
+  security:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: preflight
+    if: needs.preflight.outputs.should_run_tests == 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npx rimraf node_modules package-lock.json
+          npm install --prefer-offline --no-audit --ignore-scripts
+
+      - name: npm audit (High and Critical only)
+        run: |
+          echo "🔍 Running npm security audit..."
+          npm audit --audit-level=high --production
+          echo "✅ No high or critical vulnerabilities found"
+
+      - name: Dependency vulnerability scan with audit-ci
+        run: |
+          echo "🔍 Running comprehensive dependency scan..."
+          npx audit-ci --config audit-ci.json || true
+          echo "✅ Dependency vulnerability scan completed"
+
+      - name: CodeQL Analysis
+        continue-on-error: true
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+          config-file: ./.github/codeql-config.yml
+
+      - name: Perform CodeQL Analysis
+        continue-on-error: true
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript"
+
+      - name: Secret detection with TruffleHog
+        continue-on-error: true
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --debug --only-verified
+
+  # ============================================================================
+  # Unit and Integration Tests - Multi-platform and multi-version
+  # ============================================================================
+  test:
+    name: Tests (${{ matrix.os }}, Node ${{ matrix.node-version }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    needs: [preflight, quality]
+    if: needs.preflight.outputs.should_run_tests == 'true'
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJson(needs.preflight.outputs.os_matrix) }}
+        node-version: ${{ fromJson(needs.preflight.outputs.node_matrix) }}
+        
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npx rimraf node_modules package-lock.json
+          npm install --prefer-offline --no-audit --ignore-scripts
+
+      - name: Build packages
+        run: |
+          echo "🏗️  Building all packages..."
+          npm run build:sequential
+          echo "✅ All packages built successfully"
+
+      - name: Run unit tests with coverage
+        run: |
+          echo "🧪 Running unit tests with coverage..."
+          npm run test:coverage
+          echo "✅ Unit tests completed"
+
+      - name: Run integration tests
+        run: |
+          echo "🔗 Running integration tests..."
+          npm run test:templates
+          npm run test:examples
+          echo "✅ Integration tests completed"
+
+      - name: Upload coverage to Codecov
+        if: matrix.os == 'ubuntu-latest' && matrix.node-version == '20.x'
+        uses: codecov/codecov-action@v3
+        with:
+          directory: ./coverage
+          files: ./coverage/lcov.info
+          flags: unittests
+          name: ai-spine-tools-sdk
+          fail_ci_if_error: false
+          verbose: true
+
+      - name: Store test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ matrix.os }}-${{ matrix.node-version }}
+          path: |
+            coverage/
+            test-results.xml
+            **/*.log
+          retention-days: 7
+
+  # ============================================================================
+  # Build Verification - Production builds and compatibility
+  # ============================================================================
+  build:
+    name: Build Verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [preflight, quality, security]
+    if: needs.preflight.outputs.should_run_tests == 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npx rimraf node_modules package-lock.json
+          npm install --prefer-offline --no-audit --ignore-scripts
+
+      - name: Production build
+        run: |
+          echo "🏗️  Running production build..."
+          npm run build:prod
+          echo "✅ Production build completed"
+
+      - name: Build verification
+        run: |
+          echo "🔍 Verifying build integrity..."
+          npm run build:verify
+          echo "✅ Build verification passed"
+
+      - name: Bundle size analysis
+        run: |
+          echo "📦 Analyzing bundle sizes..."
+          npm run bundle:size
+          echo "✅ Bundle size analysis completed"
+
+      - name: Dependency analysis
+        run: |
+          echo "🔗 Analyzing dependencies..."
+          npm run deps:analyze
+          echo "✅ Dependency analysis completed"
+
+      - name: Template validation
+        run: |
+          echo "📝 Validating project templates..."
+          cd packages/create-ai-spine-tool
+          node dist/cli.js --validate-templates
+          echo "✅ Template validation passed"
+
+      - name: Store build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            packages/*/dist/
+            dist/
+            build-report.json
+            bundle-analysis.json
+          retention-days: 30
+
+  # ============================================================================
+  # Performance Testing - Regression detection
+  # ============================================================================
+  performance:
+    name: Performance Testing
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [build]
+    if: needs.preflight.outputs.should_run_tests == 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npx rimraf node_modules package-lock.json
+          npm install --prefer-offline --no-audit --ignore-scripts
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+
+      - name: Performance benchmarks
+        run: |
+          echo "⚡ Running performance benchmarks..."
+          # Tool creation performance test
+          node scripts/performance-test.js --test=tool-creation --iterations=100
+          # Request processing performance test  
+          node scripts/performance-test.js --test=request-processing --iterations=1000
+          echo "✅ Performance benchmarks completed"
+
+      - name: Performance regression check
+        run: |
+          echo "📊 Checking for performance regressions..."
+          node scripts/performance-regression.js --baseline=main --threshold=10%
+          echo "✅ No significant performance regressions detected"
+
+  # ============================================================================
+  # Final Status Check - Aggregate all results
+  # ============================================================================
+  status:
+    name: CI Status
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [quality, security, test, build, performance]
+    if: always() && needs.preflight.outputs.should_run_tests == 'true'
+    
+    steps:
+      - name: Check all job statuses
+        run: |
+          echo "📋 Checking CI pipeline status..."
+          
+          # Check individual job results
+          QUALITY_STATUS="${{ needs.quality.result }}"
+          SECURITY_STATUS="${{ needs.security.result }}"  
+          TEST_STATUS="${{ needs.test.result }}"
+          BUILD_STATUS="${{ needs.build.result }}"
+          PERFORMANCE_STATUS="${{ needs.performance.result }}"
+          
+          echo "Quality: $QUALITY_STATUS"
+          echo "Security: $SECURITY_STATUS"
+          echo "Tests: $TEST_STATUS"
+          echo "Build: $BUILD_STATUS"
+          echo "Performance: $PERFORMANCE_STATUS"
+          
+          # Determine overall status
+          if [[ "$QUALITY_STATUS" == "success" && "$SECURITY_STATUS" == "success" && "$TEST_STATUS" == "success" && "$BUILD_STATUS" == "success" && "$PERFORMANCE_STATUS" == "success" ]]; then
+            echo "🎉 All CI checks passed successfully!"
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Some CI checks failed"
+            echo "status=failure" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      - name: Update commit status
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const status = '${{ steps.check.outputs.status }}';
+            const context = 'AI Spine Tools SDK CI';
+            const description = status === 'success' 
+              ? 'All checks passed' 
+              : 'Some checks failed';
+            
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: status,
+              target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              description: description,
+              context: context
+            });
+
+  # ============================================================================
+  # Cleanup - Clean up resources and artifacts
+  # ============================================================================
+  cleanup:
+    name: Cleanup
+    runs-on: ubuntu-latest
+    needs: [status]
+    if: always() && needs.preflight.outputs.should_run_tests == 'true'
+    
+    steps:
+      - name: Clean up artifacts
+        run: |
+          echo "🧹 Cleaning up temporary artifacts..."
+          # Cleanup logic here if needed
+          echo "✅ Cleanup completed"

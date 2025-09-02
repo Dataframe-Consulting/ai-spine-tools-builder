@@ -1,0 +1,31 @@
+{
+  "timestamp": "2025-09-01T19:18:51.051Z",
+  "environment": {
+    "platform": "win32",
+    "arch": "x64",
+    "nodeVersion": "v22.18.0",
+    "totalMemory": 16,
+    "cpuCount": 8,
+    "cpuModel": "Intel(R) Core(TM) i5-8250U CPU @ 1.60GHz"
+  },
+  "tests": {
+    "toolCreation": {
+      "name": "Tool Creation",
+      "iterations": 1,
+      "timing": {
+        "total": 0.32,
+        "average": 0.3,
+        "min": 0.3,
+        "max": 0.3,
+        "median": 0.3,
+        "throughput": 3154
+      },
+      "memory": {
+        "rss": 12,
+        "heapUsed": 8,
+        "heapTotal": 0,
+        "external": 0
+      }
+    }
+  }
+}

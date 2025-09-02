@@ -6,13 +6,13 @@ import {
   AISpineExecuteResponse,
   AISpineHealthResponse,
   ToolError,
-  ToolSchema
+  ToolSchema,
 } from '@ai-spine/tools-core';
 import { EventEmitter } from 'events';
 
 /**
  * Configuration options for the AISpineTestClient.
- * 
+ *
  * @interface TestClientOptions
  * @example
  * ```typescript
@@ -63,44 +63,44 @@ export interface ErrorEvent {
 export interface TestClientOptions {
   /** Base URL of the tool server */
   baseURL: string;
-  
+
   /** Request timeout in milliseconds (default: 10000) */
   timeout?: number;
-  
+
   /** API key for authentication */
   apiKey?: string;
-  
+
   /** Number of retry attempts for failed requests (default: 3) */
   retries?: number;
-  
+
   /** Delay between retries in milliseconds (default: 1000) */
   retryDelay?: number;
-  
+
   /** Custom headers to include with all requests */
   headers?: Record<string, string>;
-  
+
   /** Enable detailed request/response logging (default: false) */
   enableDetailedLogs?: boolean;
-  
+
   /** Enable performance metrics collection (default: true) */
   enableMetrics?: boolean;
-  
+
   /** Custom user agent string */
   userAgent?: string;
-  
+
   /** Enable automatic response validation (default: true) */
   validateResponses?: boolean;
-  
+
   /** Custom certificate authority for HTTPS requests */
   ca?: string | Buffer;
-  
+
   /** Allow invalid SSL certificates (for testing only) */
   rejectUnauthorized?: boolean;
 }
 
 /**
  * Result of a test execution including detailed timing and metadata.
- * 
+ *
  * @interface TestExecutionResult
  * @example
  * ```typescript
@@ -130,25 +130,25 @@ export interface TestClientOptions {
 export interface TestExecutionResult {
   /** Whether the execution was successful */
   success: boolean;
-  
+
   /** Tool execution response (present on success) */
   response?: AISpineExecuteResponse;
-  
+
   /** Error information (present on failure) */
   error?: ToolError;
-  
+
   /** Total request duration in milliseconds */
   duration: number;
-  
+
   /** HTTP status code */
   httpStatus?: number;
-  
+
   /** Request payload size in bytes */
   requestSize?: number;
-  
+
   /** Response payload size in bytes */
   responseSize?: number;
-  
+
   /** Detailed timing breakdown */
   timing?: {
     /** DNS lookup time in ms */
@@ -162,10 +162,10 @@ export interface TestExecutionResult {
     /** Total time in ms */
     total: number;
   };
-  
+
   /** Response headers */
   headers?: Record<string, string>;
-  
+
   /** Retry information */
   retries?: {
     /** Number of retry attempts made */
@@ -173,14 +173,14 @@ export interface TestExecutionResult {
     /** Reasons for retries */
     reasons: string[];
   };
-  
+
   /** Custom metadata */
   metadata?: Record<string, any>;
 }
 
 /**
  * Performance metrics for tracking and analysis.
- * 
+ *
  * @interface PerformanceMetrics
  */
 export interface PerformanceMetrics {
@@ -211,7 +211,7 @@ export interface PerformanceMetrics {
 
 /**
  * Load testing configuration options.
- * 
+ *
  * @interface LoadTestOptions
  */
 export interface LoadTestOptions {
@@ -237,7 +237,7 @@ export interface LoadTestOptions {
 
 /**
  * Comprehensive load test results with detailed analytics.
- * 
+ *
  * @interface LoadTestResult
  */
 export interface LoadTestResult {
@@ -356,7 +356,7 @@ export interface ToolValidationResult {
 /**
  * Advanced test client for AI Spine tools with comprehensive testing capabilities.
  * Simulates how AI agents interact with tools and provides detailed analytics.
- * 
+ *
  * @class AISpineTestClient
  * @extends EventEmitter
  * @example
@@ -366,16 +366,16 @@ export interface ToolValidationResult {
  *   apiKey: 'test-key',
  *   enableMetrics: true
  * });
- * 
+ *
  * // Execute single request
  * const result = await client.execute({ city: 'Madrid' });
- * 
+ *
  * // Run load test
  * const loadTestResult = await client.loadTest(
  *   { city: 'Madrid' },
  *   { concurrency: 10, requests: 100 }
  * );
- * 
+ *
  * // Get performance analytics
  * const analytics = client.getAnalytics();
  * ```
@@ -392,12 +392,12 @@ export class AISpineTestClient extends EventEmitter {
 
   /**
    * Creates a new AISpineTestClient instance.
-   * 
+   *
    * @param options - Configuration options for the client
    */
   constructor(options: TestClientOptions) {
     super();
-    
+
     // Set defaults for all options
     this.options = {
       baseURL: options.baseURL,
@@ -411,30 +411,34 @@ export class AISpineTestClient extends EventEmitter {
       userAgent: options.userAgent || `AI-Spine-Test-Client/1.0.0`,
       validateResponses: options.validateResponses !== false,
       ca: options.ca || '',
-      rejectUnauthorized: options.rejectUnauthorized !== false
+      rejectUnauthorized: options.rejectUnauthorized !== false,
     };
-    
+
     this.metrics = {
       requests: [],
       startTime: Date.now(),
-      errors: []
+      errors: [],
     };
-    
+
     this.client = axios.create({
       baseURL: this.options.baseURL,
       timeout: this.options.timeout,
       headers: {
         'Content-Type': 'application/json',
         'User-Agent': this.options.userAgent,
-        ...(this.options.apiKey && this.options.apiKey.length > 0 && { 'X-API-Key': this.options.apiKey }),
+        ...(this.options.apiKey &&
+          this.options.apiKey.length > 0 && {
+            'X-API-Key': this.options.apiKey,
+          }),
         ...this.options.headers,
       },
-      ...(this.options.ca && this.options.ca.length > 0 && {
-        httpsAgent: {
-          ca: this.options.ca,
-          rejectUnauthorized: this.options.rejectUnauthorized ?? true
-        }
-      })
+      ...(this.options.ca &&
+        this.options.ca.length > 0 && {
+          httpsAgent: {
+            ca: this.options.ca,
+            rejectUnauthorized: this.options.rejectUnauthorized ?? true,
+          },
+        }),
     });
 
     // Add request interceptor for detailed logging and metrics
@@ -442,20 +446,20 @@ export class AISpineTestClient extends EventEmitter {
       (config: any) => {
         const requestId = ++this.requestId;
         config.metadata = { requestId, startTime: Date.now() };
-        
+
         if (this.options.enableDetailedLogs) {
           this.emit('request', {
             requestId,
             method: config.method?.toUpperCase() || 'GET',
             url: config.url || '',
             data: config.data,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
           });
         }
-        
+
         return config;
       },
-      (error) => {
+      error => {
         this.emit('error', { type: 'request_setup', error });
         return Promise.reject(error);
       }
@@ -464,38 +468,39 @@ export class AISpineTestClient extends EventEmitter {
     // Add response interceptor for error handling and metrics
     this.client.interceptors.response.use(
       (response: any) => {
-        const duration = Date.now() - (response.config.metadata?.startTime || 0);
-        
+        const duration =
+          Date.now() - (response.config.metadata?.startTime || 0);
+
         if (this.options.enableDetailedLogs) {
           this.emit('response', {
             requestId: response.config.metadata?.requestId || 0,
             status: response.status,
             duration,
             data: response.data,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
           });
         }
-        
+
         return response;
       },
       (error: any) => {
         const duration = Date.now() - (error.config?.metadata?.startTime || 0);
         const toolError = this.createToolError(error, duration);
-        
+
         if (this.options.enableMetrics) {
           this.metrics.errors.push({
             timestamp: Date.now(),
-            error: toolError
+            error: toolError,
           });
         }
-        
+
         this.emit('error', {
           requestId: error.config?.metadata?.requestId || 0,
           error: toolError,
           duration,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
-        
+
         throw toolError;
       }
     );
@@ -503,7 +508,7 @@ export class AISpineTestClient extends EventEmitter {
 
   /**
    * Creates a ToolError from an Axios error with appropriate categorization.
-   * 
+   *
    * @private
    * @param error - The Axios error
    * @param duration - Request duration in milliseconds
@@ -514,7 +519,7 @@ export class AISpineTestClient extends EventEmitter {
       // Server responded with error status
       const status = error.response.status;
       const data = error.response.data;
-      
+
       return new ToolError(
         data?.error_message || data?.message || error.response.statusText,
         data?.error_code || this.getErrorCodeFromStatus(status),
@@ -522,7 +527,7 @@ export class AISpineTestClient extends EventEmitter {
           status,
           data,
           duration,
-          retryable: this.isRetryableStatus(status)
+          retryable: this.isRetryableStatus(status),
         }
       );
     } else if (error.request) {
@@ -530,10 +535,10 @@ export class AISpineTestClient extends EventEmitter {
       return new ToolError(
         'Network error: No response received',
         'NETWORK_ERROR',
-        { 
+        {
           originalError: error.message,
           duration,
-          retryable: true
+          retryable: true,
         }
       );
     } else {
@@ -541,10 +546,10 @@ export class AISpineTestClient extends EventEmitter {
       return new ToolError(
         `Request setup error: ${error.message}`,
         'REQUEST_ERROR',
-        { 
+        {
           originalError: error.message,
           duration,
-          retryable: false
+          retryable: false,
         }
       );
     }
@@ -552,7 +557,7 @@ export class AISpineTestClient extends EventEmitter {
 
   /**
    * Maps HTTP status codes to error codes.
-   * 
+   *
    * @private
    * @param status - HTTP status code
    * @returns Error code string
@@ -560,22 +565,35 @@ export class AISpineTestClient extends EventEmitter {
   private getErrorCodeFromStatus(status: number): string {
     if (status >= 400 && status < 500) {
       switch (status) {
-        case 400: return 'BAD_REQUEST';
-        case 401: return 'UNAUTHORIZED';
-        case 403: return 'FORBIDDEN';
-        case 404: return 'NOT_FOUND';
-        case 409: return 'CONFLICT';
-        case 422: return 'VALIDATION_ERROR';
-        case 429: return 'RATE_LIMITED';
-        default: return 'CLIENT_ERROR';
+        case 400:
+          return 'BAD_REQUEST';
+        case 401:
+          return 'UNAUTHORIZED';
+        case 403:
+          return 'FORBIDDEN';
+        case 404:
+          return 'NOT_FOUND';
+        case 409:
+          return 'CONFLICT';
+        case 422:
+          return 'VALIDATION_ERROR';
+        case 429:
+          return 'RATE_LIMITED';
+        default:
+          return 'CLIENT_ERROR';
       }
     } else if (status >= 500) {
       switch (status) {
-        case 500: return 'INTERNAL_SERVER_ERROR';
-        case 502: return 'BAD_GATEWAY';
-        case 503: return 'SERVICE_UNAVAILABLE';
-        case 504: return 'GATEWAY_TIMEOUT';
-        default: return 'SERVER_ERROR';
+        case 500:
+          return 'INTERNAL_SERVER_ERROR';
+        case 502:
+          return 'BAD_GATEWAY';
+        case 503:
+          return 'SERVICE_UNAVAILABLE';
+        case 504:
+          return 'GATEWAY_TIMEOUT';
+        default:
+          return 'SERVER_ERROR';
       }
     }
     return 'HTTP_ERROR';
@@ -583,7 +601,7 @@ export class AISpineTestClient extends EventEmitter {
 
   /**
    * Determines if an HTTP status code indicates a retryable error.
-   * 
+   *
    * @private
    * @param status - HTTP status code
    * @returns Whether the error is retryable
@@ -594,10 +612,10 @@ export class AISpineTestClient extends EventEmitter {
 
   /**
    * Check if the tool is healthy and accessible.
-   * 
+   *
    * @returns Promise resolving to health check response
    * @throws ToolError if health check fails
-   * 
+   *
    * @example
    * ```typescript
    * const health = await client.healthCheck();
@@ -608,26 +626,28 @@ export class AISpineTestClient extends EventEmitter {
   async healthCheck(): Promise<AISpineHealthResponse> {
     try {
       const response = await this.client.get('/health');
-      
+
       if (this.options.validateResponses) {
         this.validateHealthResponse(response.data);
       }
-      
+
       return response.data;
     } catch (error) {
-      throw error instanceof ToolError ? error : new ToolError(
-        `Health check failed: ${error instanceof Error ? error.message : String(error)}`,
-        'HEALTH_CHECK_ERROR'
-      );
+      throw error instanceof ToolError
+        ? error
+        : new ToolError(
+            `Health check failed: ${error instanceof Error ? error.message : String(error)}`,
+            'HEALTH_CHECK_ERROR'
+          );
     }
   }
 
   /**
    * Get the tool's schema and metadata.
-   * 
+   *
    * @returns Promise resolving to tool schema
    * @throws ToolError if schema retrieval fails
-   * 
+   *
    * @example
    * ```typescript
    * const schema = await client.getSchema();
@@ -639,19 +659,21 @@ export class AISpineTestClient extends EventEmitter {
       const response = await this.client.get('/schema');
       return response.data;
     } catch (error) {
-      throw error instanceof ToolError ? error : new ToolError(
-        `Schema retrieval failed: ${error instanceof Error ? error.message : String(error)}`,
-        'SCHEMA_ERROR'
-      );
+      throw error instanceof ToolError
+        ? error
+        : new ToolError(
+            `Schema retrieval failed: ${error instanceof Error ? error.message : String(error)}`,
+            'SCHEMA_ERROR'
+          );
     }
   }
 
   /**
    * Get current performance metrics.
-   * 
+   *
    * @returns Promise resolving to metrics response
    * @throws ToolError if metrics retrieval fails
-   * 
+   *
    * @example
    * ```typescript
    * const metrics = await client.getMetrics();
@@ -663,28 +685,33 @@ export class AISpineTestClient extends EventEmitter {
       const response = await this.client.get('/metrics');
       return response.data;
     } catch (error) {
-      throw error instanceof ToolError ? error : new ToolError(
-        `Metrics retrieval failed: ${error instanceof Error ? error.message : String(error)}`,
-        'METRICS_ERROR'
-      );
+      throw error instanceof ToolError
+        ? error
+        : new ToolError(
+            `Metrics retrieval failed: ${error instanceof Error ? error.message : String(error)}`,
+            'METRICS_ERROR'
+          );
     }
   }
 
   /**
    * Validates health response structure.
-   * 
+   *
    * @private
    * @param data - Health response data
    * @throws ToolError if validation fails
    */
   private validateHealthResponse(data: any): void {
     if (!data || typeof data !== 'object') {
-      throw new ToolError('Health response must be an object', 'INVALID_HEALTH_RESPONSE');
+      throw new ToolError(
+        'Health response must be an object',
+        'INVALID_HEALTH_RESPONSE'
+      );
     }
-    
+
     const requiredFields = ['status', 'tool_metadata', 'uptime_seconds'];
     const missingFields = requiredFields.filter(field => !(field in data));
-    
+
     if (missingFields.length > 0) {
       throw new ToolError(
         `Health response missing required fields: ${missingFields.join(', ')}`,
@@ -692,12 +719,14 @@ export class AISpineTestClient extends EventEmitter {
         { missingFields }
       );
     }
-    
+
     // Validate nested tool_metadata structure
     if (data.tool_metadata && typeof data.tool_metadata === 'object') {
       const metadataFields = ['name', 'version'];
-      const missingMetadataFields = metadataFields.filter(field => !(field in data.tool_metadata));
-      
+      const missingMetadataFields = metadataFields.filter(
+        field => !(field in data.tool_metadata)
+      );
+
       if (missingMetadataFields.length > 0) {
         throw new ToolError(
           `Tool metadata missing required fields: ${missingMetadataFields.join(', ')}`,
@@ -710,12 +739,12 @@ export class AISpineTestClient extends EventEmitter {
 
   /**
    * Execute a tool with input data and comprehensive result tracking.
-   * 
+   *
    * @param inputData - Tool input data
    * @param config - Tool configuration (optional)
    * @param options - Execution options
    * @returns Promise resolving to detailed execution result
-   * 
+   *
    * @example
    * ```typescript
    * const result = await client.execute(
@@ -727,7 +756,7 @@ export class AISpineTestClient extends EventEmitter {
    *     metadata: { source: 'test-suite' }
    *   }
    * );
-   * 
+   *
    * if (result.success) {
    *   console.log('Result:', result.response?.output_data);
    *   console.log('Duration:', result.duration, 'ms');
@@ -764,14 +793,18 @@ export class AISpineTestClient extends EventEmitter {
         };
 
         const requestSize = JSON.stringify(request).length;
-        
+
         // Create axios config with custom timeout if provided
         const axiosConfig: any = {
           timeout: options.timeout || this.options.timeout,
-          headers: options.headers || {}
+          headers: options.headers || {},
         };
 
-        const response = await this.client.post('/api/execute', request, axiosConfig);
+        const response = await this.client.post(
+          '/api/execute',
+          request,
+          axiosConfig
+        );
         const endTime = process.hrtime.bigint();
         const duration = Date.now() - startTime;
         const responseSize = JSON.stringify(response.data).length;
@@ -793,14 +826,17 @@ export class AISpineTestClient extends EventEmitter {
             // For now, we provide total time
           },
           headers: response.headers as Record<string, string>,
-          retries: attempt > 0 ? {
-            count: attempt,
-            reasons: retryReasons
-          } : undefined,
+          retries:
+            attempt > 0
+              ? {
+                  count: attempt,
+                  reasons: retryReasons,
+                }
+              : undefined,
           metadata: {
             attempt: attempt + 1,
-            totalAttempts: retryCount + 1
-          }
+            totalAttempts: retryCount + 1,
+          },
         };
 
         if (this.options.enableMetrics) {
@@ -809,12 +845,13 @@ export class AISpineTestClient extends EventEmitter {
 
         this.emit('execution', result);
         return result;
-
       } catch (error) {
         const duration = Date.now() - startTime;
-        const toolError = error instanceof ToolError ? error : 
-          new ToolError(String(error), 'EXECUTION_ERROR');
-        
+        const toolError =
+          error instanceof ToolError
+            ? error
+            : new ToolError(String(error), 'EXECUTION_ERROR');
+
         lastError = toolError;
 
         // Check if we should retry
@@ -830,15 +867,18 @@ export class AISpineTestClient extends EventEmitter {
           error: toolError,
           duration,
           httpStatus: (toolError.details as any)?.status,
-          retries: attempt > 0 ? {
-            count: attempt,
-            reasons: retryReasons
-          } : undefined,
+          retries:
+            attempt > 0
+              ? {
+                  count: attempt,
+                  reasons: retryReasons,
+                }
+              : undefined,
           metadata: {
             attempt: attempt + 1,
             totalAttempts: retryCount + 1,
-            finalError: true
-          }
+            finalError: true,
+          },
         };
 
         if (this.options.enableMetrics) {
@@ -856,7 +896,7 @@ export class AISpineTestClient extends EventEmitter {
 
   /**
    * Determines if an error is retryable.
-   * 
+   *
    * @private
    * @param error - The error to check
    * @returns Whether the error should be retried
@@ -868,16 +908,18 @@ export class AISpineTestClient extends EventEmitter {
       'SERVICE_UNAVAILABLE',
       'BAD_GATEWAY',
       'GATEWAY_TIMEOUT',
-      'RATE_LIMITED'
+      'RATE_LIMITED',
     ];
-    
-    return retryableCodes.includes(error.code) || 
-           (error.details as any)?.retryable === true;
+
+    return (
+      retryableCodes.includes(error.code) ||
+      (error.details as any)?.retryable === true
+    );
   }
 
   /**
    * Generates a unique execution ID.
-   * 
+   *
    * @private
    * @returns Unique execution ID string
    */
@@ -887,7 +929,7 @@ export class AISpineTestClient extends EventEmitter {
 
   /**
    * Delays execution for the specified number of milliseconds.
-   * 
+   *
    * @private
    * @param ms - Milliseconds to delay
    * @returns Promise that resolves after the delay
@@ -912,17 +954,17 @@ export class AISpineTestClient extends EventEmitter {
       onProgress?: (status: any) => void;
     } = {}
   ): Promise<TestExecutionResult> {
-    const { 
-      timeout = 30000, 
-      pollInterval = 1000, 
+    const {
+      timeout = 30000,
+      pollInterval = 1000,
       maxPolls = Math.floor(timeout / pollInterval),
-      onProgress
+      onProgress,
     } = options;
-    
+
     // Execute the tool
     const executeResult = await this.execute(inputData, config, {
       executionId: options.executionId,
-      metadata: options.metadata
+      metadata: options.metadata,
     });
 
     if (!executeResult.success || !executeResult.response) {
@@ -930,7 +972,10 @@ export class AISpineTestClient extends EventEmitter {
     }
 
     // If the response indicates completion, return immediately
-    if (executeResult.response.status === 'success' || executeResult.response.status === 'error') {
+    if (
+      executeResult.response.status === 'success' ||
+      executeResult.response.status === 'error'
+    ) {
       return executeResult;
     }
 
@@ -944,7 +989,9 @@ export class AISpineTestClient extends EventEmitter {
       pollCount++;
 
       try {
-        const statusResponse = await this.client.get(`/api/executions/${executionId}`);
+        const statusResponse = await this.client.get(
+          `/api/executions/${executionId}`
+        );
         const status = statusResponse.data;
 
         // Call progress callback if provided
@@ -954,22 +1001,22 @@ export class AISpineTestClient extends EventEmitter {
 
         if (status.status === 'success' || status.status === 'error') {
           const totalDuration = Date.now() - startTime + executeResult.duration;
-          
+
           return {
             success: status.status === 'success',
             response: status,
             duration: totalDuration,
             httpStatus: 200,
-            error: status.status === 'error' ? new ToolError(
-              status.error_message, 
-              status.error_code
-            ) : undefined,
+            error:
+              status.status === 'error'
+                ? new ToolError(status.error_message, status.error_code)
+                : undefined,
             metadata: {
               ...executeResult.metadata,
               pollingCompleted: true,
               pollCount,
-              totalWaitTime: totalDuration - executeResult.duration
-            }
+              totalWaitTime: totalDuration - executeResult.duration,
+            },
           };
         }
       } catch (error) {
@@ -978,7 +1025,7 @@ export class AISpineTestClient extends EventEmitter {
           this.emit('polling_error', {
             executionId,
             pollCount,
-            error: error instanceof Error ? error.message : String(error)
+            error: error instanceof Error ? error.message : String(error),
           });
         }
         continue;
@@ -989,7 +1036,9 @@ export class AISpineTestClient extends EventEmitter {
     return {
       success: false,
       error: new ToolError(
-        pollCount >= maxPolls ? 'Maximum polling attempts reached' : 'Execution timeout',
+        pollCount >= maxPolls
+          ? 'Maximum polling attempts reached'
+          : 'Execution timeout',
         'TIMEOUT_ERROR'
       ),
       duration: Date.now() - startTime + executeResult.duration,
@@ -998,8 +1047,8 @@ export class AISpineTestClient extends EventEmitter {
         ...executeResult.metadata,
         timedOut: true,
         pollCount,
-        maxPolls
-      }
+        maxPolls,
+      },
     };
   }
 
@@ -1026,18 +1075,24 @@ export class AISpineTestClient extends EventEmitter {
     };
   }> {
     const startTime = Date.now();
-    const { parallel = false, maxConcurrency = 5, stopOnFirstFailure = false } = options;
+    const {
+      parallel = false,
+      maxConcurrency = 5,
+      stopOnFirstFailure = false,
+    } = options;
     const results: ScenarioResult[] = [];
 
     if (parallel) {
       // Run scenarios in parallel with concurrency control
       const chunks = this.chunkArray(scenarios, maxConcurrency);
-      
+
       for (const chunk of chunks) {
-        const chunkPromises = chunk.map(scenario => this.runSingleScenario(scenario));
+        const chunkPromises = chunk.map(scenario =>
+          this.runSingleScenario(scenario)
+        );
         const chunkResults = await Promise.all(chunkPromises);
         results.push(...chunkResults);
-        
+
         if (stopOnFirstFailure && chunkResults.some(r => !r.passed)) {
           break;
         }
@@ -1047,7 +1102,7 @@ export class AISpineTestClient extends EventEmitter {
       for (const scenario of scenarios) {
         const result = await this.runSingleScenario(scenario);
         results.push(result);
-        
+
         if (stopOnFirstFailure && !result.passed) {
           break;
         }
@@ -1065,44 +1120,47 @@ export class AISpineTestClient extends EventEmitter {
         passed,
         failed,
         duration,
-        passRate: results.length > 0 ? (passed / results.length) * 100 : 0
-      }
+        passRate: results.length > 0 ? (passed / results.length) * 100 : 0,
+      },
     };
   }
 
   /**
    * Runs a single test scenario with detailed validation.
-   * 
+   *
    * @private
    * @param scenario - The test scenario to run
    * @returns Promise resolving to scenario result
    */
-  private async runSingleScenario(scenario: TestScenario): Promise<ScenarioResult> {
+  private async runSingleScenario(
+    scenario: TestScenario
+  ): Promise<ScenarioResult> {
     try {
       const result = await this.execute(scenario.input, scenario.config, {
-        timeout: scenario.timeout
+        timeout: scenario.timeout,
       });
-      
+
       const validationDetails = {
         expectedSuccess: scenario.expectSuccess,
         actualSuccess: result.success,
         expectedError: scenario.expectedError,
         actualError: result.error?.message || result.error?.code,
-        responseValidation: scenario.validateResponse ? 
-          scenario.validateResponse(result.response?.output_data) : undefined
+        responseValidation: scenario.validateResponse
+          ? scenario.validateResponse(result.response?.output_data)
+          : undefined,
       };
 
       let passed = scenario.expectSuccess === result.success;
-      
+
       // Additional validation for error scenarios
       if (!scenario.expectSuccess && scenario.expectedError) {
-        const errorMatch = result.error && (
-          result.error.message.includes(scenario.expectedError) ||
-          result.error.code.includes(scenario.expectedError)
-        );
+        const errorMatch =
+          result.error &&
+          (result.error.message.includes(scenario.expectedError) ||
+            result.error.code.includes(scenario.expectedError));
         passed = passed && !!errorMatch;
       }
-      
+
       // Custom response validation
       if (passed && scenario.validateResponse && result.success) {
         passed = scenario.validateResponse(result.response?.output_data);
@@ -1113,55 +1171,64 @@ export class AISpineTestClient extends EventEmitter {
         passed,
         result,
         validationDetails,
-        error: passed ? undefined : this.getScenarioErrorMessage(scenario, result, validationDetails)
+        error: passed
+          ? undefined
+          : this.getScenarioErrorMessage(scenario, result, validationDetails),
       };
-      
     } catch (error) {
       return {
         scenario: scenario.name,
         passed: false,
         result: {
           success: false,
-          error: error instanceof ToolError ? error : new ToolError(String(error)),
-          duration: 0
+          error:
+            error instanceof ToolError ? error : new ToolError(String(error)),
+          duration: 0,
         },
-        error: `Test execution failed: ${error instanceof Error ? error.message : String(error)}`
+        error: `Test execution failed: ${error instanceof Error ? error.message : String(error)}`,
       };
     }
   }
 
   /**
    * Generates detailed error message for failed scenarios.
-   * 
+   *
    * @private
    */
   private getScenarioErrorMessage(
-    scenario: TestScenario, 
-    result: TestExecutionResult, 
+    scenario: TestScenario,
+    result: TestExecutionResult,
     validation: any
   ): string {
     const parts = [];
-    
+
     if (scenario.expectSuccess !== result.success) {
-      parts.push(`Expected ${scenario.expectSuccess ? 'success' : 'failure'}, got ${result.success ? 'success' : 'failure'}`);
+      parts.push(
+        `Expected ${scenario.expectSuccess ? 'success' : 'failure'}, got ${result.success ? 'success' : 'failure'}`
+      );
     }
-    
-    if (scenario.expectedError && (!result.error || 
-        (!result.error.message.includes(scenario.expectedError) && 
-         !result.error.code.includes(scenario.expectedError)))) {
-      parts.push(`Expected error containing '${scenario.expectedError}', got '${result.error?.message || 'none'}'`);
+
+    if (
+      scenario.expectedError &&
+      (!result.error ||
+        (!result.error.message.includes(scenario.expectedError) &&
+          !result.error.code.includes(scenario.expectedError)))
+    ) {
+      parts.push(
+        `Expected error containing '${scenario.expectedError}', got '${result.error?.message || 'none'}'`
+      );
     }
-    
+
     if (validation.responseValidation === false) {
       parts.push('Custom response validation failed');
     }
-    
+
     return parts.join('; ');
   }
 
   /**
    * Splits an array into chunks of specified size.
-   * 
+   *
    * @private
    */
   private chunkArray<T>(array: T[], chunkSize: number): T[][] {
@@ -1181,13 +1248,17 @@ export class AISpineTestClient extends EventEmitter {
     options: LoadTestOptions
   ): Promise<LoadTestResult> {
     const startTime = Date.now();
-    
+
     this.emit('loadtest_start', { options, startTime });
 
     try {
       if (options.duration) {
         // Duration-based load test
-        return await this.runDurationBasedLoadTest(inputData, options, startTime);
+        return await this.runDurationBasedLoadTest(
+          inputData,
+          options,
+          startTime
+        );
       } else {
         // Request count-based load test
         return await this.runCountBasedLoadTest(inputData, options, startTime);
@@ -1200,7 +1271,7 @@ export class AISpineTestClient extends EventEmitter {
 
   /**
    * Runs a count-based load test.
-   * 
+   *
    * @private
    */
   private async runCountBasedLoadTest(
@@ -1208,7 +1279,15 @@ export class AISpineTestClient extends EventEmitter {
     options: LoadTestOptions,
     startTime: number
   ): Promise<LoadTestResult> {
-    const { concurrency, requests, config, rampUpTime = 0, thinkTime = 0, requestFactory, stopOnFailure = false } = options;
+    const {
+      concurrency,
+      requests,
+      config,
+      rampUpTime = 0,
+      thinkTime = 0,
+      requestFactory,
+      stopOnFailure = false,
+    } = options;
     const results: TestExecutionResult[] = [];
     const timeline: LoadTestResult['timeline'] = [];
     const errors: Record<string, number> = {};
@@ -1221,7 +1300,10 @@ export class AISpineTestClient extends EventEmitter {
     for (let workerId = 0; workerId < concurrency; workerId++) {
       const workerPromise = this.createLoadTestWorker({
         workerId,
-        requestsToMake: Math.min(requestsPerWorker, requests - (workerId * requestsPerWorker)),
+        requestsToMake: Math.min(
+          requestsPerWorker,
+          requests - workerId * requestsPerWorker
+        ),
         inputData: inputData,
         config,
         thinkTime,
@@ -1233,21 +1315,21 @@ export class AISpineTestClient extends EventEmitter {
             timestamp,
             responseTime: result.duration,
             success: result.success,
-            error: result.error?.code
+            error: result.error?.code,
           });
-          
+
           if (!result.success) {
             const errorKey = result.error?.code || 'UNKNOWN_ERROR';
             errors[errorKey] = (errors[errorKey] || 0) + 1;
-            
+
             if (stopOnFailure) {
               shouldStop = true;
             }
           }
         },
-        shouldStop: () => shouldStop
+        shouldStop: () => shouldStop,
       });
-      
+
       workers.push(workerPromise);
     }
 
@@ -1262,13 +1344,13 @@ export class AISpineTestClient extends EventEmitter {
       totalDuration,
       results,
       timeline,
-      errors
+      errors,
     });
   }
 
   /**
    * Creates a load test worker that makes requests according to the test plan.
-   * 
+   *
    * @private
    */
   private async createLoadTestWorker(options: {
@@ -1282,16 +1364,16 @@ export class AISpineTestClient extends EventEmitter {
     onResult: (result: TestExecutionResult, timestamp: number) => void;
     shouldStop: () => boolean;
   }): Promise<void> {
-    const { 
-      workerId, 
-      requestsToMake, 
-      inputData, 
-      config, 
-      thinkTime, 
-      requestFactory, 
-      rampUpDelay, 
-      onResult, 
-      shouldStop 
+    const {
+      workerId,
+      requestsToMake,
+      inputData,
+      config,
+      thinkTime,
+      requestFactory,
+      rampUpDelay,
+      onResult,
+      shouldStop,
     } = options;
 
     // Apply ramp-up delay
@@ -1313,23 +1395,23 @@ export class AISpineTestClient extends EventEmitter {
 
         // Execute request
         const result = await this.execute(requestInput, config, {
-          metadata: { workerId, requestIndex: i }
+          metadata: { workerId, requestIndex: i },
         });
-        
+
         onResult(result, Date.now());
-        
+
         // Apply think time between requests
         if (thinkTime > 0 && i < requestsToMake - 1) {
           await this.delay(thinkTime);
         }
-        
       } catch (error) {
         const errorResult: TestExecutionResult = {
           success: false,
-          error: error instanceof ToolError ? error : new ToolError(String(error)),
-          duration: 0
+          error:
+            error instanceof ToolError ? error : new ToolError(String(error)),
+          duration: 0,
         };
-        
+
         onResult(errorResult, Date.now());
       }
     }
@@ -1337,7 +1419,7 @@ export class AISpineTestClient extends EventEmitter {
 
   /**
    * Runs a duration-based load test.
-   * 
+   *
    * @private
    */
   private async runDurationBasedLoadTest(
@@ -1346,20 +1428,31 @@ export class AISpineTestClient extends EventEmitter {
     startTime: number
   ): Promise<LoadTestResult> {
     if (!options.duration || options.duration <= 0) {
-      throw new ToolError('Invalid duration for duration-based load test', 'INVALID_CONFIGURATION');
+      throw new ToolError(
+        'Invalid duration for duration-based load test',
+        'INVALID_CONFIGURATION'
+      );
     }
-    
-    const { concurrency, duration, config, rampUpTime = 0, thinkTime = 0, requestFactory, stopOnFailure = false } = options;
+
+    const {
+      concurrency,
+      duration,
+      config,
+      rampUpTime = 0,
+      thinkTime = 0,
+      requestFactory,
+      stopOnFailure = false,
+    } = options;
     const results: TestExecutionResult[] = [];
     const timeline: LoadTestResult['timeline'] = [];
     const errors: Record<string, number> = {};
     let shouldStop = false;
-    
+
     const endTime = startTime + duration;
-    
+
     // Create worker promises for concurrent users
     const workers: Promise<void>[] = [];
-    
+
     for (let workerId = 0; workerId < concurrency; workerId++) {
       const workerPromise = this.createDurationBasedLoadTestWorker({
         workerId,
@@ -1375,41 +1468,41 @@ export class AISpineTestClient extends EventEmitter {
             timestamp,
             responseTime: result.duration,
             success: result.success,
-            error: result.error?.code
+            error: result.error?.code,
           });
-          
+
           if (!result.success) {
             const errorKey = result.error?.code || 'UNKNOWN_ERROR';
             errors[errorKey] = (errors[errorKey] || 0) + 1;
-            
+
             if (stopOnFailure) {
               shouldStop = true;
             }
           }
         },
-        shouldStop: () => shouldStop
+        shouldStop: () => shouldStop,
       });
-      
+
       workers.push(workerPromise);
     }
-    
+
     // Wait for all workers to complete or timeout
     await Promise.all(workers);
-    
+
     const totalDuration = Date.now() - startTime;
-    
+
     return this.calculateLoadTestResult({
       config: { ...options, requests: results.length },
       totalDuration,
       results,
       timeline,
-      errors
+      errors,
     });
   }
-  
+
   /**
    * Creates a duration-based load test worker.
-   * 
+   *
    * @private
    */
   private async createDurationBasedLoadTestWorker(options: {
@@ -1423,23 +1516,23 @@ export class AISpineTestClient extends EventEmitter {
     onResult: (result: TestExecutionResult, timestamp: number) => void;
     shouldStop: () => boolean;
   }): Promise<void> {
-    const { 
-      workerId, 
-      endTime, 
-      inputData, 
-      config, 
-      thinkTime, 
-      requestFactory, 
-      rampUpDelay, 
-      onResult, 
-      shouldStop 
+    const {
+      workerId,
+      endTime,
+      inputData,
+      config,
+      thinkTime,
+      requestFactory,
+      rampUpDelay,
+      onResult,
+      shouldStop,
     } = options;
-    
+
     // Apply ramp-up delay
     if (rampUpDelay > 0) {
       await this.delay(rampUpDelay);
     }
-    
+
     let requestIndex = 0;
     while (Date.now() < endTime && !shouldStop()) {
       try {
@@ -1452,27 +1545,27 @@ export class AISpineTestClient extends EventEmitter {
         } else {
           requestInput = inputData;
         }
-        
+
         // Execute request
         const result = await this.execute(requestInput, config, {
-          metadata: { workerId, requestIndex }
+          metadata: { workerId, requestIndex },
         });
-        
+
         onResult(result, Date.now());
         requestIndex++;
-        
+
         // Apply think time between requests
         if (thinkTime > 0) {
           await this.delay(thinkTime);
         }
-        
       } catch (error) {
         const errorResult: TestExecutionResult = {
           success: false,
-          error: error instanceof ToolError ? error : new ToolError(String(error)),
-          duration: 0
+          error:
+            error instanceof ToolError ? error : new ToolError(String(error)),
+          duration: 0,
         };
-        
+
         onResult(errorResult, Date.now());
         requestIndex++;
       }
@@ -1481,7 +1574,7 @@ export class AISpineTestClient extends EventEmitter {
 
   /**
    * Calculates comprehensive load test results with analytics.
-   * 
+   *
    * @private
    */
   private calculateLoadTestResult(data: {
@@ -1500,13 +1593,18 @@ export class AISpineTestClient extends EventEmitter {
       totalRequests: results.length,
       successfulRequests: successful.length,
       failedRequests: failed.length,
-      averageResponseTime: responseTimes.length > 0 ? 
-        responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length : 0,
-      minResponseTime: responseTimes.length > 0 ? Math.min(...responseTimes) : 0,
-      maxResponseTime: responseTimes.length > 0 ? Math.max(...responseTimes) : 0,
-      requestsPerSecond: results.length > 0 ? (results.length / totalDuration) * 1000 : 0,
+      averageResponseTime:
+        responseTimes.length > 0
+          ? responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length
+          : 0,
+      minResponseTime:
+        responseTimes.length > 0 ? Math.min(...responseTimes) : 0,
+      maxResponseTime:
+        responseTimes.length > 0 ? Math.max(...responseTimes) : 0,
+      requestsPerSecond:
+        results.length > 0 ? (results.length / totalDuration) * 1000 : 0,
       errorBreakdown: errors,
-      percentiles: this.calculatePercentiles(responseTimes)
+      percentiles: this.calculatePercentiles(responseTimes),
     };
 
     return {
@@ -1516,14 +1614,14 @@ export class AISpineTestClient extends EventEmitter {
       timeline,
       resourceUsage: {
         // Would need actual memory/CPU monitoring in real implementation
-        peakMemoryMB: process.memoryUsage().heapUsed / 1024 / 1024
-      }
+        peakMemoryMB: process.memoryUsage().heapUsed / 1024 / 1024,
+      },
     };
   }
 
   /**
    * Calculates response time percentiles.
-   * 
+   *
    * @private
    */
   private calculatePercentiles(sortedTimes: number[]) {
@@ -1540,7 +1638,7 @@ export class AISpineTestClient extends EventEmitter {
       p50: getPercentile(50),
       p90: getPercentile(90),
       p95: getPercentile(95),
-      p99: getPercentile(99)
+      p99: getPercentile(99),
     };
   }
 
@@ -1561,13 +1659,13 @@ export class AISpineTestClient extends EventEmitter {
       endpoints: {
         health: false,
         schema: false,
-        execute: false
-      }
+        execute: false,
+      },
     };
     const performance = {
       healthCheckTime: 0,
       schemaRetrievalTime: 0,
-      basicExecutionTime: 0
+      basicExecutionTime: 0,
     };
 
     // Test 1: Health Check
@@ -1575,11 +1673,11 @@ export class AISpineTestClient extends EventEmitter {
       const healthStart = Date.now();
       const health = await this.healthCheck();
       performance.healthCheckTime = Date.now() - healthStart;
-      
+
       details.health.passed = true;
       details.health.response = health;
       details.endpoints.health = true;
-      
+
       // Validate health response
       if (health.status !== 'healthy') {
         issues.push(`Tool status is ${health.status}, expected 'healthy'`);
@@ -1596,15 +1694,19 @@ export class AISpineTestClient extends EventEmitter {
       if (!Array.isArray(health.capabilities)) {
         issues.push('Tool capabilities should be an array');
       } else if (health.capabilities.length === 0) {
-        recommendations.push('Consider defining specific capabilities for better tool discovery');
+        recommendations.push(
+          'Consider defining specific capabilities for better tool discovery'
+        );
       }
-      
+
       if (performance.healthCheckTime > 5000) {
-        recommendations.push('Health check is slow (>5s), consider optimization');
+        recommendations.push(
+          'Health check is slow (>5s), consider optimization'
+        );
       }
-      
     } catch (error) {
-      details.health.error = error instanceof Error ? error.message : String(error);
+      details.health.error =
+        error instanceof Error ? error.message : String(error);
       issues.push(`Health check failed: ${details.health.error}`);
     }
 
@@ -1613,22 +1715,22 @@ export class AISpineTestClient extends EventEmitter {
       const schemaStart = Date.now();
       const schema = await this.getSchema();
       performance.schemaRetrievalTime = Date.now() - schemaStart;
-      
+
       details.schema.passed = true;
       details.schema.response = schema;
       details.endpoints.schema = true;
-      
+
       // Validate schema structure
       if (!schema.schema?.input) {
         issues.push('Tool schema missing input definition');
       }
-      
+
       if (!schema.metadata) {
         issues.push('Schema missing metadata');
       }
-      
     } catch (error) {
-      details.schema.error = error instanceof Error ? error.message : String(error);
+      details.schema.error =
+        error instanceof Error ? error.message : String(error);
       issues.push(`Schema retrieval failed: ${details.schema.error}`);
       recommendations.push('Ensure /schema endpoint is properly implemented');
     }
@@ -1639,22 +1741,26 @@ export class AISpineTestClient extends EventEmitter {
         const execStart = Date.now();
         const result = await this.execute(basicTestInput, config);
         performance.basicExecutionTime = Date.now() - execStart;
-        
+
         details.basicExecution.passed = result.success;
         details.basicExecution.result = result;
         details.endpoints.execute = true;
-        
+
         if (!result.success) {
           issues.push(`Basic execution failed: ${result.error?.message}`);
         }
-        
+
         if (performance.basicExecutionTime > 30000) {
-          recommendations.push('Basic execution is very slow (>30s), consider optimization');
+          recommendations.push(
+            'Basic execution is very slow (>30s), consider optimization'
+          );
         }
-        
       } catch (error) {
-        details.basicExecution.error = error instanceof Error ? error.message : String(error);
-        issues.push(`Basic execution test failed: ${details.basicExecution.error}`);
+        details.basicExecution.error =
+          error instanceof Error ? error.message : String(error);
+        issues.push(
+          `Basic execution test failed: ${details.basicExecution.error}`
+        );
       }
     }
 
@@ -1664,26 +1770,30 @@ export class AISpineTestClient extends EventEmitter {
       details.endpoints.metrics = true;
     } catch (error) {
       // Metrics endpoint is optional, so this is just informational
-      recommendations.push('Consider implementing /metrics endpoint for better observability');
+      recommendations.push(
+        'Consider implementing /metrics endpoint for better observability'
+      );
     }
 
     // Calculate overall score
     const maxScore = 100;
     let score = maxScore;
-    
+
     // Deduct points for issues
     score -= issues.length * 15; // 15 points per issue
-    
+
     // Bonus points for good performance
     if (performance.healthCheckTime < 1000) score += 5;
     if (performance.schemaRetrievalTime < 1000) score += 5;
     if (details.endpoints.metrics) score += 10;
-    
+
     score = Math.max(0, Math.min(maxScore, score));
 
     // Add general recommendations
     if (score < 70) {
-      recommendations.push('Tool has significant issues that should be addressed');
+      recommendations.push(
+        'Tool has significant issues that should be addressed'
+      );
     } else if (score < 85) {
       recommendations.push('Tool is functional but has room for improvement');
     }
@@ -1694,15 +1804,15 @@ export class AISpineTestClient extends EventEmitter {
       score,
       details,
       performance,
-      recommendations
+      recommendations,
     };
   }
 
   /**
    * Get client analytics and performance data.
-   * 
+   *
    * @returns Analytics data for all requests made by this client
-   * 
+   *
    * @example
    * ```typescript
    * const analytics = client.getAnalytics();
@@ -1740,15 +1850,17 @@ export class AISpineTestClient extends EventEmitter {
         maxResponseTime: 0,
         requestsPerSecond: 0,
         errorBreakdown: {},
-        responseTimePercentiles: { p50: 0, p90: 0, p95: 0, p99: 0 }
+        responseTimePercentiles: { p50: 0, p90: 0, p95: 0, p99: 0 },
       };
     }
 
     const sessionDuration = Date.now() - this.metrics.startTime;
     const successful = this.metrics.requests.filter(r => r.success);
     const failed = this.metrics.requests.filter(r => !r.success);
-    const responseTimes = this.metrics.requests.map(r => r.duration).sort((a, b) => a - b);
-    
+    const responseTimes = this.metrics.requests
+      .map(r => r.duration)
+      .sort((a, b) => a - b);
+
     const errorBreakdown: Record<string, number> = {};
     failed.forEach(request => {
       const errorCode = request.error?.code || 'UNKNOWN_ERROR';
@@ -1761,18 +1873,22 @@ export class AISpineTestClient extends EventEmitter {
       successfulRequests: successful.length,
       failedRequests: failed.length,
       successRate: (successful.length / this.metrics.requests.length) * 100,
-      averageResponseTime: responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length,
+      averageResponseTime:
+        responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length,
       minResponseTime: Math.min(...responseTimes),
       maxResponseTime: Math.max(...responseTimes),
-      requestsPerSecond: sessionDuration > 0 ? (this.metrics.requests.length / sessionDuration) * 1000 : 0,
+      requestsPerSecond:
+        sessionDuration > 0
+          ? (this.metrics.requests.length / sessionDuration) * 1000
+          : 0,
       errorBreakdown,
-      responseTimePercentiles: this.calculatePercentiles(responseTimes)
+      responseTimePercentiles: this.calculatePercentiles(responseTimes),
     };
   }
 
   /**
    * Reset client metrics and analytics data.
-   * 
+   *
    * @example
    * ```typescript
    * client.resetAnalytics();
@@ -1783,18 +1899,18 @@ export class AISpineTestClient extends EventEmitter {
     this.metrics = {
       requests: [],
       startTime: Date.now(),
-      errors: []
+      errors: [],
     };
-    
+
     this.emit('analytics_reset', { timestamp: Date.now() });
   }
 
   /**
    * Export analytics data in various formats.
-   * 
+   *
    * @param format - Export format
    * @returns Formatted analytics data
-   * 
+   *
    * @example
    * ```typescript
    * const csvData = client.exportAnalytics('csv');
@@ -1803,44 +1919,56 @@ export class AISpineTestClient extends EventEmitter {
    */
   exportAnalytics(format: 'json' | 'csv' | 'summary'): string {
     const analytics = this.getAnalytics();
-    
+
     switch (format) {
       case 'json':
-        return JSON.stringify({
-          analytics,
-          requests: this.metrics.requests,
-          errors: this.metrics.errors
-        }, null, 2);
-        
-      case 'csv':
-        const headers = 'timestamp,success,duration,httpStatus,error,requestSize,responseSize';
-        const rows = this.metrics.requests.map(req => 
-          `${new Date().toISOString()},${req.success},${req.duration},${req.httpStatus || ''},${req.error?.code || ''},${req.requestSize || ''},${req.responseSize || ''}`
+        return JSON.stringify(
+          {
+            analytics,
+            requests: this.metrics.requests,
+            errors: this.metrics.errors,
+          },
+          null,
+          2
+        );
+
+      case 'csv': {
+        const headers =
+          'timestamp,success,duration,httpStatus,error,requestSize,responseSize';
+        const rows = this.metrics.requests.map(
+          req =>
+            `${new Date().toISOString()},${req.success},${req.duration},${req.httpStatus || ''},${req.error?.code || ''},${req.requestSize || ''},${req.responseSize || ''}`
         );
         return [headers, ...rows].join('\n');
-        
+      }
+
       case 'summary':
-        return `AI Spine Test Client Analytics Summary\n` +
-               `=====================================\n` +
-               `Session Duration: ${(analytics.sessionDuration / 1000).toFixed(2)}s\n` +
-               `Total Requests: ${analytics.totalRequests}\n` +
-               `Success Rate: ${analytics.successRate.toFixed(2)}%\n` +
-               `Average Response Time: ${analytics.averageResponseTime.toFixed(2)}ms\n` +
-               `Requests per Second: ${analytics.requestsPerSecond.toFixed(2)}\n` +
-               `Response Time Percentiles:\n` +
-               `  P50: ${analytics.responseTimePercentiles.p50}ms\n` +
-               `  P90: ${analytics.responseTimePercentiles.p90}ms\n` +
-               `  P95: ${analytics.responseTimePercentiles.p95}ms\n` +
-               `  P99: ${analytics.responseTimePercentiles.p99}ms\n`;
-               
+        return (
+          `AI Spine Test Client Analytics Summary\n` +
+          `=====================================\n` +
+          `Session Duration: ${(analytics.sessionDuration / 1000).toFixed(2)}s\n` +
+          `Total Requests: ${analytics.totalRequests}\n` +
+          `Success Rate: ${analytics.successRate.toFixed(2)}%\n` +
+          `Average Response Time: ${analytics.averageResponseTime.toFixed(2)}ms\n` +
+          `Requests per Second: ${analytics.requestsPerSecond.toFixed(2)}\n` +
+          `Response Time Percentiles:\n` +
+          `  P50: ${analytics.responseTimePercentiles.p50}ms\n` +
+          `  P90: ${analytics.responseTimePercentiles.p90}ms\n` +
+          `  P95: ${analytics.responseTimePercentiles.p95}ms\n` +
+          `  P99: ${analytics.responseTimePercentiles.p99}ms\n`
+        );
+
       default:
-        throw new ToolError(`Unsupported export format: ${format}`, 'INVALID_FORMAT');
+        throw new ToolError(
+          `Unsupported export format: ${format}`,
+          'INVALID_FORMAT'
+        );
     }
   }
 
   /**
    * Close the client and clean up resources.
-   * 
+   *
    * @example
    * ```typescript
    * await client.close();
@@ -1850,16 +1978,16 @@ export class AISpineTestClient extends EventEmitter {
   async close(): Promise<void> {
     this.emit('client_closing');
     this.removeAllListeners();
-    
+
     // If we had persistent connections, we would close them here
     // For now, axios handles connection pooling automatically
-    
+
     this.emit('client_closed');
   }
 
   /**
    * Create a new client instance with the same configuration.
-   * 
+   *
    * @returns New AISpineTestClient instance
    */
   clone(): AISpineTestClient {

@@ -22,13 +22,10 @@ import {
   configNumberField,
   configUrlField,
   simpleCreateTool,
-  createToolBuilder
+  createToolBuilder,
 } from '../create-tool';
 
-import {
-  ConfigurationError,
-  ValidationError
-} from '@ai-spine/tools-core';
+import { ConfigurationError, ValidationError } from '@ai-spine/tools-core';
 
 // Mock modules
 jest.mock('@ai-spine/tools-core', () => ({
@@ -36,8 +33,8 @@ jest.mock('@ai-spine/tools-core', () => ({
   Tool: jest.fn().mockImplementation(() => ({
     on: jest.fn(),
     start: jest.fn(),
-    stop: jest.fn()
-  }))
+    stop: jest.fn(),
+  })),
 }));
 
 describe('createTool Factory Function', () => {
@@ -47,22 +44,22 @@ describe('createTool Factory Function', () => {
       name: 'test-tool',
       version: '1.0.0',
       description: 'A test tool for unit testing',
-      capabilities: ['test.execute']
+      capabilities: ['test.execute'],
     },
     schema: {
       input: {
-        message: stringField({ required: true, description: 'Test message' })
+        message: stringField({ required: true, description: 'Test message' }),
       },
       config: {
-        apiKey: apiKeyField({ required: true, description: 'Test API key' })
-      }
+        apiKey: apiKeyField({ required: true, description: 'Test API key' }),
+      },
     },
     execute: async (input, _config, _context) => {
       return {
         status: 'success',
-        data: { echo: input.message }
+        data: { echo: input.message },
       };
-    }
+    },
   };
 
   beforeEach(() => {
@@ -85,8 +82,8 @@ describe('createTool Factory Function', () => {
         ...validToolDefinition,
         metadata: {
           ...validToolDefinition.metadata,
-          name: '' // Invalid empty name
-        }
+          name: '', // Invalid empty name
+        },
       };
 
       expect(() => {
@@ -97,7 +94,7 @@ describe('createTool Factory Function', () => {
     it('should validate tool definition and throw ConfigurationError for missing execute function', () => {
       const invalidDefinition = {
         ...validToolDefinition,
-        execute: undefined as any
+        execute: undefined as any,
       };
 
       expect(() => {
@@ -111,8 +108,8 @@ describe('createTool Factory Function', () => {
         metadata: {
           ...validToolDefinition.metadata,
           tags: undefined,
-          minSdkVersion: undefined
-        }
+          minSdkVersion: undefined,
+        },
       };
 
       expect(() => {
@@ -127,8 +124,8 @@ describe('createTool Factory Function', () => {
         ...validToolDefinition,
         metadata: {
           ...validToolDefinition.metadata,
-          name: ''
-        }
+          name: '',
+        },
       };
 
       expect(() => createTool(definition)).toThrow(ConfigurationError);
@@ -139,8 +136,8 @@ describe('createTool Factory Function', () => {
         ...validToolDefinition,
         metadata: {
           ...validToolDefinition.metadata,
-          version: ''
-        }
+          version: '',
+        },
       };
 
       expect(() => createTool(definition)).toThrow(ConfigurationError);
@@ -151,8 +148,8 @@ describe('createTool Factory Function', () => {
         ...validToolDefinition,
         metadata: {
           ...validToolDefinition.metadata,
-          description: ''
-        }
+          description: '',
+        },
       };
 
       expect(() => createTool(definition)).toThrow(ConfigurationError);
@@ -163,8 +160,8 @@ describe('createTool Factory Function', () => {
         ...validToolDefinition,
         metadata: {
           ...validToolDefinition.metadata,
-          capabilities: []
-        }
+          capabilities: [],
+        },
       };
 
       expect(() => createTool(definition)).toThrow(ConfigurationError);
@@ -178,8 +175,8 @@ describe('createTool Factory Function', () => {
         ...validToolDefinition,
         metadata: {
           ...validToolDefinition.metadata,
-          name: 'TestTool' // PascalCase instead of kebab-case
-        }
+          name: 'TestTool', // PascalCase instead of kebab-case
+        },
       };
 
       createTool(definition);
@@ -198,13 +195,15 @@ describe('createTool Factory Function', () => {
         ...validToolDefinition,
         metadata: {
           ...validToolDefinition.metadata,
-          version: '1.0' // Not proper semver
-        }
+          version: '1.0', // Not proper semver
+        },
       };
 
       createTool(definition);
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Tool version should follow semantic versioning')
+        expect.stringContaining(
+          'Tool version should follow semantic versioning'
+        )
       );
 
       consoleSpy.mockRestore();
@@ -217,10 +216,10 @@ describe('createTool Factory Function', () => {
         ...validToolDefinition,
         schema: {
           input: {
-            invalidField: { required: true } as any // Missing type
+            invalidField: { required: true } as any, // Missing type
           },
-          config: validToolDefinition.schema.config
-        }
+          config: validToolDefinition.schema.config,
+        },
       };
 
       expect(() => createTool(definition)).toThrow(ValidationError);
@@ -232,9 +231,9 @@ describe('createTool Factory Function', () => {
         schema: {
           input: validToolDefinition.schema.input,
           config: {
-            invalidField: { required: true } as any // Missing type
-          }
-        }
+            invalidField: { required: true } as any, // Missing type
+          },
+        },
       };
 
       expect(() => createTool(definition)).toThrow(ValidationError);
@@ -246,12 +245,12 @@ describe('createTool Factory Function', () => {
         schema: {
           input: {
             message: {
-              type: 'string'
+              type: 'string',
               // Missing required field
-            } as any
+            } as any,
           },
-          config: validToolDefinition.schema.config
-        }
+          config: validToolDefinition.schema.config,
+        },
       };
 
       expect(() => createTool(definition)).toThrow(ValidationError);
@@ -262,7 +261,7 @@ describe('createTool Factory Function', () => {
     it('should validate setup function if provided', () => {
       const definition = {
         ...validToolDefinition,
-        setup: 'not-a-function' as any
+        setup: 'not-a-function' as any,
       };
 
       expect(() => createTool(definition)).toThrow(ConfigurationError);
@@ -271,7 +270,7 @@ describe('createTool Factory Function', () => {
     it('should validate cleanup function if provided', () => {
       const definition = {
         ...validToolDefinition,
-        cleanup: 'not-a-function' as any
+        cleanup: 'not-a-function' as any,
       };
 
       expect(() => createTool(definition)).toThrow(ConfigurationError);
@@ -280,7 +279,7 @@ describe('createTool Factory Function', () => {
     it('should validate healthCheck function if provided', () => {
       const definition = {
         ...validToolDefinition,
-        healthCheck: 'not-a-function' as any
+        healthCheck: 'not-a-function' as any,
       };
 
       expect(() => createTool(definition)).toThrow(ConfigurationError);
@@ -289,11 +288,15 @@ describe('createTool Factory Function', () => {
     it('should accept valid optional functions', () => {
       const definition: CreateToolOptions = {
         ...validToolDefinition,
-        setup: async (_config) => { console.log('Setup'); },
-        cleanup: async () => { console.log('Cleanup'); },
+        setup: async _config => {
+          console.log('Setup');
+        },
+        cleanup: async () => {
+          console.log('Cleanup');
+        },
         healthCheck: async () => {
           return { status: 'healthy' };
-        }
+        },
       };
 
       expect(() => createTool(definition)).not.toThrow();
@@ -361,7 +364,7 @@ describe('ToolBuilder Class', () => {
           name: 'chain-test',
           version: '1.0.0',
           description: 'Testing method chaining',
-          capabilities: ['test']
+          capabilities: ['test'],
         })
         .inputField('message', stringField({ required: true }))
         .execute(async () => {
@@ -378,11 +381,11 @@ describe('ToolBuilder Class', () => {
             name: 'build-test',
             version: '1.0.0',
             description: 'Testing build functionality',
-            capabilities: ['test']
+            capabilities: ['test'],
           })
           .execute(async () => {
-          return { status: 'success', data: {} };
-        })
+            return { status: 'success', data: {} };
+          })
           .build();
 
         expect(_tool).toBeDefined();
@@ -398,7 +401,7 @@ describe('ToolBuilder Class', () => {
         description: 'Testing metadata setting',
         capabilities: ['test'],
         author: 'Test Author',
-        license: 'MIT'
+        license: 'MIT',
       };
 
       expect(() => {
@@ -412,12 +415,14 @@ describe('ToolBuilder Class', () => {
           name: '', // Invalid
           version: '1.0.0',
           description: 'Test',
-          capabilities: ['test']
+          capabilities: ['test'],
         });
       }).not.toThrow(); // Validation errors are collected, not thrown immediately
 
-      expect(builder.getValidationErrors()).toContain(
-        expect.stringContaining('Tool name is required')
+      expect(builder.getValidationErrors()).toEqual(
+        expect.arrayContaining([
+          expect.stringContaining('Tool name is required'),
+        ])
       );
     });
 
@@ -427,7 +432,7 @@ describe('ToolBuilder Class', () => {
           name: 'prevent-modification-test',
           version: '1.0.0',
           description: 'Test preventing modification after build',
-          capabilities: ['test']
+          capabilities: ['test'],
         })
         .execute(async () => {
           return { status: 'success', data: {} };
@@ -439,7 +444,7 @@ describe('ToolBuilder Class', () => {
           name: 'another-name',
           version: '2.0.0',
           description: 'This should fail',
-          capabilities: ['fail']
+          capabilities: ['fail'],
         });
       }).toThrow(ConfigurationError);
     });
@@ -456,24 +461,30 @@ describe('ToolBuilder Class', () => {
       expect(() => {
         builder.input({
           message: stringField({ required: true }),
-          count: numberField({ required: false, default: 1 })
+          count: numberField({ required: false, default: 1 }),
         });
       }).not.toThrow();
     });
 
     it('should validate field names', () => {
       builder.inputField('123invalid', stringField({ required: true }));
-      
-      expect(builder.getValidationErrors()).toContain(
-        expect.stringContaining('Input field name \'123invalid\' must be a valid identifier')
+
+      expect(builder.getValidationErrors()).toEqual(
+        expect.arrayContaining([
+          expect.stringContaining(
+            "Input field name '123invalid' must be a valid identifier"
+          ),
+        ])
       );
     });
 
     it('should validate field definitions', () => {
       builder.inputField('valid-name', null as any);
-      
-      expect(builder.getValidationErrors()).toContain(
-        expect.stringContaining('must be a valid field definition object')
+
+      expect(builder.getValidationErrors()).toEqual(
+        expect.arrayContaining([
+          expect.stringContaining('must be a valid field definition object'),
+        ])
       );
     });
   });
@@ -489,16 +500,21 @@ describe('ToolBuilder Class', () => {
       expect(() => {
         builder.config({
           apiKey: apiKeyField({ required: true }),
-          baseUrl: configStringField({ required: false, default: 'https://api.example.com' })
+          baseUrl: configStringField({
+            required: false,
+            default: 'https://api.example.com',
+          }),
         });
       }).not.toThrow();
     });
 
     it('should validate config field names', () => {
       builder.configField('invalid-name!', apiKeyField({ required: true }));
-      
-      expect(builder.getValidationErrors()).toContain(
-        expect.stringContaining('must be a valid identifier')
+
+      expect(builder.getValidationErrors()).toEqual(
+        expect.arrayContaining([
+          expect.stringContaining('must be a valid identifier'),
+        ])
       );
     });
   });
@@ -509,7 +525,7 @@ describe('ToolBuilder Class', () => {
         builder.execute(async (input, _config, _context) => {
           return {
             status: 'success',
-            data: { processed: input }
+            data: { processed: input },
           };
         });
       }).not.toThrow();
@@ -517,9 +533,11 @@ describe('ToolBuilder Class', () => {
 
     it('should validate execute function', () => {
       builder.execute('not-a-function' as any);
-      
-      expect(builder.getValidationErrors()).toContain(
-        expect.stringContaining('Execute function must be a valid function')
+
+      expect(builder.getValidationErrors()).toEqual(
+        expect.arrayContaining([
+          expect.stringContaining('Execute function must be a valid function'),
+        ])
       );
     });
   });
@@ -527,7 +545,7 @@ describe('ToolBuilder Class', () => {
   describe('Lifecycle Functions Configuration', () => {
     it('should set setup function', () => {
       expect(() => {
-        builder.onSetup(async (_config) => {
+        builder.onSetup(async _config => {
           console.log('Setting up with config:', _config);
         });
       }).not.toThrow();
@@ -551,11 +569,17 @@ describe('ToolBuilder Class', () => {
       builder.onSetup('not-a-function' as any);
       builder.onCleanup('not-a-function' as any);
       builder.healthCheck('not-a-function' as any);
-      
+
       const errors = builder.getValidationErrors();
-      expect(errors).toContain(expect.stringContaining('Setup function must be a valid function'));
-      expect(errors).toContain(expect.stringContaining('Cleanup function must be a valid function'));
-      expect(errors).toContain(expect.stringContaining('Health check function must be a valid function'));
+      expect(errors).toEqual(
+        expect.arrayContaining([
+          expect.stringContaining('Setup function must be a valid function'),
+          expect.stringContaining('Cleanup function must be a valid function'),
+          expect.stringContaining(
+            'Health check function must be a valid function'
+          ),
+        ])
+      );
     });
   });
 
@@ -564,7 +588,7 @@ describe('ToolBuilder Class', () => {
       builder.execute(async () => {
         return { status: 'success', data: {} };
       });
-      
+
       expect(() => builder.build()).toThrow(ConfigurationError);
     });
 
@@ -573,9 +597,9 @@ describe('ToolBuilder Class', () => {
         name: 'missing-execute',
         version: '1.0.0',
         description: 'Missing execute function',
-        capabilities: ['test']
+        capabilities: ['test'],
       });
-      
+
       expect(() => builder.build()).toThrow(ConfigurationError);
     });
 
@@ -585,21 +609,21 @@ describe('ToolBuilder Class', () => {
           name: 'multiple-build-test',
           version: '1.0.0',
           description: 'Testing multiple builds',
-          capabilities: ['test']
+          capabilities: ['test'],
         })
         .execute(async () => {
           return { status: 'success', data: {} };
         });
-      
+
       const _tool1 = builder.build();
-      
+
       expect(() => builder.build()).toThrow(ConfigurationError);
     });
 
     it('should provide comprehensive error messages', () => {
       builder.inputField('invalid!field', stringField({ required: true }));
       builder.configField('', apiKeyField({ required: true }));
-      
+
       expect(() => builder.build()).toThrow(ConfigurationError);
     });
   });
@@ -607,26 +631,30 @@ describe('ToolBuilder Class', () => {
   describe('Validation Utilities', () => {
     it('should return validation errors without building', () => {
       builder.inputField('invalid!', stringField({ required: true }));
-      
+
       const errors = builder.getValidationErrors();
       expect(errors.length).toBeGreaterThan(0);
-      expect(errors).toContain(expect.stringContaining('Tool metadata is required'));
+      expect(errors).toEqual(
+        expect.arrayContaining([
+          expect.stringContaining('Tool metadata is required'),
+        ])
+      );
     });
 
     it('should check validity without building', () => {
       expect(builder.isValid()).toBe(false);
-      
+
       builder
         .metadata({
           name: 'validity-test',
           version: '1.0.0',
           description: 'Testing validity check',
-          capabilities: ['test']
+          capabilities: ['test'],
         })
         .execute(async () => {
           return { status: 'success', data: {} };
         });
-      
+
       expect(builder.isValid()).toBe(true);
     });
   });
@@ -668,7 +696,7 @@ describe('Field Builder Functions', () => {
     it('should create object fields', () => {
       const properties = {
         name: stringField({ required: true }),
-        age: numberField({ required: false })
+        age: numberField({ required: false }),
       };
       const field = objectField(properties);
       expect(field.type).toBe('object');
@@ -712,14 +740,19 @@ describe('Field Builder Functions', () => {
     });
 
     it('should create config number fields', () => {
-      const field = configNumberField({ default: 5000, validation: { min: 1000 } });
+      const field = configNumberField({
+        default: 5000,
+        validation: { min: 1000 },
+      });
       expect(field.type).toBe('number');
       expect(field.default).toBe(5000);
       expect(field.validation?.min).toBe(1000);
     });
 
     it('should create config URL fields', () => {
-      const field = configUrlField({ validation: { allowedProtocols: ['https'] } });
+      const field = configUrlField({
+        validation: { allowedProtocols: ['https'] },
+      });
       expect(field.type).toBe('url');
       expect(field.validation?.allowedProtocols).toContain('https');
     });
@@ -733,7 +766,7 @@ describe('Convenience Functions', () => {
         'simple-echo-tool',
         '1.0.0',
         'Simple echo tool for testing',
-        async (_input) => {
+        async _input => {
           return { echo: _input };
         }
       );
@@ -746,7 +779,7 @@ describe('Convenience Functions', () => {
         'error-tool',
         '1.0.0',
         'Tool that throws errors',
-        async (_input) => {
+        async _input => {
           throw new Error('Test error');
         }
       );
@@ -764,7 +797,7 @@ describe('Convenience Functions', () => {
     it('should create independent builder instances', () => {
       const builder1 = createToolBuilder();
       const builder2 = createToolBuilder();
-      
+
       expect(builder1).not.toBe(builder2);
       expect(builder1.isValid()).toBe(builder2.isValid());
     });
@@ -777,12 +810,14 @@ describe('Error Handling', () => {
       createTool({
         metadata: {} as any,
         schema: {} as any,
-        execute: undefined as any
+        execute: undefined as any,
       });
     } catch (error) {
       expect(error).toBeInstanceOf(ConfigurationError);
       expect((error as Error).message).toContain('Tool name is required');
-      expect((error as Error).message).toContain('Execute function is required');
+      expect((error as Error).message).toContain(
+        'Execute function is required'
+      );
     }
   });
 
@@ -795,7 +830,9 @@ describe('Error Handling', () => {
     } catch (error) {
       expect(error).toBeInstanceOf(ConfigurationError);
       expect((error as Error).message).toContain('Tool metadata is required');
-      expect((error as Error).message).toContain('Execute function is required');
+      expect((error as Error).message).toContain(
+        'Execute function is required'
+      );
     }
   });
 
@@ -804,8 +841,12 @@ describe('Error Handling', () => {
       const builder = new ToolBuilder();
       builder.build();
     } catch (error) {
-      expect((error as Error).message).toContain('Call .metadata() with tool information');
-      expect((error as Error).message).toContain('Call .execute() with your tool logic');
+      expect((error as Error).message).toContain(
+        'Call .metadata() with tool information'
+      );
+      expect((error as Error).message).toContain(
+        'Call .execute() with your tool logic'
+      );
     }
   });
 });
@@ -827,32 +868,32 @@ describe('Type Safety', () => {
         name: 'typed-tool',
         version: '1.0.0',
         description: 'Type-safe tool',
-        capabilities: ['test']
+        capabilities: ['test'],
       },
       schema: {
         input: {
           message: stringField({ required: true }),
-          count: numberField({ required: false })
+          count: numberField({ required: false }),
         },
         config: {
           apiKey: apiKeyField({ required: true }),
-          baseUrl: configStringField({ required: false })
-        }
+          baseUrl: configStringField({ required: false }),
+        },
       },
       execute: async (input, _config, _context) => {
         // TypeScript should enforce correct types
         expect(typeof input.message).toBe('string');
         expect(typeof _config.apiKey).toBe('string');
-        
+
         return {
           status: 'success',
           data: {
             processed: input.message,
             count: input.count || 0,
-            url: _config.baseUrl || 'default'
-          }
+            url: _config.baseUrl || 'default',
+          },
         };
-      }
+      },
     });
 
     expect(_tool).toBeDefined();

@@ -1,0 +1,23 @@
+# CodeQL Configuration for AI Spine Tools SDK
+# 
+# Simplified configuration to avoid query pack issues
+
+name: "AI Spine Tools CodeQL Config"
+
+# Use default queries
+disable-default-queries: false
+
+# Paths to analyze
+paths:
+  - packages/
+  - scripts/
+
+# Paths to ignore
+paths-ignore:
+  - node_modules/
+  - dist/
+  - coverage/
+  - "**/*.test.ts"
+  - "**/*.test.js"
+  - "**/__tests__/**"
+  - "packages/create-ai-spine-tool/templates/"

@@ -17,24 +17,24 @@ const colors = {
   magenta: '\x1b[35m',
   cyan: '\x1b[36m',
   reset: '\x1b[0m',
-  bold: '\x1b[1m'
+  bold: '\x1b[1m',
 };
 
 function analyzePackageDependencies(packagePath, packageName) {
   const packageJsonPath = path.join(packagePath, 'package.json');
-  
+
   if (!fs.existsSync(packageJsonPath)) {
     return null;
   }
 
   const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-  
+
   return {
     name: packageJson.name || packageName,
     dependencies: packageJson.dependencies || {},
     devDependencies: packageJson.devDependencies || {},
     peerDependencies: packageJson.peerDependencies || {},
-    version: packageJson.version
+    version: packageJson.version,
   };
 }
 
@@ -46,19 +46,19 @@ function findDuplicateDependencies(packages) {
   for (const pkg of packages) {
     const allPackageDeps = {
       ...pkg.dependencies,
-      ...pkg.devDependencies
+      ...pkg.devDependencies,
     };
 
     for (const [depName, version] of Object.entries(allPackageDeps)) {
       if (!allDeps.has(depName)) {
         allDeps.set(depName, new Map());
       }
-      
+
       const versionMap = allDeps.get(depName);
       if (!versionMap.has(version)) {
         versionMap.set(version, []);
       }
-      
+
       versionMap.get(version).push(pkg.name);
     }
   }
@@ -78,42 +78,50 @@ function analyzeExternalDependencies(packages) {
     totalDependencies: 0,
     heavyDependencies: [],
     securityRisks: [],
-    recommendations: []
+    recommendations: [],
   };
 
   // Known heavy dependencies (>1MB)
   const heavyDeps = [
-    'webpack', 'rollup', '@rollup/plugin-typescript', 'typescript',
-    'jest', '@types/node', 'eslint', 'prettier'
+    'webpack',
+    'rollup',
+    '@rollup/plugin-typescript',
+    'typescript',
+    'jest',
+    '@types/node',
+    'eslint',
+    'prettier',
   ];
 
   // Dependencies that should be peer dependencies
-  const shouldBePeer = [
-    'typescript', 'express', 'react', 'vue', 'angular'
-  ];
+  const shouldBePeer = ['typescript', 'express', 'react', 'vue', 'angular'];
 
   for (const pkg of packages) {
     const allDeps = { ...pkg.dependencies, ...pkg.devDependencies };
     analysis.totalDependencies += Object.keys(allDeps).length;
 
     for (const [depName, version] of Object.entries(allDeps)) {
-      // Check for heavy dependencies
-      if (heavyDeps.includes(depName)) {
+      // Check for heavy dependencies - only flag if they're in runtime dependencies, not devDependencies
+      if (heavyDeps.includes(depName) && pkg.dependencies[depName]) {
         analysis.heavyDependencies.push({
           package: pkg.name,
           dependency: depName,
           version,
-          type: 'heavy'
+          type: 'heavy',
         });
       }
 
-      // Check for dependencies that should be peer dependencies
-      if (shouldBePeer.includes(depName) && !pkg.peerDependencies[depName]) {
+      // Check for dependencies that should be peer dependencies - only for runtime dependencies
+      if (
+        shouldBePeer.includes(depName) &&
+        pkg.dependencies[depName] &&
+        !pkg.peerDependencies[depName]
+      ) {
         analysis.recommendations.push({
           package: pkg.name,
           dependency: depName,
           suggestion: `Consider moving '${depName}' to peerDependencies`,
-          type: 'peer-dependency'
+          type: 'peer-dependency',
         });
       }
 
@@ -123,7 +131,7 @@ function analyzeExternalDependencies(packages) {
           package: pkg.name,
           dependency: depName,
           version,
-          risk: 'unpinned-version'
+          risk: 'unpinned-version',
         });
       }
     }
@@ -143,8 +151,11 @@ function generateOptimizationSuggestions(packages, duplicates, analysis) {
       message: `Found ${duplicates.size} duplicate dependencies with different versions`,
       details: Array.from(duplicates.entries()).map(([dep, versions]) => ({
         dependency: dep,
-        versions: versions.map(([version, packages]) => ({ version, packages }))
-      }))
+        versions: versions.map(([version, packages]) => ({
+          version,
+          packages,
+        })),
+      })),
     });
   }
 
@@ -157,8 +168,8 @@ function generateOptimizationSuggestions(packages, duplicates, analysis) {
       details: analysis.heavyDependencies.map(dep => ({
         package: dep.package,
         dependency: dep.dependency,
-        suggestion: 'Consider if this dependency is necessary for runtime'
-      }))
+        suggestion: 'Consider if this dependency is necessary for runtime',
+      })),
     });
   }
 
@@ -172,8 +183,8 @@ function generateOptimizationSuggestions(packages, duplicates, analysis) {
         package: risk.package,
         dependency: risk.dependency,
         version: risk.version,
-        suggestion: 'Pin to specific version for security and reproducibility'
-      }))
+        suggestion: 'Pin to specific version for security and reproducibility',
+      })),
     });
   }
 
@@ -181,8 +192,10 @@ function generateOptimizationSuggestions(packages, duplicates, analysis) {
 }
 
 function printAnalysisReport(packages, duplicates, analysis, suggestions) {
-  console.log(`${colors.bold}${colors.cyan}🔍 Dependency Analysis Report${colors.reset}`);
-  console.log('=' .repeat(60));
+  console.log(
+    `${colors.bold}${colors.cyan}🔍 Dependency Analysis Report${colors.reset}`
+  );
+  console.log('='.repeat(60));
 
   // Package overview
   console.log(`\n${colors.bold}📦 Package Overview${colors.reset}`);
@@ -190,14 +203,18 @@ function printAnalysisReport(packages, duplicates, analysis, suggestions) {
     const depCount = Object.keys(pkg.dependencies).length;
     const devDepCount = Object.keys(pkg.devDependencies).length;
     const peerDepCount = Object.keys(pkg.peerDependencies).length;
-    
+
     console.log(`${pkg.name}:`);
-    console.log(`  Dependencies: ${depCount}, DevDependencies: ${devDepCount}, PeerDependencies: ${peerDepCount}`);
+    console.log(
+      `  Dependencies: ${depCount}, DevDependencies: ${devDepCount}, PeerDependencies: ${peerDepCount}`
+    );
   }
 
   // Duplicates
   if (duplicates.size > 0) {
-    console.log(`\n${colors.bold}${colors.red}⚠️  Duplicate Dependencies${colors.reset}`);
+    console.log(
+      `\n${colors.bold}${colors.red}⚠️  Duplicate Dependencies${colors.reset}`
+    );
     for (const [depName, versions] of duplicates.entries()) {
       console.log(`${colors.yellow}${depName}:${colors.reset}`);
       for (const [version, packages] of versions) {
@@ -210,11 +227,17 @@ function printAnalysisReport(packages, duplicates, analysis, suggestions) {
   if (suggestions.length > 0) {
     console.log(`\n${colors.bold}💡 Optimization Suggestions${colors.reset}`);
     for (const suggestion of suggestions) {
-      const severityColor = suggestion.severity === 'high' ? colors.red : 
-                           suggestion.severity === 'medium' ? colors.yellow : colors.green;
-      
-      console.log(`\n${severityColor}${suggestion.severity.toUpperCase()}:${colors.reset} ${suggestion.message}`);
-      
+      const severityColor =
+        suggestion.severity === 'high'
+          ? colors.red
+          : suggestion.severity === 'medium'
+            ? colors.yellow
+            : colors.green;
+
+      console.log(
+        `\n${severityColor}${suggestion.severity.toUpperCase()}:${colors.reset} ${suggestion.message}`
+      );
+
       if (suggestion.details && suggestion.details.length > 0) {
         suggestion.details.forEach(detail => {
           if (suggestion.type === 'duplicates') {
@@ -223,7 +246,9 @@ function printAnalysisReport(packages, duplicates, analysis, suggestions) {
               console.log(`    ${v.version} -> ${v.packages.join(', ')}`);
             });
           } else {
-            console.log(`  ${detail.package}: ${detail.dependency} ${detail.suggestion || ''}`);
+            console.log(
+              `  ${detail.package}: ${detail.dependency} ${detail.suggestion || ''}`
+            );
           }
         });
       }
@@ -241,10 +266,14 @@ function printAnalysisReport(packages, duplicates, analysis, suggestions) {
 
   const hasIssues = duplicates.size > 0 || analysis.securityRisks.length > 0;
   if (hasIssues) {
-    console.log(`\n${colors.red}${colors.bold}❌ Issues found that should be addressed${colors.reset}`);
+    console.log(
+      `\n${colors.red}${colors.bold}❌ Issues found that should be addressed${colors.reset}`
+    );
     return false;
   } else {
-    console.log(`\n${colors.green}${colors.bold}✅ No critical issues found${colors.reset}`);
+    console.log(
+      `\n${colors.green}${colors.bold}✅ No critical issues found${colors.reset}`
+    );
     return true;
   }
 }
@@ -252,13 +281,13 @@ function printAnalysisReport(packages, duplicates, analysis, suggestions) {
 function main() {
   const packagesDir = path.join(__dirname, '..', 'packages');
   const packageDirs = fs.readdirSync(packagesDir);
-  
+
   const packages = [];
-  
+
   for (const dir of packageDirs) {
     const packagePath = path.join(packagesDir, dir);
     const analysis = analyzePackageDependencies(packagePath, dir);
-    
+
     if (analysis) {
       packages.push(analysis);
     }
@@ -271,10 +300,19 @@ function main() {
 
   const duplicates = findDuplicateDependencies(packages);
   const analysis = analyzeExternalDependencies(packages);
-  const suggestions = generateOptimizationSuggestions(packages, duplicates, analysis);
+  const suggestions = generateOptimizationSuggestions(
+    packages,
+    duplicates,
+    analysis
+  );
 
-  const success = printAnalysisReport(packages, duplicates, analysis, suggestions);
-  
+  const success = printAnalysisReport(
+    packages,
+    duplicates,
+    analysis,
+    suggestions
+  );
+
   process.exit(success ? 0 : 1);
 }
 
@@ -286,5 +324,5 @@ module.exports = {
   analyzePackageDependencies,
   findDuplicateDependencies,
   analyzeExternalDependencies,
-  generateOptimizationSuggestions
+  generateOptimizationSuggestions,
 };

@@ -1,4 +1,14 @@
-import { ToolMetadata, ToolInputField, ToolConfigField, ToolInput, ToolConfig, ToolExecutionContext, ToolExecutionResult, ToolSchema, Tool } from '@ai-spine/tools-core';
+import {
+  ToolMetadata,
+  ToolInputField,
+  ToolConfigField,
+  ToolInput,
+  ToolConfig,
+  ToolExecutionContext,
+  ToolExecutionResult,
+  ToolSchema,
+  Tool,
+} from '@ai-spine/tools-core';
 /**
  * Options for creating a new AI Spine tool.
  * This interface defines the complete configuration needed to create a functional tool.
@@ -30,22 +40,29 @@ import { ToolMetadata, ToolInputField, ToolConfigField, ToolInput, ToolConfig, T
  * };
  * ```
  */
-export interface CreateToolOptions<TInput extends ToolInput = ToolInput, TConfig extends ToolConfig = ToolConfig> {
-    /** Tool metadata including name, version, description, and capabilities */
-    metadata: ToolMetadata;
-    /** Input and configuration validation schema */
-    schema: ToolSchema;
-    /** Main tool execution function */
-    execute: (input: TInput, config: TConfig, context: ToolExecutionContext) => Promise<ToolExecutionResult>;
-    /** Optional setup function called when tool configuration is set */
-    setup?: (config: TConfig) => Promise<void>;
-    /** Optional cleanup function called when tool is stopped */
-    cleanup?: () => Promise<void>;
-    /** Optional health check function for monitoring */
-    healthCheck?: () => Promise<{
-        status: 'healthy' | 'unhealthy' | 'degraded';
-        details?: Record<string, any>;
-    }>;
+export interface CreateToolOptions<
+  TInput extends ToolInput = ToolInput,
+  TConfig extends ToolConfig = ToolConfig,
+> {
+  /** Tool metadata including name, version, description, and capabilities */
+  metadata: ToolMetadata;
+  /** Input and configuration validation schema */
+  schema: ToolSchema;
+  /** Main tool execution function */
+  execute: (
+    input: TInput,
+    config: TConfig,
+    context: ToolExecutionContext
+  ) => Promise<ToolExecutionResult>;
+  /** Optional setup function called when tool configuration is set */
+  setup?: (config: TConfig) => Promise<void>;
+  /** Optional cleanup function called when tool is stopped */
+  cleanup?: () => Promise<void>;
+  /** Optional health check function for monitoring */
+  healthCheck?: () => Promise<{
+    status: 'healthy' | 'unhealthy' | 'degraded';
+    details?: Record<string, any>;
+  }>;
 }
 /**
  * Creates a new AI Spine tool with comprehensive type safety, validation, and lifecycle management.
@@ -171,7 +188,10 @@ export interface CreateToolOptions<TInput extends ToolInput = ToolInput, TConfig
  * });
  * ```
  */
-export declare function createTool<TInput extends ToolInput = ToolInput, TConfig extends ToolConfig = ToolConfig>(options: CreateToolOptions<TInput, TConfig>): Tool<TInput, TConfig>;
+export declare function createTool<
+  TInput extends ToolInput = ToolInput,
+  TConfig extends ToolConfig = ToolConfig,
+>(options: CreateToolOptions<TInput, TConfig>): Tool<TInput, TConfig>;
 /**
  * Advanced fluent API for creating tools with step-by-step configuration.
  * This class provides a builder pattern that enables incremental tool construction
@@ -209,269 +229,283 @@ export declare function createTool<TInput extends ToolInput = ToolInput, TConfig
  * await tool.start({ port: 3000 });
  * ```
  */
-export declare class ToolBuilder<TInput extends ToolInput = ToolInput, TConfig extends ToolConfig = ToolConfig> {
-    private _metadata?;
-    private _inputSchema;
-    private _configSchema;
-    private _executeFunction?;
-    private _setupFunction?;
-    private _cleanupFunction?;
-    private _healthCheckFunction?;
-    private _validationErrors;
-    private _built;
-    /**
-     * Set comprehensive tool metadata with validation.
-     *
-     * @param metadata - Complete metadata object
-     * @returns This builder instance for chaining
-     *
-     * @example
-     * ```typescript
-     * .metadata({
-     *   name: 'weather-tool',
-     *   version: '1.0.0',
-     *   description: 'Get current weather data',
-     *   capabilities: ['weather.current', 'weather.forecast'],
-     *   author: 'Your Name',
-     *   license: 'MIT',
-     *   tags: ['weather', 'api', 'external-service']
-     * })
-     * ```
-     */
-    metadata(metadata: ToolMetadata): ToolBuilder<TInput, TConfig>;
-    /**
-     * Define multiple input fields at once.
-     *
-     * @param schema - Input schema definition
-     * @returns This builder instance for chaining
-     *
-     * @example
-     * ```typescript
-     * .input({
-     *   city: stringField({ required: true, description: 'City name' }),
-     *   country: stringField({ required: false, description: 'Country code' }),
-     *   units: {
-     *     type: 'enum',
-     *     required: false,
-     *     enum: ['celsius', 'fahrenheit'],
-     *     default: 'celsius'
-     *   }
+export declare class ToolBuilder<
+  TInput extends ToolInput = ToolInput,
+  TConfig extends ToolConfig = ToolConfig,
+> {
+  private _metadata?;
+  private _inputSchema;
+  private _configSchema;
+  private _executeFunction?;
+  private _setupFunction?;
+  private _cleanupFunction?;
+  private _healthCheckFunction?;
+  private _validationErrors;
+  private _built;
+  /**
+   * Set comprehensive tool metadata with validation.
+   *
+   * @param metadata - Complete metadata object
+   * @returns This builder instance for chaining
+   *
+   * @example
+   * ```typescript
+   * .metadata({
+   *   name: 'weather-tool',
+   *   version: '1.0.0',
+   *   description: 'Get current weather data',
+   *   capabilities: ['weather.current', 'weather.forecast'],
+   *   author: 'Your Name',
+   *   license: 'MIT',
+   *   tags: ['weather', 'api', 'external-service']
    * })
-     * ```
-     */
-    input(schema: Record<string, ToolInputField>): ToolBuilder<TInput, TConfig>;
-    /**
-     * Add a single input field with validation.
-     *
-     * @param name - Field name
-     * @param field - Field definition
-     * @returns This builder instance for chaining
-     *
-     * @example
-     * ```typescript
-     * .inputField('city', stringField({
-     *   required: true,
-     *   description: 'Name of the city',
-     *   minLength: 2,
-     *   example: 'Madrid'
-     * }))
-     * .inputField('units', {
-     *   type: 'enum',
-     *   required: false,
-     *   enum: ['celsius', 'fahrenheit'],
-     *   default: 'celsius'
-     * })
-     * ```
-     */
-    inputField(name: string, field: ToolInputField): ToolBuilder<TInput, TConfig>;
-    /**
-     * Define multiple configuration fields at once.
-     *
-     * @param schema - Configuration schema definition
-     * @returns This builder instance for chaining
-     *
-     * @example
-     * ```typescript
-     * .config({
-     *   apiKey: apiKeyField({ required: true, envVar: 'API_KEY' }),
-     *   baseUrl: configStringField({
-     *     required: false,
-     *     default: 'https://api.example.com',
-     *     description: 'API base URL'
-     *   }),
-     *   timeout: configNumberField({ required: false, default: 5000 })
-     * })
-     * ```
-     */
-    config(schema: Record<string, ToolConfigField>): ToolBuilder<TInput, TConfig>;
-    /**
-     * Add a single configuration field with validation.
-     *
-     * @param name - Field name
-     * @param field - Field definition
-     * @returns This builder instance for chaining
-     *
-     * @example
-     * ```typescript
-     * .configField('apiKey', apiKeyField({
-     *   required: true,
-     *   envVar: 'WEATHER_API_KEY',
-     *   description: 'OpenWeatherMap API key'
-     * }))
-     * .configField('timeout', configNumberField({
-     *   required: false,
-     *   default: 5000,
-     *   description: 'Request timeout in milliseconds'
-     * }))
-     * ```
-     */
-    configField(name: string, field: ToolConfigField): ToolBuilder<TInput, TConfig>;
-    /**
-     * Set the main tool execution function with comprehensive type safety.
-     *
-     * @param fn - Tool execution function
-     * @returns This builder instance for chaining
-     *
-     * @example
-     * ```typescript
-     * .execute(async (input, config, context) => {
-     *   // Validate input
-     *   if (!input.city) {
-     *     return {
-     *       status: 'error',
-     *       error: {
-     *         code: 'MISSING_CITY',
-     *         message: 'City parameter is required',
-     *         type: 'validation_error'
-     *       }
-     *     };
-     *   }
-     *
-     *   // Execute tool logic
-     *   const weatherData = await getWeatherData(input.city, config.apiKey);
-     *
-     *   // Return structured result
-     *   return {
-     *     status: 'success',
-     *     data: weatherData,
-     *     timing: {
-     *       executionTimeMs: Date.now() - context.performance!.startTime,
-     *       startedAt: new Date(context.performance!.startTime).toISOString(),
-     *       completedAt: new Date().toISOString()
-     *     }
-     *   };
-     * })
-     * ```
-     */
-    execute(fn: (input: TInput, config: TConfig, context: ToolExecutionContext) => Promise<ToolExecutionResult>): ToolBuilder<TInput, TConfig>;
-    /**
-     * Set configuration setup function called when tool is initialized.
-     *
-     * @param fn - Setup function
-     * @returns This builder instance for chaining
-     *
-     * @example
-     * ```typescript
-     * .onSetup(async (config) => {
-     *   // Validate API connectivity
-     *   await validateApiKey(config.apiKey);
-     *
-     *   // Initialize connections
-     *   await initializeCache();
-     *
-     *   console.log('Tool setup completed successfully');
-     * })
-     * ```
-     */
-    onSetup(fn: (config: TConfig) => Promise<void>): ToolBuilder<TInput, TConfig>;
-    /**
-     * Set cleanup function called when tool is stopped.
-     *
-     * @param fn - Cleanup function
-     * @returns This builder instance for chaining
-     *
-     * @example
-     * ```typescript
-     * .onCleanup(async () => {
-     *   // Close database connections
-     *   await db.close();
-     *
-     *   // Clear caches
-     *   cache.clear();
-     *
-     *   // Log cleanup completion
-     *   console.log('Tool cleanup completed');
-     * })
-     * ```
-     */
-    onCleanup(fn: () => Promise<void>): ToolBuilder<TInput, TConfig>;
-    /**
-     * Set custom health check function for monitoring.
-     *
-     * @param fn - Health check function
-     * @returns This builder instance for chaining
-     *
-     * @example
-     * ```typescript
-     * .healthCheck(async () => {
-     *   try {
-     *     // Check database connectivity
-     *     await db.ping();
-     *
-     *     // Check external API
-     *     const apiStatus = await checkExternalApi();
-     *
-     *     return {
-     *       status: 'healthy',
-     *       details: {
-     *         database: 'connected',
-     *         externalApi: apiStatus
-     *       }
-     *     };
-     *   } catch (error) {
-     *     return {
-     *       status: 'unhealthy',
-     *       details: { error: error.message }
-     *     };
-     *   }
-     * })
-     * ```
-     */
-    healthCheck(fn: () => Promise<{
-        status: 'healthy' | 'unhealthy' | 'degraded';
-        details?: Record<string, any>;
-    }>): ToolBuilder<TInput, TConfig>;
-    /**
-     * Validates that the builder hasn't been used yet and can accept more configuration.
-     * @private
-     */
-    private validateBuilderState;
-    /**
-     * Build the tool with comprehensive validation and error reporting.
-     *
-     * @returns A fully configured Tool instance
-     * @throws {ConfigurationError} When builder configuration is invalid
-     *
-     * @example
-     * ```typescript
-     * const tool = builder.build();
-     * await tool.start({ port: 3000 });
-     * ```
-     */
-    build(): Tool<TInput, TConfig>;
-    /**
-     * Get current validation errors without building.
-     * Useful for debugging configuration issues.
-     *
-     * @returns Array of validation error messages
-     */
-    getValidationErrors(): string[];
-    /**
-     * Check if the builder configuration is valid without building.
-     *
-     * @returns True if configuration is valid, false otherwise
-     */
-    isValid(): boolean;
+   * ```
+   */
+  metadata(metadata: ToolMetadata): ToolBuilder<TInput, TConfig>;
+  /**
+   * Define multiple input fields at once.
+   *
+   * @param schema - Input schema definition
+   * @returns This builder instance for chaining
+   *
+   * @example
+   * ```typescript
+   * .input({
+   *   city: stringField({ required: true, description: 'City name' }),
+   *   country: stringField({ required: false, description: 'Country code' }),
+   *   units: {
+   *     type: 'enum',
+   *     required: false,
+   *     enum: ['celsius', 'fahrenheit'],
+   *     default: 'celsius'
+   *   }
+   * })
+   * ```
+   */
+  input(schema: Record<string, ToolInputField>): ToolBuilder<TInput, TConfig>;
+  /**
+   * Add a single input field with validation.
+   *
+   * @param name - Field name
+   * @param field - Field definition
+   * @returns This builder instance for chaining
+   *
+   * @example
+   * ```typescript
+   * .inputField('city', stringField({
+   *   required: true,
+   *   description: 'Name of the city',
+   *   minLength: 2,
+   *   example: 'Madrid'
+   * }))
+   * .inputField('units', {
+   *   type: 'enum',
+   *   required: false,
+   *   enum: ['celsius', 'fahrenheit'],
+   *   default: 'celsius'
+   * })
+   * ```
+   */
+  inputField(name: string, field: ToolInputField): ToolBuilder<TInput, TConfig>;
+  /**
+   * Define multiple configuration fields at once.
+   *
+   * @param schema - Configuration schema definition
+   * @returns This builder instance for chaining
+   *
+   * @example
+   * ```typescript
+   * .config({
+   *   apiKey: apiKeyField({ required: true, envVar: 'API_KEY' }),
+   *   baseUrl: configStringField({
+   *     required: false,
+   *     default: 'https://api.example.com',
+   *     description: 'API base URL'
+   *   }),
+   *   timeout: configNumberField({ required: false, default: 5000 })
+   * })
+   * ```
+   */
+  config(schema: Record<string, ToolConfigField>): ToolBuilder<TInput, TConfig>;
+  /**
+   * Add a single configuration field with validation.
+   *
+   * @param name - Field name
+   * @param field - Field definition
+   * @returns This builder instance for chaining
+   *
+   * @example
+   * ```typescript
+   * .configField('apiKey', apiKeyField({
+   *   required: true,
+   *   envVar: 'WEATHER_API_KEY',
+   *   description: 'OpenWeatherMap API key'
+   * }))
+   * .configField('timeout', configNumberField({
+   *   required: false,
+   *   default: 5000,
+   *   description: 'Request timeout in milliseconds'
+   * }))
+   * ```
+   */
+  configField(
+    name: string,
+    field: ToolConfigField
+  ): ToolBuilder<TInput, TConfig>;
+  /**
+   * Set the main tool execution function with comprehensive type safety.
+   *
+   * @param fn - Tool execution function
+   * @returns This builder instance for chaining
+   *
+   * @example
+   * ```typescript
+   * .execute(async (input, config, context) => {
+   *   // Validate input
+   *   if (!input.city) {
+   *     return {
+   *       status: 'error',
+   *       error: {
+   *         code: 'MISSING_CITY',
+   *         message: 'City parameter is required',
+   *         type: 'validation_error'
+   *       }
+   *     };
+   *   }
+   *
+   *   // Execute tool logic
+   *   const weatherData = await getWeatherData(input.city, config.apiKey);
+   *
+   *   // Return structured result
+   *   return {
+   *     status: 'success',
+   *     data: weatherData,
+   *     timing: {
+   *       executionTimeMs: Date.now() - context.performance!.startTime,
+   *       startedAt: new Date(context.performance!.startTime).toISOString(),
+   *       completedAt: new Date().toISOString()
+   *     }
+   *   };
+   * })
+   * ```
+   */
+  execute(
+    fn: (
+      input: TInput,
+      config: TConfig,
+      context: ToolExecutionContext
+    ) => Promise<ToolExecutionResult>
+  ): ToolBuilder<TInput, TConfig>;
+  /**
+   * Set configuration setup function called when tool is initialized.
+   *
+   * @param fn - Setup function
+   * @returns This builder instance for chaining
+   *
+   * @example
+   * ```typescript
+   * .onSetup(async (config) => {
+   *   // Validate API connectivity
+   *   await validateApiKey(config.apiKey);
+   *
+   *   // Initialize connections
+   *   await initializeCache();
+   *
+   *   console.log('Tool setup completed successfully');
+   * })
+   * ```
+   */
+  onSetup(fn: (config: TConfig) => Promise<void>): ToolBuilder<TInput, TConfig>;
+  /**
+   * Set cleanup function called when tool is stopped.
+   *
+   * @param fn - Cleanup function
+   * @returns This builder instance for chaining
+   *
+   * @example
+   * ```typescript
+   * .onCleanup(async () => {
+   *   // Close database connections
+   *   await db.close();
+   *
+   *   // Clear caches
+   *   cache.clear();
+   *
+   *   // Log cleanup completion
+   *   console.log('Tool cleanup completed');
+   * })
+   * ```
+   */
+  onCleanup(fn: () => Promise<void>): ToolBuilder<TInput, TConfig>;
+  /**
+   * Set custom health check function for monitoring.
+   *
+   * @param fn - Health check function
+   * @returns This builder instance for chaining
+   *
+   * @example
+   * ```typescript
+   * .healthCheck(async () => {
+   *   try {
+   *     // Check database connectivity
+   *     await db.ping();
+   *
+   *     // Check external API
+   *     const apiStatus = await checkExternalApi();
+   *
+   *     return {
+   *       status: 'healthy',
+   *       details: {
+   *         database: 'connected',
+   *         externalApi: apiStatus
+   *       }
+   *     };
+   *   } catch (error) {
+   *     return {
+   *       status: 'unhealthy',
+   *       details: { error: error.message }
+   *     };
+   *   }
+   * })
+   * ```
+   */
+  healthCheck(
+    fn: () => Promise<{
+      status: 'healthy' | 'unhealthy' | 'degraded';
+      details?: Record<string, any>;
+    }>
+  ): ToolBuilder<TInput, TConfig>;
+  /**
+   * Validates that the builder hasn't been used yet and can accept more configuration.
+   * @private
+   */
+  private validateBuilderState;
+  /**
+   * Build the tool with comprehensive validation and error reporting.
+   *
+   * @returns A fully configured Tool instance
+   * @throws {ConfigurationError} When builder configuration is invalid
+   *
+   * @example
+   * ```typescript
+   * const tool = builder.build();
+   * await tool.start({ port: 3000 });
+   * ```
+   */
+  build(): Tool<TInput, TConfig>;
+  /**
+   * Get current validation errors without building.
+   * Useful for debugging configuration issues.
+   *
+   * @returns Array of validation error messages
+   */
+  getValidationErrors(): string[];
+  /**
+   * Check if the builder configuration is valid without building.
+   *
+   * @returns True if configuration is valid, false otherwise
+   */
+  isValid(): boolean;
 }
 /**
  * Creates a string input field with comprehensive validation options.
@@ -501,7 +535,9 @@ export declare class ToolBuilder<TInput extends ToolInput = ToolInput, TConfig e
  * })
  * ```
  */
-export declare function stringField(options?: Partial<ToolInputField>): ToolInputField;
+export declare function stringField(
+  options?: Partial<ToolInputField>
+): ToolInputField;
 /**
  * Creates a number input field with validation options.
  *
@@ -518,7 +554,9 @@ export declare function stringField(options?: Partial<ToolInputField>): ToolInpu
  * })
  * ```
  */
-export declare function numberField(options?: Partial<ToolInputField>): ToolInputField;
+export declare function numberField(
+  options?: Partial<ToolInputField>
+): ToolInputField;
 /**
  * Creates a boolean input field.
  *
@@ -534,7 +572,9 @@ export declare function numberField(options?: Partial<ToolInputField>): ToolInpu
  * })
  * ```
  */
-export declare function booleanField(options?: Partial<ToolInputField>): ToolInputField;
+export declare function booleanField(
+  options?: Partial<ToolInputField>
+): ToolInputField;
 /**
  * Creates an array input field with item type validation.
  *
@@ -556,7 +596,10 @@ export declare function booleanField(options?: Partial<ToolInputField>): ToolInp
  * )
  * ```
  */
-export declare function arrayField(items: ToolInputField, options?: Partial<ToolInputField>): ToolInputField;
+export declare function arrayField(
+  items: ToolInputField,
+  options?: Partial<ToolInputField>
+): ToolInputField;
 /**
  * Creates an object input field with property definitions.
  *
@@ -578,7 +621,10 @@ export declare function arrayField(items: ToolInputField, options?: Partial<Tool
  * )
  * ```
  */
-export declare function objectField(properties: Record<string, ToolInputField>, options?: Partial<ToolInputField>): ToolInputField;
+export declare function objectField(
+  properties: Record<string, ToolInputField>,
+  options?: Partial<ToolInputField>
+): ToolInputField;
 /**
  * Creates a date input field with format validation.
  *
@@ -595,7 +641,9 @@ export declare function objectField(properties: Record<string, ToolInputField>, 
  * })
  * ```
  */
-export declare function dateField(options?: Partial<ToolInputField>): ToolInputField;
+export declare function dateField(
+  options?: Partial<ToolInputField>
+): ToolInputField;
 /**
  * Creates a time input field with format validation.
  *
@@ -611,7 +659,9 @@ export declare function dateField(options?: Partial<ToolInputField>): ToolInputF
  * })
  * ```
  */
-export declare function timeField(options?: Partial<ToolInputField>): ToolInputField;
+export declare function timeField(
+  options?: Partial<ToolInputField>
+): ToolInputField;
 /**
  * Creates an enum input field with predefined values.
  *
@@ -631,7 +681,10 @@ export declare function timeField(options?: Partial<ToolInputField>): ToolInputF
  * )
  * ```
  */
-export declare function enumField(values: any[], options?: Partial<ToolInputField>): ToolInputField;
+export declare function enumField(
+  values: any[],
+  options?: Partial<ToolInputField>
+): ToolInputField;
 /**
  * Creates an API key configuration field with security best practices.
  *
@@ -655,7 +708,9 @@ export declare function enumField(values: any[], options?: Partial<ToolInputFiel
  * })
  * ```
  */
-export declare function apiKeyField(options?: Partial<ToolConfigField>): ToolConfigField;
+export declare function apiKeyField(
+  options?: Partial<ToolConfigField>
+): ToolConfigField;
 /**
  * Creates a configuration string field.
  *
@@ -672,7 +727,9 @@ export declare function apiKeyField(options?: Partial<ToolConfigField>): ToolCon
  * })
  * ```
  */
-export declare function configStringField(options?: Partial<ToolConfigField>): ToolConfigField;
+export declare function configStringField(
+  options?: Partial<ToolConfigField>
+): ToolConfigField;
 /**
  * Creates a configuration number field.
  *
@@ -689,7 +746,9 @@ export declare function configStringField(options?: Partial<ToolConfigField>): T
  * })
  * ```
  */
-export declare function configNumberField(options?: Partial<ToolConfigField>): ToolConfigField;
+export declare function configNumberField(
+  options?: Partial<ToolConfigField>
+): ToolConfigField;
 /**
  * Creates a URL configuration field with validation.
  *
@@ -705,7 +764,9 @@ export declare function configNumberField(options?: Partial<ToolConfigField>): T
  * })
  * ```
  */
-export declare function configUrlField(options?: Partial<ToolConfigField>): ToolConfigField;
+export declare function configUrlField(
+  options?: Partial<ToolConfigField>
+): ToolConfigField;
 /**
  * Creates a simple tool with minimal configuration for quick prototyping.
  *
@@ -732,7 +793,12 @@ export declare function configUrlField(options?: Partial<ToolConfigField>): Tool
  * await echoTool.start({ port: 3000 });
  * ```
  */
-export declare function simpleCreateTool<TInput extends ToolInput = ToolInput>(name: string, version: string, description: string, execute: (input: TInput) => Promise<any>): Tool<TInput, {}>;
+export declare function simpleCreateTool<TInput extends ToolInput = ToolInput>(
+  name: string,
+  version: string,
+  description: string,
+  execute: (input: TInput) => Promise<any>
+): Tool<TInput, Record<string, never>>;
 /**
  * Creates a tool builder instance for fluent API usage.
  *
@@ -747,5 +813,8 @@ export declare function simpleCreateTool<TInput extends ToolInput = ToolInput>(n
  *   .build();
  * ```
  */
-export declare function createToolBuilder<TInput extends ToolInput = ToolInput, TConfig extends ToolConfig = ToolConfig>(): ToolBuilder<TInput, TConfig>;
+export declare function createToolBuilder<
+  TInput extends ToolInput = ToolInput,
+  TConfig extends ToolConfig = ToolConfig,
+>(): ToolBuilder<TInput, TConfig>;
 //# sourceMappingURL=create-tool.d.ts.map

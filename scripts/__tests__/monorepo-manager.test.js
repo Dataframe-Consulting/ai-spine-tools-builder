@@ -17,28 +17,30 @@ describe('MonorepoManager', () => {
   beforeEach(() => {
     // Reset mocks
     jest.clearAllMocks();
-    
+
     // Setup mock file system structure
     mockPackages = {
       '@ai-spine/tools-core': {
         name: '@ai-spine/tools-core',
         version: '1.0.0',
         dependencies: {},
-        devDependencies: {}
+        devDependencies: {},
       },
       '@ai-spine/tools': {
         name: '@ai-spine/tools',
         version: '1.0.0',
         dependencies: {
-          '@ai-spine/tools-core': '^1.0.0'
-        }
-      }
+          '@ai-spine/tools-core': '^1.0.0',
+        },
+      },
     };
 
     // Mock fs.readdirSync to return package directories
-    fs.readdirSync.mockImplementation((dirPath) => {
+    fs.readdirSync.mockImplementation(dirPath => {
       if (dirPath.includes('packages')) {
-        return Object.keys(mockPackages).map(name => name.replace('@ai-spine/', ''));
+        return Object.keys(mockPackages).map(name =>
+          name.replace('@ai-spine/', '')
+        );
       }
       return [];
     });
@@ -47,14 +49,14 @@ describe('MonorepoManager', () => {
     fs.statSync.mockReturnValue({ isDirectory: () => true });
 
     // Mock fs.existsSync to return true for package.json files
-    fs.existsSync.mockImplementation((filePath) => {
+    fs.existsSync.mockImplementation(filePath => {
       return filePath.includes('package.json');
     });
 
     // Mock fs.readFileSync to return package.json content
-    fs.readFileSync.mockImplementation((filePath) => {
+    fs.readFileSync.mockImplementation(filePath => {
       if (filePath.includes('package.json')) {
-        const packageName = Object.keys(mockPackages).find(name => 
+        const packageName = Object.keys(mockPackages).find(name =>
           filePath.includes(name.replace('@ai-spine/', ''))
         );
         if (packageName) {
@@ -79,12 +81,14 @@ describe('MonorepoManager', () => {
       const toolsPackage = manager.dependencyGraph.get('@ai-spine/tools');
 
       expect(corePackage.internalDependencies).toHaveLength(0);
-      expect(toolsPackage.internalDependencies).toContain('@ai-spine/tools-core');
+      expect(toolsPackage.internalDependencies).toContain(
+        '@ai-spine/tools-core'
+      );
     });
 
     it('should determine topological order', () => {
       const order = manager.getTopologicalOrder();
-      
+
       expect(order).toEqual(['@ai-spine/tools-core', '@ai-spine/tools']);
     });
   });
@@ -104,7 +108,7 @@ describe('MonorepoManager', () => {
 
     it('should sync dependency versions', async () => {
       const conflicts = await manager.syncDependencyVersions();
-      
+
       expect(conflicts).toEqual([]);
     });
   });
@@ -121,15 +125,15 @@ describe('MonorepoManager', () => {
           }
         }),
         stdout: null,
-        stderr: null
+        stderr: null,
       };
-      
+
       spawn.mockReturnValue(mockChild);
     });
 
     it('should build packages in dependency order', async () => {
       const results = await manager.buildPackages(false); // Sequential
-      
+
       expect(results.size).toBe(2);
       expect(spawn).toHaveBeenCalledTimes(2);
     });
@@ -142,13 +146,13 @@ describe('MonorepoManager', () => {
           }
         }),
         stdout: null,
-        stderr: null
+        stderr: null,
       };
-      
+
       spawn.mockReturnValue(mockChild);
 
       const results = await manager.buildPackages(false);
-      
+
       expect(results.has('@ai-spine/tools-core')).toBe(true);
     });
   });
@@ -156,14 +160,17 @@ describe('MonorepoManager', () => {
   describe('Health Reporting', () => {
     it('should generate health report', () => {
       const health = manager.generateHealthReport();
-      
+
       expect(health).toHaveProperty('packages');
       expect(health).toHaveProperty('dependencies');
       expect(health).toHaveProperty('buildOrder');
       expect(health).toHaveProperty('coverage');
 
       expect(health.packages).toBe(2);
-      expect(health.buildOrder).toEqual(['@ai-spine/tools-core', '@ai-spine/tools']);
+      expect(health.buildOrder).toEqual([
+        '@ai-spine/tools-core',
+        '@ai-spine/tools',
+      ]);
     });
   });
 
@@ -171,7 +178,7 @@ describe('MonorepoManager', () => {
     it('should detect circular dependencies', () => {
       // Modify mock to create circular dependency
       mockPackages['@ai-spine/tools-core'].dependencies = {
-        '@ai-spine/tools': '^1.0.0'
+        '@ai-spine/tools': '^1.0.0',
       };
 
       expect(() => {

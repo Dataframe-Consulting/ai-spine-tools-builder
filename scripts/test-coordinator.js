@@ -18,7 +18,7 @@ const colors = {
   magenta: '\x1b[35m',
   cyan: '\x1b[36m',
   reset: '\x1b[0m',
-  bold: '\x1b[1m'
+  bold: '\x1b[1m',
 };
 
 /**
@@ -33,7 +33,7 @@ class TestCoordinator {
     this.rootDir = path.resolve(__dirname, '..');
     this.packagesDir = path.join(this.rootDir, 'packages');
     this.examplesDir = path.join(this.rootDir, 'examples');
-    
+
     this.packages = this.discoverPackages();
     this.testResults = new Map();
   }
@@ -44,7 +44,7 @@ class TestCoordinator {
       success: `${colors.green}✅${colors.reset}`,
       warning: `${colors.yellow}⚠️${colors.reset}`,
       error: `${colors.red}❌${colors.reset}`,
-      debug: `${colors.cyan}🔍${colors.reset}`
+      debug: `${colors.cyan}🔍${colors.reset}`,
     };
 
     if (this.verbose || level !== 'debug') {
@@ -58,20 +58,24 @@ class TestCoordinator {
    */
   discoverPackages() {
     const packages = [];
-    
+
     // Discover packages
     if (fs.existsSync(this.packagesDir)) {
-      const packageDirs = fs.readdirSync(this.packagesDir).filter(dir => 
-        fs.statSync(path.join(this.packagesDir, dir)).isDirectory()
-      );
-      
+      const packageDirs = fs
+        .readdirSync(this.packagesDir)
+        .filter(dir =>
+          fs.statSync(path.join(this.packagesDir, dir)).isDirectory()
+        );
+
       for (const dir of packageDirs) {
         const packagePath = path.join(this.packagesDir, dir);
         const packageJsonPath = path.join(packagePath, 'package.json');
-        
+
         if (fs.existsSync(packageJsonPath)) {
-          const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-          
+          const packageJson = JSON.parse(
+            fs.readFileSync(packageJsonPath, 'utf8')
+          );
+
           // Check if package has test script
           if (packageJson.scripts && packageJson.scripts.test) {
             packages.push({
@@ -80,7 +84,7 @@ class TestCoordinator {
               packageJson,
               type: 'package',
               directory: dir,
-              hasTests: this.hasTestFiles(packagePath)
+              hasTests: this.hasTestFiles(packagePath),
             });
           }
         }
@@ -89,17 +93,21 @@ class TestCoordinator {
 
     // Discover examples with tests
     if (fs.existsSync(this.examplesDir)) {
-      const exampleDirs = fs.readdirSync(this.examplesDir).filter(dir => 
-        fs.statSync(path.join(this.examplesDir, dir)).isDirectory()
-      );
-      
+      const exampleDirs = fs
+        .readdirSync(this.examplesDir)
+        .filter(dir =>
+          fs.statSync(path.join(this.examplesDir, dir)).isDirectory()
+        );
+
       for (const dir of exampleDirs) {
         const examplePath = path.join(this.examplesDir, dir);
         const packageJsonPath = path.join(examplePath, 'package.json');
-        
+
         if (fs.existsSync(packageJsonPath)) {
-          const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-          
+          const packageJson = JSON.parse(
+            fs.readFileSync(packageJsonPath, 'utf8')
+          );
+
           if (packageJson.scripts && packageJson.scripts.test) {
             packages.push({
               name: packageJson.name || dir,
@@ -107,14 +115,17 @@ class TestCoordinator {
               packageJson,
               type: 'example',
               directory: dir,
-              hasTests: this.hasTestFiles(examplePath)
+              hasTests: this.hasTestFiles(examplePath),
             });
           }
         }
       }
     }
 
-    this.log(`Discovered ${packages.length} packages with test scripts`, 'debug');
+    this.log(
+      `Discovered ${packages.length} packages with test scripts`,
+      'debug'
+    );
     return packages;
   }
 
@@ -126,16 +137,16 @@ class TestCoordinator {
       path.join(packagePath, 'src', '__tests__'),
       path.join(packagePath, 'tests'),
       path.join(packagePath, 'test'),
-      path.join(packagePath, '__tests__')
+      path.join(packagePath, '__tests__'),
     ];
 
     for (const testPath of testPaths) {
       if (fs.existsSync(testPath)) {
         const files = fs.readdirSync(testPath, { recursive: true });
-        const testFiles = files.filter(file => 
+        const testFiles = files.filter(file =>
           /\.(test|spec)\.(js|ts|jsx|tsx)$/.test(file.toString())
         );
-        
+
         if (testFiles.length > 0) {
           return { path: testPath, count: testFiles.length };
         }
@@ -163,14 +174,14 @@ class TestCoordinator {
    */
   findTestFiles(dir) {
     let testFiles = [];
-    
+
     try {
       const files = fs.readdirSync(dir);
-      
+
       for (const file of files) {
         const filePath = path.join(dir, file);
         const stat = fs.statSync(filePath);
-        
+
         if (stat.isDirectory()) {
           testFiles = testFiles.concat(this.findTestFiles(filePath));
         } else if (/\.(test|spec)\.(js|ts|jsx|tsx)$/.test(file)) {
@@ -180,7 +191,7 @@ class TestCoordinator {
     } catch (error) {
       // Ignore errors
     }
-    
+
     return testFiles;
   }
 
@@ -189,10 +200,11 @@ class TestCoordinator {
    */
   async runAllTests(packageNames = []) {
     this.log('Starting test execution across packages...', 'info');
-    
-    const packagesToTest = packageNames.length > 0
-      ? this.packages.filter(pkg => packageNames.includes(pkg.name))
-      : this.packages;
+
+    const packagesToTest =
+      packageNames.length > 0
+        ? this.packages.filter(pkg => packageNames.includes(pkg.name))
+        : this.packages;
 
     if (packagesToTest.length === 0) {
       this.log('No packages with tests found', 'warning');
@@ -214,18 +226,21 @@ class TestCoordinator {
    * Run tests in parallel
    */
   async runTestsParallel(packages) {
-    this.log(`Running tests for ${packages.length} packages in parallel...`, 'info');
-    
+    this.log(
+      `Running tests for ${packages.length} packages in parallel...`,
+      'info'
+    );
+
     const promises = packages.map(pkg => this.runPackageTests(pkg));
     const results = await Promise.allSettled(promises);
-    
+
     const successResults = [];
     const failedResults = [];
-    
+
     for (let i = 0; i < results.length; i++) {
       const result = results[i];
       const pkg = packages[i];
-      
+
       if (result.status === 'fulfilled') {
         successResults.push({ package: pkg, result: result.value });
       } else {
@@ -240,21 +255,27 @@ class TestCoordinator {
    * Run tests sequentially
    */
   async runTestsSequential(packages) {
-    this.log(`Running tests for ${packages.length} packages sequentially...`, 'info');
-    
+    this.log(
+      `Running tests for ${packages.length} packages sequentially...`,
+      'info'
+    );
+
     const successResults = [];
     const failedResults = [];
-    
+
     for (const pkg of packages) {
       try {
         const result = await this.runPackageTests(pkg);
         successResults.push({ package: pkg, result });
       } catch (error) {
         failedResults.push({ package: pkg, error });
-        
+
         // In sequential mode, we might want to stop on first failure
         if (!this.verbose) {
-          this.log(`Tests failed for ${pkg.name}, stopping sequential execution`, 'error');
+          this.log(
+            `Tests failed for ${pkg.name}, stopping sequential execution`,
+            'error'
+          );
           break;
         }
       }
@@ -271,24 +292,34 @@ class TestCoordinator {
       this.log(`Running tests for ${pkg.name}...`, 'info');
 
       const testCommand = this.coverage ? 'test:coverage' : 'test';
-      const script = pkg.packageJson.scripts[testCommand] || pkg.packageJson.scripts.test;
-      
+      const script =
+        pkg.packageJson.scripts[testCommand] || pkg.packageJson.scripts.test;
+
       const startTime = Date.now();
-      const child = spawn('npm', ['run', this.coverage && pkg.packageJson.scripts['test:coverage'] ? 'test:coverage' : 'test'], {
-        cwd: pkg.path,
-        stdio: this.verbose ? 'inherit' : 'pipe',
-        shell: true,
-        env: {
-          ...process.env,
-          CI: 'true' // Ensure tests run in CI mode
+      const child = spawn(
+        'npm',
+        [
+          'run',
+          this.coverage && pkg.packageJson.scripts['test:coverage']
+            ? 'test:coverage'
+            : 'test',
+        ],
+        {
+          cwd: pkg.path,
+          stdio: this.verbose ? 'inherit' : 'pipe',
+          shell: true,
+          env: {
+            ...process.env,
+            CI: 'true', // Ensure tests run in CI mode
+          },
         }
-      });
+      );
 
       let stdout = '';
       let stderr = '';
 
       if (child.stdout) {
-        child.stdout.on('data', (data) => {
+        child.stdout.on('data', data => {
           stdout += data;
           if (this.verbose) {
             process.stdout.write(`[${pkg.name}] ${data}`);
@@ -297,7 +328,7 @@ class TestCoordinator {
       }
 
       if (child.stderr) {
-        child.stderr.on('data', (data) => {
+        child.stderr.on('data', data => {
           stderr += data;
           if (this.verbose) {
             process.stderr.write(`[${pkg.name}] ${data}`);
@@ -305,7 +336,7 @@ class TestCoordinator {
         });
       }
 
-      child.on('close', (code) => {
+      child.on('close', code => {
         const duration = Date.now() - startTime;
         const result = {
           code,
@@ -313,7 +344,7 @@ class TestCoordinator {
           stdout,
           stderr,
           coverage: this.extractCoverage(stdout),
-          testStats: this.extractTestStats(stdout)
+          testStats: this.extractTestStats(stdout),
         };
 
         this.testResults.set(pkg.name, result);
@@ -327,9 +358,12 @@ class TestCoordinator {
         }
       });
 
-      child.on('error', (error) => {
+      child.on('error', error => {
         const duration = Date.now() - startTime;
-        this.log(`Failed to run tests for ${pkg.name}: ${error.message}`, 'error');
+        this.log(
+          `Failed to run tests for ${pkg.name}: ${error.message}`,
+          'error'
+        );
         reject(error);
       });
     });
@@ -340,15 +374,16 @@ class TestCoordinator {
    */
   extractCoverage(output) {
     // Look for Jest coverage output
-    const coverageRegex = /All files\s+\|\s+([\d.]+)\s+\|\s+([\d.]+)\s+\|\s+([\d.]+)\s+\|\s+([\d.]+)/;
+    const coverageRegex =
+      /All files\s+\|\s+([\d.]+)\s+\|\s+([\d.]+)\s+\|\s+([\d.]+)\s+\|\s+([\d.]+)/;
     const match = output.match(coverageRegex);
-    
+
     if (match) {
       return {
         statements: parseFloat(match[1]),
         branches: parseFloat(match[2]),
         functions: parseFloat(match[3]),
-        lines: parseFloat(match[4])
+        lines: parseFloat(match[4]),
       };
     }
 
@@ -364,11 +399,13 @@ class TestCoordinator {
       passed: 0,
       failed: 0,
       skipped: 0,
-      suites: 0
+      suites: 0,
     };
 
     // Jest output patterns
-    const testSuiteMatch = output.match(/Test Suites: (\d+) passed.*?(\d+) total/);
+    const testSuiteMatch = output.match(
+      /Test Suites: (\d+) passed.*?(\d+) total/
+    );
     if (testSuiteMatch) {
       stats.suites = parseInt(testSuiteMatch[2]);
     }
@@ -387,8 +424,10 @@ class TestCoordinator {
    * Generate comprehensive test report
    */
   generateTestReport(results) {
-    console.log(`\n${colors.bold}${colors.cyan}📊 Test Execution Report${colors.reset}`);
-    console.log('=' .repeat(60));
+    console.log(
+      `\n${colors.bold}${colors.cyan}📊 Test Execution Report${colors.reset}`
+    );
+    console.log('='.repeat(60));
 
     const { success, failed } = results;
     const totalPackages = success.length + failed.length;
@@ -416,7 +455,9 @@ class TestCoordinator {
 
     console.log(`\n${colors.bold}🕐 Timing${colors.reset}`);
     console.log(`Total test time: ${(totalDuration / 1000).toFixed(2)}s`);
-    console.log(`Average time per package: ${(totalDuration / totalPackages / 1000).toFixed(2)}s`);
+    console.log(
+      `Average time per package: ${(totalDuration / totalPackages / 1000).toFixed(2)}s`
+    );
 
     console.log(`\n${colors.bold}🧪 Test Statistics${colors.reset}`);
     console.log(`Total tests: ${totalTests}`);
@@ -427,25 +468,35 @@ class TestCoordinator {
     if (this.coverage) {
       console.log(`\n${colors.bold}📈 Coverage Summary${colors.reset}`);
       const coverageData = [];
-      
+
       for (const { package: pkg, result } of success) {
         if (result.coverage) {
           coverageData.push({
             name: pkg.name,
-            ...result.coverage
+            ...result.coverage,
           });
         }
       }
 
       if (coverageData.length > 0) {
         const avgCoverage = {
-          statements: coverageData.reduce((sum, c) => sum + c.statements, 0) / coverageData.length,
-          branches: coverageData.reduce((sum, c) => sum + c.branches, 0) / coverageData.length,
-          functions: coverageData.reduce((sum, c) => sum + c.functions, 0) / coverageData.length,
-          lines: coverageData.reduce((sum, c) => sum + c.lines, 0) / coverageData.length
+          statements:
+            coverageData.reduce((sum, c) => sum + c.statements, 0) /
+            coverageData.length,
+          branches:
+            coverageData.reduce((sum, c) => sum + c.branches, 0) /
+            coverageData.length,
+          functions:
+            coverageData.reduce((sum, c) => sum + c.functions, 0) /
+            coverageData.length,
+          lines:
+            coverageData.reduce((sum, c) => sum + c.lines, 0) /
+            coverageData.length,
         };
 
-        console.log(`Average statements: ${avgCoverage.statements.toFixed(1)}%`);
+        console.log(
+          `Average statements: ${avgCoverage.statements.toFixed(1)}%`
+        );
         console.log(`Average branches: ${avgCoverage.branches.toFixed(1)}%`);
         console.log(`Average functions: ${avgCoverage.functions.toFixed(1)}%`);
         console.log(`Average lines: ${avgCoverage.lines.toFixed(1)}%`);
@@ -454,11 +505,15 @@ class TestCoordinator {
 
     // Detailed results
     if (success.length > 0) {
-      console.log(`\n${colors.bold}${colors.green}✅ Successful Packages${colors.reset}`);
+      console.log(
+        `\n${colors.bold}${colors.green}✅ Successful Packages${colors.reset}`
+      );
       for (const { package: pkg, result } of success) {
         console.log(`  ${pkg.name}: ${(result.duration / 1000).toFixed(2)}s`);
         if (result.testStats && result.testStats.total > 0) {
-          console.log(`    Tests: ${result.testStats.passed}/${result.testStats.total} passed`);
+          console.log(
+            `    Tests: ${result.testStats.passed}/${result.testStats.total} passed`
+          );
         }
         if (result.coverage) {
           console.log(`    Coverage: ${result.coverage.lines}% lines`);
@@ -467,16 +522,22 @@ class TestCoordinator {
     }
 
     if (failed.length > 0) {
-      console.log(`\n${colors.bold}${colors.red}❌ Failed Packages${colors.reset}`);
+      console.log(
+        `\n${colors.bold}${colors.red}❌ Failed Packages${colors.reset}`
+      );
       for (const { package: pkg, error } of failed) {
-        console.log(`  ${colors.red}${pkg.name}${colors.reset}: ${error.message.split('\n')[0]}`);
+        console.log(
+          `  ${colors.red}${pkg.name}${colors.reset}: ${error.message.split('\n')[0]}`
+        );
       }
     }
 
     // Final status
     const overallSuccess = failed.length === 0;
-    console.log(`\n${overallSuccess ? colors.green + '🎉 All tests passed!' : colors.red + '💥 Some tests failed!'}${colors.reset}`);
-    
+    console.log(
+      `\n${overallSuccess ? colors.green + '🎉 All tests passed!' : colors.red + '💥 Some tests failed!'}${colors.reset}`
+    );
+
     return overallSuccess;
   }
 
@@ -485,10 +546,10 @@ class TestCoordinator {
    */
   async watchMode() {
     this.log('Starting test watch mode...', 'info');
-    
+
     // This is a simplified implementation - in real world you'd use chokidar or similar
-    const watchPackages = this.packages.filter(pkg => 
-      pkg.packageJson.scripts['test:watch'] || pkg.hasTests
+    const watchPackages = this.packages.filter(
+      pkg => pkg.packageJson.scripts['test:watch'] || pkg.hasTests
     );
 
     if (watchPackages.length === 0) {
@@ -496,23 +557,29 @@ class TestCoordinator {
       return;
     }
 
-    this.log(`Watching ${watchPackages.length} packages for changes...`, 'info');
+    this.log(
+      `Watching ${watchPackages.length} packages for changes...`,
+      'info'
+    );
 
     // Start watchers for each package
     const watchers = [];
-    
+
     for (const pkg of watchPackages) {
       try {
         const watcher = spawn('npm', ['run', 'test:watch'], {
           cwd: pkg.path,
           stdio: 'inherit',
-          shell: true
+          shell: true,
         });
 
         watchers.push({ package: pkg, watcher });
         this.log(`Started watcher for ${pkg.name}`, 'success');
       } catch (error) {
-        this.log(`Failed to start watcher for ${pkg.name}: ${error.message}`, 'error');
+        this.log(
+          `Failed to start watcher for ${pkg.name}: ${error.message}`,
+          'error'
+        );
       }
     }
 
@@ -534,18 +601,20 @@ class TestCoordinator {
    */
   generateTestBadges() {
     this.log('Generating test badges...', 'info');
-    
+
     const badges = new Map();
-    
+
     for (const [packageName, result] of this.testResults) {
       const passed = result.code === 0;
-      const badge = passed 
+      const badge = passed
         ? '![Tests](https://img.shields.io/badge/tests-passing-brightgreen)'
         : '![Tests](https://img.shields.io/badge/tests-failing-red)';
-      
+
       badges.set(packageName, {
         testBadge: badge,
-        coverage: result.coverage ? `![Coverage](https://img.shields.io/badge/coverage-${result.coverage.lines}%25-${result.coverage.lines > 80 ? 'brightgreen' : result.coverage.lines > 60 ? 'yellow' : 'red'})` : null
+        coverage: result.coverage
+          ? `![Coverage](https://img.shields.io/badge/coverage-${result.coverage.lines}%25-${result.coverage.lines > 80 ? 'brightgreen' : result.coverage.lines > 60 ? 'yellow' : 'red'})`
+          : null,
       });
     }
 
@@ -557,21 +626,25 @@ class TestCoordinator {
    */
   printTestOverview() {
     console.log(`${colors.bold}${colors.cyan}🧪 Test Overview${colors.reset}`);
-    console.log('=' .repeat(60));
+    console.log('='.repeat(60));
 
     console.log(`\n${colors.bold}📦 Packages with Tests${colors.reset}`);
     for (const pkg of this.packages) {
       const testInfo = pkg.hasTests;
-      const status = testInfo ? `${testInfo.count} test files` : 'No tests found';
+      const status = testInfo
+        ? `${testInfo.count} test files`
+        : 'No tests found';
       const testScript = pkg.packageJson.scripts.test || 'No test script';
-      
+
       console.log(`${pkg.name}:`);
       console.log(`  Type: ${pkg.type}`);
       console.log(`  Tests: ${status}`);
       console.log(`  Script: ${testScript}`);
-      
+
       if (testInfo) {
-        console.log(`  Location: ${path.relative(this.rootDir, testInfo.path)}`);
+        console.log(
+          `  Location: ${path.relative(this.rootDir, testInfo.path)}`
+        );
       }
     }
 
@@ -579,10 +652,10 @@ class TestCoordinator {
     console.log(`\n${colors.bold}🔧 Test Configuration${colors.reset}`);
     const testRunners = {};
     const testScripts = {};
-    
+
     for (const pkg of this.packages) {
       const scripts = pkg.packageJson.scripts || {};
-      
+
       // Detect test runner
       if (scripts.test) {
         if (scripts.test.includes('jest')) {
@@ -622,12 +695,12 @@ class TestCoordinator {
 async function main() {
   const args = process.argv.slice(2);
   const command = args[0];
-  
+
   const options = {
     verbose: args.includes('--verbose') || args.includes('-v'),
     coverage: args.includes('--coverage') || args.includes('-c'),
     parallel: !args.includes('--sequential'),
-    watch: args.includes('--watch') || args.includes('-w')
+    watch: args.includes('--watch') || args.includes('-w'),
   };
 
   const coordinator = new TestCoordinator(options);
@@ -635,7 +708,9 @@ async function main() {
   try {
     switch (command) {
       case 'run':
-        const packagesForTest = args.slice(1).filter(arg => !arg.startsWith('--'));
+        const packagesForTest = args
+          .slice(1)
+          .filter(arg => !arg.startsWith('--'));
         if (options.watch) {
           await coordinator.watchMode();
         } else {
@@ -658,12 +733,18 @@ async function main() {
         break;
 
       default:
-        console.log(`${colors.bold}AI Spine Tools Test Coordinator${colors.reset}`);
+        console.log(
+          `${colors.bold}AI Spine Tools Test Coordinator${colors.reset}`
+        );
         console.log('');
-        console.log('Usage: node scripts/test-coordinator.js <command> [packages...] [options]');
+        console.log(
+          'Usage: node scripts/test-coordinator.js <command> [packages...] [options]'
+        );
         console.log('');
         console.log('Commands:');
-        console.log('  run [pkg...]      Run tests for specified packages (or all)');
+        console.log(
+          '  run [pkg...]      Run tests for specified packages (or all)'
+        );
         console.log('  watch             Run tests in watch mode');
         console.log('  overview          Show test configuration overview');
         console.log('  badges            Generate test badges');
@@ -671,14 +752,24 @@ async function main() {
         console.log('Options:');
         console.log('  --verbose, -v     Show detailed output');
         console.log('  --coverage, -c    Include coverage reporting');
-        console.log('  --sequential      Run tests sequentially instead of parallel');
+        console.log(
+          '  --sequential      Run tests sequentially instead of parallel'
+        );
         console.log('  --watch, -w       Run in watch mode');
         console.log('');
         console.log('Examples:');
-        console.log('  node scripts/test-coordinator.js run                       # Run all tests');
-        console.log('  node scripts/test-coordinator.js run @ai-spine/tools       # Run specific package');
-        console.log('  node scripts/test-coordinator.js run --coverage           # Run with coverage');
-        console.log('  node scripts/test-coordinator.js watch                    # Watch mode');
+        console.log(
+          '  node scripts/test-coordinator.js run                       # Run all tests'
+        );
+        console.log(
+          '  node scripts/test-coordinator.js run @ai-spine/tools       # Run specific package'
+        );
+        console.log(
+          '  node scripts/test-coordinator.js run --coverage           # Run with coverage'
+        );
+        console.log(
+          '  node scripts/test-coordinator.js watch                    # Watch mode'
+        );
         break;
     }
   } catch (error) {

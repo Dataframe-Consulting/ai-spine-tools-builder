@@ -1,10 +1,10 @@
 /**
  * Template validation system for AI Spine tools.
- * 
+ *
  * This module provides comprehensive validation for template files,
  * ensuring that generated code is syntactically correct, follows
  * best practices, and matches the expected structure.
- * 
+ *
  * @fileoverview Template validation implementation
  * @author AI Spine Team
  * @since 1.0.0
@@ -12,10 +12,16 @@
 
 import fs from 'fs-extra';
 import path from 'path';
+import os from 'os';
 import mustache from 'mustache';
 import { execSync } from 'child_process';
 import chalk from 'chalk';
-import { TemplateType, Language, TemplateContext, CreateToolOptions } from './types';
+import {
+  TemplateType,
+  Language,
+  TemplateContext,
+  CreateToolOptions,
+} from './types';
 
 /**
  * Validation result for template processing
@@ -56,7 +62,9 @@ export interface ValidationError {
 /**
  * Validation warning (non-blocking)
  */
-export type ValidationWarning = Omit<ValidationError, 'severity'> & { severity: 'warning' };
+export type ValidationWarning = Omit<ValidationError, 'severity'> & {
+  severity: 'warning';
+};
 
 /**
  * Template validation configuration
@@ -90,7 +98,7 @@ const DEFAULT_VALIDATION_CONFIG: ValidationConfig = {
 
 /**
  * Template validator class that handles all validation operations.
- * 
+ *
  * This class provides comprehensive validation for templates including:
  * - Mustache template syntax validation
  * - Generated TypeScript code validation
@@ -103,7 +111,7 @@ export class TemplateValidator {
 
   /**
    * Creates a new template validator with the specified configuration.
-   * 
+   *
    * @param config - Validation configuration (uses defaults if not provided)
    */
   constructor(config: Partial<ValidationConfig> = {}) {
@@ -112,19 +120,19 @@ export class TemplateValidator {
 
   /**
    * Validates a complete template by processing it and checking the generated output.
-   * 
+   *
    * This is the main validation entry point that orchestrates all validation steps:
    * 1. Template syntax validation
    * 2. Context variable validation
    * 3. Generated code validation
    * 4. Package structure validation
-   * 
+   *
    * @param templateType - Type of template to validate
    * @param language - Programming language for the template
    * @param context - Template context for variable substitution
    * @param templatesDir - Directory containing template files
    * @returns Promise resolving to validation results
-   * 
+   *
    * @example
    * ```typescript
    * const validator = new TemplateValidator();
@@ -147,7 +155,7 @@ export class TemplateValidator {
 
     try {
       const templateDir = path.join(templatesDir, templateType, language);
-      
+
       if (!(await fs.pathExists(templateDir))) {
         errors.push({
           code: 'TEMPLATE_NOT_FOUND',
@@ -155,7 +163,7 @@ export class TemplateValidator {
           severity: 'error',
           suggestion: `Ensure the template ${templateType}/${language} exists`,
         });
-        
+
         return {
           isValid: false,
           errors,
@@ -166,27 +174,57 @@ export class TemplateValidator {
       }
 
       // Validate template structure
-      await this.validateTemplateStructure(templateDir, templateType, language, errors, warnings);
+      await this.validateTemplateStructure(
+        templateDir,
+        templateType,
+        language,
+        errors,
+        warnings
+      );
 
       // Validate template syntax and mustache expressions
       if (this.config.validateTemplates) {
-        await this.validateTemplateSyntax(templateDir, context, errors, warnings, validatedFiles);
+        await this.validateTemplateSyntax(
+          templateDir,
+          context,
+          errors,
+          warnings,
+          validatedFiles
+        );
       }
 
       // Validate generated content
       if (this.config.validateTypeScript && language === 'typescript') {
-        await this.validateGeneratedTypeScript(templateDir, context, errors, warnings, validatedFiles);
+        await this.validateGeneratedTypeScript(
+          templateDir,
+          context,
+          errors,
+          warnings,
+          validatedFiles
+        );
       }
 
       // Validate package.json structure
       if (this.config.validatePackageJson) {
-        await this.validatePackageJsonTemplate(templateDir, context, errors, warnings, validatedFiles);
+        await this.validatePackageJsonTemplate(
+          templateDir,
+          context,
+          errors,
+          warnings,
+          validatedFiles
+        );
       }
 
       // Validate common files
       const commonDir = path.join(templatesDir, 'common');
       if (await fs.pathExists(commonDir)) {
-        await this.validateTemplateSyntax(commonDir, context, errors, warnings, validatedFiles);
+        await this.validateTemplateSyntax(
+          commonDir,
+          context,
+          errors,
+          warnings,
+          validatedFiles
+        );
       }
 
       return {
@@ -216,7 +254,7 @@ export class TemplateValidator {
   /**
    * Validates that a generated tool project is functional by creating a temporary
    * instance and running basic tests.
-   * 
+   *
    * @param options - Tool creation options to test
    * @param templatesDir - Directory containing templates
    * @returns Promise resolving to validation results
@@ -230,14 +268,19 @@ export class TemplateValidator {
     const warnings: ValidationWarning[] = [];
     const validatedFiles: string[] = [];
 
-    const tempDir = path.join(require('os').tmpdir(), `ai-spine-test-${Date.now()}`);
-    
+    const tempDir = path.join(os.tmpdir(), `ai-spine-test-${Date.now()}`);
+
     try {
       // Generate template context
       const context = this.generateTestContext(options);
 
       // Create temporary project
-      await this.createTemporaryProject(tempDir, options, context, templatesDir);
+      await this.createTemporaryProject(
+        tempDir,
+        options,
+        context,
+        templatesDir
+      );
 
       // Validate TypeScript compilation
       if (this.config.validateTypeScript) {
@@ -274,7 +317,7 @@ export class TemplateValidator {
 
   /**
    * Validates the basic structure and required files of a template.
-   * 
+   *
    * @private
    */
   private async validateTemplateStructure(
@@ -285,9 +328,10 @@ export class TemplateValidator {
     warnings: ValidationWarning[]
   ): Promise<void> {
     // Use appropriate file extension based on language
-    const indexFile = language === 'typescript' ? 'src/index.ts' : 'src/index.js';
+    const indexFile =
+      language === 'typescript' ? 'src/index.ts' : 'src/index.js';
     const requiredFiles = [indexFile, 'package.json'];
-    
+
     // Template-specific required files
     if (templateType === 'api-integration') {
       // API integration templates might need additional files
@@ -325,7 +369,7 @@ export class TemplateValidator {
 
   /**
    * Validates mustache template syntax and variable usage.
-   * 
+   *
    * @private
    */
   private async validateTemplateSyntax(
@@ -351,7 +395,8 @@ export class TemplateValidator {
             message: `Template syntax error: ${(parseError as Error).message}`,
             file,
             severity: 'error',
-            suggestion: 'Check mustache template syntax and ensure all tags are properly closed',
+            suggestion:
+              'Check mustache template syntax and ensure all tags are properly closed',
           });
           continue;
         }
@@ -361,13 +406,17 @@ export class TemplateValidator {
           mustache.render(content, context);
         } catch (renderError) {
           const message = (renderError as Error).message;
-          if (message.includes('Cannot read property') || message.includes('is not defined')) {
+          if (
+            message.includes('Cannot read property') ||
+            message.includes('is not defined')
+          ) {
             warnings.push({
               code: 'MISSING_TEMPLATE_VARIABLE',
               message: `Possible missing template variable: ${message}`,
               file,
               severity: 'warning',
-              suggestion: 'Ensure all template variables are defined in the context',
+              suggestion:
+                'Ensure all template variables are defined in the context',
             });
           } else {
             errors.push({
@@ -381,7 +430,6 @@ export class TemplateValidator {
 
         // Check for common template issues
         await this.validateTemplateContent(content, file, errors, warnings);
-
       } catch (error) {
         errors.push({
           code: 'FILE_READ_ERROR',
@@ -395,7 +443,7 @@ export class TemplateValidator {
 
   /**
    * Validates generated TypeScript code for syntax and compilation errors.
-   * 
+   *
    * @private
    */
   private async validateGeneratedTypeScript(
@@ -414,11 +462,20 @@ export class TemplateValidator {
         validatedFiles.push(file);
 
         // Basic syntax validation
-        await this.validateTypeScriptSyntax(renderedContent, file, errors, warnings);
+        await this.validateTypeScriptSyntax(
+          renderedContent,
+          file,
+          errors,
+          warnings
+        );
 
         // Check for common TypeScript issues
-        await this.validateTypeScriptContent(renderedContent, file, errors, warnings);
-
+        await this.validateTypeScriptContent(
+          renderedContent,
+          file,
+          errors,
+          warnings
+        );
       } catch (error) {
         errors.push({
           code: 'TS_VALIDATION_ERROR',
@@ -432,7 +489,7 @@ export class TemplateValidator {
 
   /**
    * Validates package.json template structure and dependencies.
-   * 
+   *
    * @private
    */
   private async validatePackageJsonTemplate(
@@ -443,7 +500,7 @@ export class TemplateValidator {
     validatedFiles: string[]
   ): Promise<void> {
     const packageJsonPath = path.join(templateDir, 'package.json');
-    
+
     if (!(await fs.pathExists(packageJsonPath))) {
       errors.push({
         code: 'MISSING_PACKAGE_JSON',
@@ -475,7 +532,14 @@ export class TemplateValidator {
       }
 
       // Validate required fields
-      const requiredFields = ['name', 'version', 'description', 'main', 'scripts', 'dependencies'];
+      const requiredFields = [
+        'name',
+        'version',
+        'description',
+        'main',
+        'scripts',
+        'dependencies',
+      ];
       for (const field of requiredFields) {
         if (!packageJson[field]) {
           errors.push({
@@ -503,7 +567,10 @@ export class TemplateValidator {
       }
 
       // Validate dependencies
-      if (packageJson.dependencies && !packageJson.dependencies['@ai-spine/tools']) {
+      if (
+        packageJson.dependencies &&
+        !packageJson.dependencies['@ai-spine/tools']
+      ) {
         errors.push({
           code: 'MISSING_CORE_DEPENDENCY',
           message: 'Missing core dependency: @ai-spine/tools',
@@ -511,7 +578,6 @@ export class TemplateValidator {
           severity: 'error',
         });
       }
-
     } catch (error) {
       errors.push({
         code: 'PACKAGE_JSON_VALIDATION_ERROR',
@@ -524,7 +590,7 @@ export class TemplateValidator {
 
   /**
    * Validates template content for common issues and best practices.
-   * 
+   *
    * @private
    */
   private async validateTemplateContent(
@@ -536,13 +602,22 @@ export class TemplateValidator {
     // Check for potential variable naming issues
     const variablePattern = /\{\{\{?(\w+)\}?\}\}/g;
     const matches = content.match(variablePattern);
-    
+
     if (matches) {
       for (const match of matches) {
         const variableName = match.replace(/[{}]/g, '');
-        
+
         // Check for JavaScript reserved words that might cause issues
-        const reservedWords = ['function', 'var', 'let', 'const', 'class', 'return', 'if', 'else'];
+        const reservedWords = [
+          'function',
+          'var',
+          'let',
+          'const',
+          'class',
+          'return',
+          'if',
+          'else',
+        ];
         if (reservedWords.includes(variableName)) {
           warnings.push({
             code: 'RESERVED_WORD_VARIABLE',
@@ -560,7 +635,8 @@ export class TemplateValidator {
             message: `Variable name contains hyphens: ${variableName}`,
             file,
             severity: 'warning',
-            suggestion: 'Consider using camelCase or adding Case suffix for case variants',
+            suggestion:
+              'Consider using camelCase or adding Case suffix for case variants',
           });
         }
       }
@@ -580,7 +656,7 @@ export class TemplateValidator {
 
   /**
    * Validates TypeScript syntax of rendered content.
-   * 
+   *
    * @private
    */
   private async validateTypeScriptSyntax(
@@ -591,7 +667,7 @@ export class TemplateValidator {
   ): Promise<void> {
     // Basic syntax checks
     const lines = content.split('\n');
-    
+
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       const lineNumber = i + 1;
@@ -609,7 +685,8 @@ export class TemplateValidator {
       }
 
       // Check for invalid variable names (but not object destructuring or object literals)
-      const invalidVarPattern = /(?:const|let|var)\s+([^a-zA-Z_${}\s][a-zA-Z0-9_$]*)\s*=/;
+      const invalidVarPattern =
+        /(?:const|let|var)\s+([^a-zA-Z_${}\s][a-zA-Z0-9_$]*)\s*=/;
       const match = line.match(invalidVarPattern);
       if (match && !line.includes('{') && !line.includes('}')) {
         errors.push({
@@ -618,7 +695,8 @@ export class TemplateValidator {
           file,
           line: lineNumber,
           severity: 'error',
-          suggestion: 'Variable names must start with letter, underscore, or dollar sign',
+          suggestion:
+            'Variable names must start with letter, underscore, or dollar sign',
         });
       }
     }
@@ -626,7 +704,7 @@ export class TemplateValidator {
 
   /**
    * Validates TypeScript content for common issues.
-   * 
+   *
    * @private
    */
   private async validateTypeScriptContent(
@@ -670,7 +748,7 @@ export class TemplateValidator {
 
   /**
    * Creates a temporary project for validation testing.
-   * 
+   *
    * @private
    */
   private async createTemporaryProject(
@@ -682,12 +760,16 @@ export class TemplateValidator {
     await fs.ensureDir(tempDir);
 
     // Copy template files
-    const templateDir = path.join(templatesDir, options.template, options.language);
+    const templateDir = path.join(
+      templatesDir,
+      options.template,
+      options.language
+    );
     const commonDir = path.join(templatesDir, 'common');
 
     // Process template files
     await this.copyAndProcessFiles(templateDir, tempDir, context);
-    
+
     if (await fs.pathExists(commonDir)) {
       await this.copyAndProcessFiles(commonDir, tempDir, context);
     }
@@ -695,7 +777,7 @@ export class TemplateValidator {
 
   /**
    * Validates that the generated project compiles without errors.
-   * 
+   *
    * @private
    */
   private async validateProjectCompilation(
@@ -706,15 +788,16 @@ export class TemplateValidator {
     try {
       // Check if TypeScript is available
       execSync('npx tsc --version', { cwd: projectDir, stdio: 'ignore' });
-      
+
       // Try to compile the project
-      execSync('npx tsc --noEmit', { 
-        cwd: projectDir, 
+      execSync('npx tsc --noEmit', {
+        cwd: projectDir,
         stdio: 'pipe',
-        timeout: this.config.timeoutMs 
+        timeout: this.config.timeoutMs,
       });
     } catch (error) {
-      const message = (error as any).stdout?.toString() || (error as Error).message;
+      const message =
+        (error as any).stdout?.toString() || (error as Error).message;
       errors.push({
         code: 'COMPILATION_ERROR',
         message: `TypeScript compilation failed: ${message}`,
@@ -726,7 +809,7 @@ export class TemplateValidator {
 
   /**
    * Validates that the generated project tests pass.
-   * 
+   *
    * @private
    */
   private async validateProjectTests(
@@ -736,20 +819,21 @@ export class TemplateValidator {
   ): Promise<void> {
     try {
       // Install dependencies first
-      execSync('npm install', { 
-        cwd: projectDir, 
+      execSync('npm install', {
+        cwd: projectDir,
         stdio: 'ignore',
-        timeout: this.config.timeoutMs 
+        timeout: this.config.timeoutMs,
       });
-      
+
       // Run tests
-      execSync('npm test', { 
-        cwd: projectDir, 
+      execSync('npm test', {
+        cwd: projectDir,
         stdio: 'pipe',
-        timeout: this.config.timeoutMs 
+        timeout: this.config.timeoutMs,
       });
     } catch (error) {
-      const message = (error as any).stdout?.toString() || (error as Error).message;
+      const message =
+        (error as any).stdout?.toString() || (error as Error).message;
       warnings.push({
         code: 'TEST_FAILURE',
         message: `Tests failed: ${message}`,
@@ -761,7 +845,7 @@ export class TemplateValidator {
 
   /**
    * Copies and processes template files with mustache rendering.
-   * 
+   *
    * @private
    */
   private async copyAndProcessFiles(
@@ -788,7 +872,7 @@ export class TemplateValidator {
 
   /**
    * Generates test context for validation.
-   * 
+   *
    * @private
    */
   private generateTestContext(options: CreateToolOptions): TemplateContext {
@@ -803,9 +887,7 @@ export class TemplateValidator {
       includeDocker: options.includeDocker,
       packageName: options.name,
       year: new Date().getFullYear(),
-      dependencies: [
-        { key: '@ai-spine/tools', value: '^1.0.0', isLast: true },
-      ],
+      dependencies: [{ key: '@ai-spine/tools', value: '^1.0.0', isLast: true }],
       devDependencies: [
         { key: 'typescript', value: '^5.0.0', isLast: false },
         { key: '@types/node', value: '^20.0.0', isLast: true },
@@ -815,18 +897,18 @@ export class TemplateValidator {
 
   /**
    * Gets all template files in a directory.
-   * 
+   *
    * @private
    */
   private async getTemplateFiles(dir: string): Promise<string[]> {
     const files: string[] = [];
-    
+
     async function walkDir(currentDir: string): Promise<void> {
       const entries = await fs.readdir(currentDir, { withFileTypes: true });
-      
+
       for (const entry of entries) {
         const fullPath = path.join(currentDir, entry.name);
-        
+
         if (entry.isDirectory()) {
           await walkDir(fullPath);
         } else {
@@ -834,17 +916,17 @@ export class TemplateValidator {
         }
       }
     }
-    
+
     if (await fs.pathExists(dir)) {
       await walkDir(dir);
     }
-    
+
     return files;
   }
 
   /**
    * Gets all TypeScript files in a directory.
-   * 
+   *
    * @private
    */
   private async getTypeScriptFiles(dir: string): Promise<string[]> {
@@ -854,7 +936,7 @@ export class TemplateValidator {
 
   /**
    * Gets all project files for validation reporting.
-   * 
+   *
    * @private
    */
   private async getProjectFiles(dir: string): Promise<string[]> {
@@ -865,13 +947,13 @@ export class TemplateValidator {
   private toPascalCase(str: string): string {
     return str
       .replace(/[\s\-_]+(.)?/g, (_, char) => (char ? char.toUpperCase() : ''))
-      .replace(/^(.)/, (char) => char.toUpperCase());
+      .replace(/^(.)/, char => char.toUpperCase());
   }
 
   private toCamelCase(str: string): string {
     return str
       .replace(/[\s\-_]+(.)?/g, (_, char) => (char ? char.toUpperCase() : ''))
-      .replace(/^(.)/, (char) => char.toLowerCase());
+      .replace(/^(.)/, char => char.toLowerCase());
   }
 
   private toKebabCase(str: string): string {
@@ -884,7 +966,7 @@ export class TemplateValidator {
 
 /**
  * Convenience function to validate a template with default configuration.
- * 
+ *
  * @param templateType - Type of template to validate
  * @param language - Programming language for the template
  * @param context - Template context for variable substitution
@@ -898,12 +980,17 @@ export async function validateTemplate(
   templatesDir: string
 ): Promise<ValidationResult> {
   const validator = new TemplateValidator();
-  return await validator.validateTemplate(templateType, language, context, templatesDir);
+  return await validator.validateTemplate(
+    templateType,
+    language,
+    context,
+    templatesDir
+  );
 }
 
 /**
  * Convenience function to validate a generated project with default configuration.
- * 
+ *
  * @param options - Tool creation options to test
  * @param templatesDir - Directory containing templates
  * @returns Promise resolving to validation results
@@ -918,54 +1005,59 @@ export async function validateGeneratedProject(
 
 /**
  * Prints validation results to console with colored output.
- * 
+ *
  * @param result - Validation result to display
  * @param verbose - Whether to show detailed information
  */
-export function printValidationResult(result: ValidationResult, verbose: boolean = false): void {
+export function printValidationResult(
+  result: ValidationResult,
+  verbose: boolean = false
+): void {
   console.log();
-  
+
   if (result.isValid) {
     console.log(chalk.green.bold('✅ Template validation passed!'));
   } else {
     console.log(chalk.red.bold('❌ Template validation failed!'));
   }
-  
-  console.log(chalk.gray(`Validation completed in ${result.validationTimeMs}ms`));
+
+  console.log(
+    chalk.gray(`Validation completed in ${result.validationTimeMs}ms`)
+  );
   console.log(chalk.gray(`Validated ${result.validatedFiles.length} files`));
-  
+
   if (result.errors.length > 0) {
     console.log();
     console.log(chalk.red.bold(`Errors (${result.errors.length}):`));
-    
+
     for (const error of result.errors) {
       console.log(chalk.red(`  • ${error.code}: ${error.message}`));
-      
+
       if (error.file) {
         const location = error.line ? ` (line ${error.line})` : '';
         console.log(chalk.gray(`    File: ${error.file}${location}`));
       }
-      
+
       if (error.suggestion) {
         console.log(chalk.yellow(`    💡 ${error.suggestion}`));
       }
     }
   }
-  
+
   if (result.warnings.length > 0) {
     console.log();
     console.log(chalk.yellow.bold(`Warnings (${result.warnings.length}):`));
-    
+
     for (const warning of result.warnings) {
       console.log(chalk.yellow(`  • ${warning.code}: ${warning.message}`));
-      
+
       if (warning.file && verbose) {
         const location = warning.line ? ` (line ${warning.line})` : '';
         console.log(chalk.gray(`    File: ${warning.file}${location}`));
       }
     }
   }
-  
+
   if (verbose && result.validatedFiles.length > 0) {
     console.log();
     console.log(chalk.bold('Validated files:'));
@@ -973,6 +1065,6 @@ export function printValidationResult(result: ValidationResult, verbose: boolean
       console.log(chalk.gray(`  • ${file}`));
     }
   }
-  
+
   console.log();
 }
