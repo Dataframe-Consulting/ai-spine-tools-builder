@@ -27,13 +27,13 @@ const cliConfigs = [
   createCliConfig({
     input: 'src/template-validator-cli.ts',
     output: 'dist/template-validator.js',
-    external: ['@ai-spine/tools-core'] // Only keep core as external, bundle other deps
+    external: ['@ai-spine/tools-core'], // Only keep core as external, bundle other deps
   }),
   createCliConfig({
-    input: 'src/example-validator-cli.ts', 
+    input: 'src/example-validator-cli.ts',
     output: 'dist/example-validator.js',
-    external: ['@ai-spine/tools-core'] // Only keep core as external, bundle other deps
-  })
+    external: ['@ai-spine/tools-core'], // Only keep core as external, bundle other deps
+  }),
 ];
 
 module.exports = [...mainConfigs, ...cliConfigs];
