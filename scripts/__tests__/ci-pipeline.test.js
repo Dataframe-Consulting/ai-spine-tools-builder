@@ -34,13 +34,12 @@ describe('CI Pipeline Functionality', () => {
       expect(content).toContain('jobs:');
     });
 
-    test('should have PR checks workflow', () => {
-      const prWorkflowPath = path.join(workflowsDir, 'pr-checks.yml');
-      expect(fs.existsSync(prWorkflowPath)).toBe(true);
+    test('should have release workflow file', () => {
+      const releaseWorkflowPath = path.join(workflowsDir, 'release.yml');
+      expect(fs.existsSync(releaseWorkflowPath)).toBe(true);
 
-      const content = fs.readFileSync(prWorkflowPath, 'utf8');
-      expect(content).toContain('name: PR Checks');
-      expect(content).toContain('pull_request:');
+      const content = fs.readFileSync(releaseWorkflowPath, 'utf8');
+      expect(content).toContain('name: Release');
     });
 
     test('CI workflow should include all required jobs', () => {
