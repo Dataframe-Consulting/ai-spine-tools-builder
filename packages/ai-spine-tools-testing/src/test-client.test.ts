@@ -515,17 +515,20 @@ describe('AISpineTestClient', () => {
 
   describe('error handling', () => {
     it('should create appropriate ToolError from axios errors', async () => {
-      const serverError = Object.assign(new Error('Request failed with status code 500'), {
-        response: {
-          status: 500,
-          statusText: 'Internal Server Error',
-          data: {
-            error_code: 'INTERNAL_ERROR',
-            error_message: 'Something went wrong',
+      const serverError = Object.assign(
+        new Error('Request failed with status code 500'),
+        {
+          response: {
+            status: 500,
+            statusText: 'Internal Server Error',
+            data: {
+              error_code: 'INTERNAL_ERROR',
+              error_message: 'Something went wrong',
+            },
           },
-        },
-        config: {},
-      });
+          config: {},
+        }
+      );
 
       mockAxiosInstance.post.mockRejectedValueOnce(serverError);
 
@@ -534,7 +537,9 @@ describe('AISpineTestClient', () => {
       expect(result.success).toBe(false);
       expect(result.error).toBeInstanceOf(ToolError);
       expect(result.error?.code).toBe('EXECUTION_ERROR');
-      expect(result.error?.message).toContain('Request failed with status code 500');
+      expect(result.error?.message).toContain(
+        'Request failed with status code 500'
+      );
       expect(result.httpStatus).toBeUndefined(); // May not be set for execution errors
     });
 
@@ -553,7 +558,7 @@ describe('AISpineTestClient', () => {
       let result = await client.execute({ city: 'Madrid' });
       expect(result.error?.code).toBe('EXECUTION_ERROR');
 
-      // Test request error  
+      // Test request error
       mockAxiosInstance.post.mockRejectedValueOnce(requestError);
       result = await client.execute({ city: 'Madrid' });
       expect(result.error?.code).toBe('EXECUTION_ERROR');

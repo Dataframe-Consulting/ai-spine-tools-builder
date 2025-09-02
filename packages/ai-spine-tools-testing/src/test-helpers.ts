@@ -127,7 +127,10 @@ export async function testToolDirect(
   const { validateResponse = false, executionId } = options;
 
   // Generate complete input data if partial
-  const completeInput = input.hasOwnProperty('__complete')
+  const completeInput = Object.prototype.hasOwnProperty.call(
+    input,
+    '__complete'
+  )
     ? (input as ToolInput)
     : generateTestData(toolDef.schema.input, input);
 
@@ -501,7 +504,7 @@ function generateStringValue(
         return faker.internet.color();
       case 'semver':
         return `${faker.number.int({ min: 1, max: 9 })}.${faker.number.int({ min: 0, max: 9 })}.${faker.number.int({ min: 0, max: 9 })}`;
-      default:
+      default: {
         // Try to infer from field description or name
         const fieldInfo = fieldSchema.description?.toLowerCase() || '';
         if (fieldInfo.includes('name')) {
@@ -517,6 +520,7 @@ function generateStringValue(
           return faker.location.streetAddress().substring(0, targetLength);
         }
         break;
+      }
     }
   }
 
@@ -552,7 +556,7 @@ function generateNumberValue(
     case 'invalid':
       // Generate out of bounds value
       return faker.helpers.arrayElement([min - 1, max + 1, NaN, Infinity]);
-    default:
+    default: {
       const value = faker.number.float({ min, max });
 
       // Handle integer constraint
@@ -566,6 +570,7 @@ function generateNumberValue(
       }
 
       return value;
+    }
   }
 }
 
@@ -1017,10 +1022,11 @@ function generateConfigFieldValue(
         ? faker.lorem.words(3)
         : 'test-string-config';
 
-    case 'number':
+    case 'number': {
       const min = fieldSchema.validation?.min ?? 1;
       const max = fieldSchema.validation?.max ?? 100;
       return faker.number.int({ min, max });
+    }
 
     case 'boolean':
       return faker.datatype.boolean();

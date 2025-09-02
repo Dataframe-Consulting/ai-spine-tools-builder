@@ -1039,21 +1039,23 @@ export class Tool<TInput = ToolInput, TConfig = ToolConfig> {
   ): Promise<ToolExecutionResult> {
     const timeoutMs = context.performance?.timeoutMs || 30000;
 
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const timeoutId = setTimeout(() => {
         reject(
           new ExecutionError(`Tool execution timed out after ${timeoutMs}ms`)
         );
       }, timeoutMs);
 
-      try {
-        const result = await this.definition.execute(input, config, context);
-        clearTimeout(timeoutId);
-        resolve(result);
-      } catch (error) {
-        clearTimeout(timeoutId);
-        reject(error);
-      }
+      (async () => {
+        try {
+          const result = await this.definition.execute(input, config, context);
+          clearTimeout(timeoutId);
+          resolve(result);
+        } catch (error) {
+          clearTimeout(timeoutId);
+          reject(error);
+        }
+      })();
     });
   }
 

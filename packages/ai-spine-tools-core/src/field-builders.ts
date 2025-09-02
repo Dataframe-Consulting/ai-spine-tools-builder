@@ -1316,7 +1316,7 @@ export class SchemaBuilder {
         if ('enum' in field && field.enum) return field.enum[0];
         return 'example string';
 
-      case 'number':
+      case 'number': {
         if (
           'min' in field &&
           'max' in field &&
@@ -1329,6 +1329,7 @@ export class SchemaBuilder {
         if ('max' in field && field.max !== undefined) return field.max;
         const isInteger = 'integer' in field && field.integer;
         return isInteger ? 42 : 42.5;
+      }
 
       case 'boolean':
         return true;
@@ -1340,7 +1341,7 @@ export class SchemaBuilder {
         }
         return ['item'];
 
-      case 'object':
+      case 'object': {
         const objExample: any = {};
         if ('properties' in field && field.properties) {
           for (const [key, prop] of Object.entries(field.properties)) {
@@ -1348,6 +1349,7 @@ export class SchemaBuilder {
           }
         }
         return objExample;
+      }
 
       case 'date':
         return '2023-12-25';

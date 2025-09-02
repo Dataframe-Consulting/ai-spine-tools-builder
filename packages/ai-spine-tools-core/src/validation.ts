@@ -514,7 +514,7 @@ export class ZodSchemaValidator {
         schema = z.boolean();
         break;
 
-      case 'array':
+      case 'array': {
         let itemSchema: z.ZodSchema = z.any();
         if (field.items) {
           itemSchema = this.buildFieldSchema(
@@ -542,6 +542,7 @@ export class ZodSchemaValidator {
           );
         }
         break;
+      }
 
       case 'object':
         if (field.properties) {

@@ -1932,7 +1932,7 @@ export class AISpineTestClient extends EventEmitter {
           2
         );
 
-      case 'csv':
+      case 'csv': {
         const headers =
           'timestamp,success,duration,httpStatus,error,requestSize,responseSize';
         const rows = this.metrics.requests.map(
@@ -1940,6 +1940,7 @@ export class AISpineTestClient extends EventEmitter {
             `${new Date().toISOString()},${req.success},${req.duration},${req.httpStatus || ''},${req.error?.code || ''},${req.requestSize || ''},${req.responseSize || ''}`
         );
         return [headers, ...rows].join('\n');
+      }
 
       case 'summary':
         return (
