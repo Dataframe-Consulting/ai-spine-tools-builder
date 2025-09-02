@@ -88,7 +88,7 @@ describe('ZodSchemaValidator', () => {
 
         expect(validResult.success).toBe(true);
         expect(invalidResult.success).toBe(false);
-        expect(invalidResult.errors![0].code).toBe('INVALID_FORMAT');
+        expect(invalidResult.errors![0].code).toBe('INVALID_STRING');
       });
 
       it('should apply string transformations', async () => {
@@ -123,7 +123,7 @@ describe('ZodSchemaValidator', () => {
 
         expect(validResult.success).toBe(true);
         expect(invalidResult.success).toBe(false);
-        expect(invalidResult.errors![0].code).toBe('INVALID_FORMAT');
+        expect(invalidResult.errors![0].code).toBe('INVALID_STRING');
       });
     });
 
@@ -198,7 +198,7 @@ describe('ZodSchemaValidator', () => {
 
         expect(validResult.success).toBe(true);
         expect(invalidResult.success).toBe(false);
-        expect(invalidResult.errors![0].code).toBe('INVALID_VALUE');
+        expect(invalidResult.errors![0].code).toBe('INVALID_ENUM_VALUE');
       });
     });
 
@@ -611,9 +611,9 @@ describe('ZodSchemaValidator', () => {
       expect(ageError).toBeDefined();
       expect(statusError).toBeDefined();
 
-      expect(emailError!.code).toBe('INVALID_FORMAT');
+      expect(emailError!.code).toBe('INVALID_STRING');
       expect(ageError!.code).toBe('TOO_SMALL');
-      expect(statusError!.code).toBe('INVALID_VALUE');
+      expect(statusError!.code).toBe('INVALID_ENUM_VALUE');
     });
 
     it('should handle validation system errors gracefully', async () => {
