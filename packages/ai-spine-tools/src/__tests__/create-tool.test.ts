@@ -419,8 +419,8 @@ describe('ToolBuilder Class', () => {
         });
       }).not.toThrow(); // Validation errors are collected, not thrown immediately
 
-      expect(builder.getValidationErrors()).toContain(
-        expect.stringContaining('Tool name is required')
+      expect(builder.getValidationErrors()).toEqual(
+        expect.arrayContaining([expect.stringContaining('Tool name is required')])
       );
     });
 
@@ -467,18 +467,18 @@ describe('ToolBuilder Class', () => {
     it('should validate field names', () => {
       builder.inputField('123invalid', stringField({ required: true }));
 
-      expect(builder.getValidationErrors()).toContain(
-        expect.stringContaining(
+      expect(builder.getValidationErrors()).toEqual(
+        expect.arrayContaining([expect.stringContaining(
           "Input field name '123invalid' must be a valid identifier"
-        )
+        )])
       );
     });
 
     it('should validate field definitions', () => {
       builder.inputField('valid-name', null as any);
 
-      expect(builder.getValidationErrors()).toContain(
-        expect.stringContaining('must be a valid field definition object')
+      expect(builder.getValidationErrors()).toEqual(
+        expect.arrayContaining([expect.stringContaining('must be a valid field definition object')])
       );
     });
   });
@@ -505,8 +505,8 @@ describe('ToolBuilder Class', () => {
     it('should validate config field names', () => {
       builder.configField('invalid-name!', apiKeyField({ required: true }));
 
-      expect(builder.getValidationErrors()).toContain(
-        expect.stringContaining('must be a valid identifier')
+      expect(builder.getValidationErrors()).toEqual(
+        expect.arrayContaining([expect.stringContaining('must be a valid identifier')])
       );
     });
   });
@@ -526,8 +526,8 @@ describe('ToolBuilder Class', () => {
     it('should validate execute function', () => {
       builder.execute('not-a-function' as any);
 
-      expect(builder.getValidationErrors()).toContain(
-        expect.stringContaining('Execute function must be a valid function')
+      expect(builder.getValidationErrors()).toEqual(
+        expect.arrayContaining([expect.stringContaining('Execute function must be a valid function')])
       );
     });
   });
@@ -561,16 +561,12 @@ describe('ToolBuilder Class', () => {
       builder.healthCheck('not-a-function' as any);
 
       const errors = builder.getValidationErrors();
-      expect(errors).toContain(
-        expect.stringContaining('Setup function must be a valid function')
-      );
-      expect(errors).toContain(
-        expect.stringContaining('Cleanup function must be a valid function')
-      );
-      expect(errors).toContain(
-        expect.stringContaining(
-          'Health check function must be a valid function'
-        )
+      expect(errors).toEqual(
+        expect.arrayContaining([
+          expect.stringContaining('Setup function must be a valid function'),
+          expect.stringContaining('Cleanup function must be a valid function'),
+          expect.stringContaining('Health check function must be a valid function')
+        ])
       );
     });
   });
@@ -626,8 +622,8 @@ describe('ToolBuilder Class', () => {
 
       const errors = builder.getValidationErrors();
       expect(errors.length).toBeGreaterThan(0);
-      expect(errors).toContain(
-        expect.stringContaining('Tool metadata is required')
+      expect(errors).toEqual(
+        expect.arrayContaining([expect.stringContaining('Tool metadata is required')])
       );
     });
 

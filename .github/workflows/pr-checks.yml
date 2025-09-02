@@ -96,7 +96,9 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci --prefer-offline --no-audit --ignore-scripts
+        run: |
+          rm -rf node_modules package-lock.json
+          npm install --prefer-offline --no-audit --ignore-scripts
 
       - name: Detect API changes
         run: |
@@ -269,7 +271,9 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci --prefer-offline --no-audit --ignore-scripts
+        run: |
+          rm -rf node_modules package-lock.json
+          npm install --prefer-offline --no-audit --ignore-scripts
 
       - name: Build packages
         run: npm run build
