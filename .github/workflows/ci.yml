@@ -241,7 +241,7 @@ jobs:
           verbose: true
 
       - name: Store test results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: test-results-${{ matrix.os }}-${{ matrix.node-version }}
@@ -305,7 +305,7 @@ jobs:
           echo "✅ Template validation passed"
 
       - name: Store build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
           path: |
@@ -339,7 +339,7 @@ jobs:
         run: npm ci --prefer-offline --no-audit --ignore-scripts
 
       - name: Download build artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: build-artifacts
 
