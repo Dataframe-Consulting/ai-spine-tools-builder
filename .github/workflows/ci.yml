@@ -308,7 +308,8 @@ jobs:
       - name: Template validation
         run: |
           echo "📝 Validating project templates..."
-          npx create-ai-spine-tool --validate-templates
+          cd packages/create-ai-spine-tool
+          node dist/cli.js --validate-templates
           echo "✅ Template validation passed"
 
       - name: Store build artifacts

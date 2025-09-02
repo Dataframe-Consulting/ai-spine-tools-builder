@@ -24,10 +24,11 @@ const mainConfigs = createRollupConfig({
 });
 
 // CLI executable build (skip banner since cli.ts already has shebang)
+// For CLI, we need to bundle most dependencies instead of externalizing them
 const cliConfig = createCliConfig({
   input: 'src/cli.ts',
   output: 'dist/cli.js',
-  external: EXTERNAL_DEPS.cli,
+  external: ['fs', 'path', 'os', 'child_process'], // Only keep Node.js built-ins external
   skipBanner: true,
 });
 
