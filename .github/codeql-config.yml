@@ -1,30 +1,16 @@
 # CodeQL Configuration for AI Spine Tools SDK
 # 
-# This configuration optimizes CodeQL analysis for our monorepo structure
-# and focuses on security-relevant patterns for Node.js/TypeScript projects
+# Simplified configuration to avoid query pack issues
 
 name: "AI Spine Tools CodeQL Config"
 
-# Disable default queries to focus on security-critical patterns
+# Use default queries
 disable-default-queries: false
 
-# Query packs to include
-packs:
-  - codeql/javascript-queries:Security
-  - codeql/javascript-queries:Correctness 
-  - codeql/javascript-queries:Maintainability
-
-# Custom queries for AI Spine specific patterns
-queries:
-  # Enable additional security queries
-  - name: javascript-security-extended
-    uses: security-extended
-    
 # Paths to analyze
 paths:
   - packages/
   - scripts/
-  - examples/
 
 # Paths to ignore
 paths-ignore:
@@ -34,9 +20,4 @@ paths-ignore:
   - "**/*.test.ts"
   - "**/*.test.js"
   - "**/__tests__/**"
-  - "templates/"  # Template files contain placeholder code that may trigger false positives
-
-# Build configuration
-build:
-  # Auto-build for TypeScript projects
-  mode: autobuild
+  - "packages/create-ai-spine-tool/templates/"

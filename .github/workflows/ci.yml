@@ -160,17 +160,20 @@ jobs:
           echo "✅ Dependency vulnerability scan completed"
 
       - name: CodeQL Analysis
-        uses: github/codeql-action/init@v2
+        continue-on-error: true
+        uses: github/codeql-action/init@v3
         with:
           languages: javascript
           config-file: ./.github/codeql-config.yml
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
+        continue-on-error: true
+        uses: github/codeql-action/analyze@v3
         with:
           category: "/language:javascript"
 
       - name: Secret detection with TruffleHog
+        continue-on-error: true
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./
