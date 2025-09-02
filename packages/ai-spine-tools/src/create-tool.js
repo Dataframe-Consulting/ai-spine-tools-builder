@@ -1,5 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
+'use strict';
+Object.defineProperty(exports, '__esModule', { value: true });
 exports.ToolBuilder = void 0;
 exports.createTool = createTool;
 exports.stringField = stringField;
@@ -16,7 +16,7 @@ exports.configNumberField = configNumberField;
 exports.configUrlField = configUrlField;
 exports.simpleCreateTool = simpleCreateTool;
 exports.createToolBuilder = createToolBuilder;
-const tools_core_1 = require("@ai-spine/tools-core");
+const tools_core_1 = require('@ai-spine/tools-core');
 /**
  * Creates a new AI Spine tool with comprehensive type safety, validation, and lifecycle management.
  * This is the primary factory function for creating tools that can be used by AI agents.
@@ -142,28 +142,31 @@ const tools_core_1 = require("@ai-spine/tools-core");
  * ```
  */
 function createTool(options) {
-    // Step 1: Comprehensive validation of tool definition
-    validateToolDefinition(options);
-    // Step 2: Apply intelligent defaults and enhancements
-    const enhancedOptions = applyIntelligentDefaults(options);
-    // Step 3: Validate schema structure and field definitions
-    validateSchemaStructure(enhancedOptions.schema);
-    // Step 4: Create the complete tool definition
-    const definition = {
-        metadata: enhancedOptions.metadata,
-        schema: enhancedOptions.schema,
-        execute: enhancedOptions.execute,
-        setup: enhancedOptions.setup,
-        cleanup: enhancedOptions.cleanup,
-        healthCheck: enhancedOptions.healthCheck
-    };
-    // Step 5: Create and return the tool instance
-    const tool = new tools_core_1.Tool(definition);
-    // Step 6: Add development mode enhancements
-    if (process.env.NODE_ENV === 'development' || process.env.AI_SPINE_DEBUG === 'true') {
-        addDevelopmentEnhancements(tool, definition);
-    }
-    return tool;
+  // Step 1: Comprehensive validation of tool definition
+  validateToolDefinition(options);
+  // Step 2: Apply intelligent defaults and enhancements
+  const enhancedOptions = applyIntelligentDefaults(options);
+  // Step 3: Validate schema structure and field definitions
+  validateSchemaStructure(enhancedOptions.schema);
+  // Step 4: Create the complete tool definition
+  const definition = {
+    metadata: enhancedOptions.metadata,
+    schema: enhancedOptions.schema,
+    execute: enhancedOptions.execute,
+    setup: enhancedOptions.setup,
+    cleanup: enhancedOptions.cleanup,
+    healthCheck: enhancedOptions.healthCheck,
+  };
+  // Step 5: Create and return the tool instance
+  const tool = new tools_core_1.Tool(definition);
+  // Step 6: Add development mode enhancements
+  if (
+    process.env.NODE_ENV === 'development' ||
+    process.env.AI_SPINE_DEBUG === 'true'
+  ) {
+    addDevelopmentEnhancements(tool, definition);
+  }
+  return tool;
 }
 /**
  * Advanced fluent API for creating tools with step-by-step configuration.
@@ -203,416 +206,456 @@ function createTool(options) {
  * ```
  */
 class ToolBuilder {
-    constructor() {
-        this._inputSchema = {};
-        this._configSchema = {};
-        this._validationErrors = [];
-        this._built = false;
-    }
-    /**
-     * Set comprehensive tool metadata with validation.
-     *
-     * @param metadata - Complete metadata object
-     * @returns This builder instance for chaining
-     *
-     * @example
-     * ```typescript
-     * .metadata({
-     *   name: 'weather-tool',
-     *   version: '1.0.0',
-     *   description: 'Get current weather data',
-     *   capabilities: ['weather.current', 'weather.forecast'],
-     *   author: 'Your Name',
-     *   license: 'MIT',
-     *   tags: ['weather', 'api', 'external-service']
-     * })
-     * ```
-     */
-    metadata(metadata) {
-        this.validateBuilderState();
-        // Validate metadata structure
-        if (!metadata.name || typeof metadata.name !== 'string') {
-            this._validationErrors.push('Tool name is required and must be a non-empty string');
-        }
-        if (!metadata.version || typeof metadata.version !== 'string') {
-            this._validationErrors.push('Tool version is required and must be a valid semver string');
-        }
-        if (!metadata.description || typeof metadata.description !== 'string') {
-            this._validationErrors.push('Tool description is required and must be a non-empty string');
-        }
-        if (!Array.isArray(metadata.capabilities) || metadata.capabilities.length === 0) {
-            this._validationErrors.push('Tool capabilities must be a non-empty array');
-        }
-        this._metadata = metadata;
-        return this;
-    }
-    /**
-     * Define multiple input fields at once.
-     *
-     * @param schema - Input schema definition
-     * @returns This builder instance for chaining
-     *
-     * @example
-     * ```typescript
-     * .input({
-     *   city: stringField({ required: true, description: 'City name' }),
-     *   country: stringField({ required: false, description: 'Country code' }),
-     *   units: {
-     *     type: 'enum',
-     *     required: false,
-     *     enum: ['celsius', 'fahrenheit'],
-     *     default: 'celsius'
-     *   }
+  constructor() {
+    this._inputSchema = {};
+    this._configSchema = {};
+    this._validationErrors = [];
+    this._built = false;
+  }
+  /**
+   * Set comprehensive tool metadata with validation.
+   *
+   * @param metadata - Complete metadata object
+   * @returns This builder instance for chaining
+   *
+   * @example
+   * ```typescript
+   * .metadata({
+   *   name: 'weather-tool',
+   *   version: '1.0.0',
+   *   description: 'Get current weather data',
+   *   capabilities: ['weather.current', 'weather.forecast'],
+   *   author: 'Your Name',
+   *   license: 'MIT',
+   *   tags: ['weather', 'api', 'external-service']
    * })
-     * ```
-     */
-    input(schema) {
-        this.validateBuilderState();
-        if (!schema || typeof schema !== 'object') {
-            this._validationErrors.push('Input schema must be an object');
-        }
-        else {
-            // Validate each field
-            Object.entries(schema).forEach(([name, field]) => {
-                if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
-                    this._validationErrors.push(`Input field name '${name}' must be a valid identifier`);
-                }
-                if (!field || typeof field !== 'object') {
-                    this._validationErrors.push(`Input field '${name}' must be a valid field definition`);
-                }
-            });
-        }
-        this._inputSchema = { ...this._inputSchema, ...schema };
-        return this;
+   * ```
+   */
+  metadata(metadata) {
+    this.validateBuilderState();
+    // Validate metadata structure
+    if (!metadata.name || typeof metadata.name !== 'string') {
+      this._validationErrors.push(
+        'Tool name is required and must be a non-empty string'
+      );
     }
-    /**
-     * Add a single input field with validation.
-     *
-     * @param name - Field name
-     * @param field - Field definition
-     * @returns This builder instance for chaining
-     *
-     * @example
-     * ```typescript
-     * .inputField('city', stringField({
-     *   required: true,
-     *   description: 'Name of the city',
-     *   minLength: 2,
-     *   example: 'Madrid'
-     * }))
-     * .inputField('units', {
-     *   type: 'enum',
-     *   required: false,
-     *   enum: ['celsius', 'fahrenheit'],
-     *   default: 'celsius'
-     * })
-     * ```
-     */
-    inputField(name, field) {
-        this.validateBuilderState();
-        if (!name || typeof name !== 'string' || name.trim().length === 0) {
-            this._validationErrors.push('Input field name must be a non-empty string');
-        }
-        else if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
-            this._validationErrors.push(`Input field name '${name}' must be a valid identifier (letters, numbers, underscores only)`);
+    if (!metadata.version || typeof metadata.version !== 'string') {
+      this._validationErrors.push(
+        'Tool version is required and must be a valid semver string'
+      );
+    }
+    if (!metadata.description || typeof metadata.description !== 'string') {
+      this._validationErrors.push(
+        'Tool description is required and must be a non-empty string'
+      );
+    }
+    if (
+      !Array.isArray(metadata.capabilities) ||
+      metadata.capabilities.length === 0
+    ) {
+      this._validationErrors.push(
+        'Tool capabilities must be a non-empty array'
+      );
+    }
+    this._metadata = metadata;
+    return this;
+  }
+  /**
+   * Define multiple input fields at once.
+   *
+   * @param schema - Input schema definition
+   * @returns This builder instance for chaining
+   *
+   * @example
+   * ```typescript
+   * .input({
+   *   city: stringField({ required: true, description: 'City name' }),
+   *   country: stringField({ required: false, description: 'Country code' }),
+   *   units: {
+   *     type: 'enum',
+   *     required: false,
+   *     enum: ['celsius', 'fahrenheit'],
+   *     default: 'celsius'
+   *   }
+   * })
+   * ```
+   */
+  input(schema) {
+    this.validateBuilderState();
+    if (!schema || typeof schema !== 'object') {
+      this._validationErrors.push('Input schema must be an object');
+    } else {
+      // Validate each field
+      Object.entries(schema).forEach(([name, field]) => {
+        if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
+          this._validationErrors.push(
+            `Input field name '${name}' must be a valid identifier`
+          );
         }
         if (!field || typeof field !== 'object') {
-            this._validationErrors.push(`Input field '${name}' must be a valid field definition object`);
+          this._validationErrors.push(
+            `Input field '${name}' must be a valid field definition`
+          );
         }
-        this._inputSchema[name] = field;
-        return this;
+      });
     }
-    /**
-     * Define multiple configuration fields at once.
-     *
-     * @param schema - Configuration schema definition
-     * @returns This builder instance for chaining
-     *
-     * @example
-     * ```typescript
-     * .config({
-     *   apiKey: apiKeyField({ required: true, envVar: 'API_KEY' }),
-     *   baseUrl: configStringField({
-     *     required: false,
-     *     default: 'https://api.example.com',
-     *     description: 'API base URL'
-     *   }),
-     *   timeout: configNumberField({ required: false, default: 5000 })
-     * })
-     * ```
-     */
-    config(schema) {
-        this.validateBuilderState();
-        if (!schema || typeof schema !== 'object') {
-            this._validationErrors.push('Config schema must be an object');
-        }
-        else {
-            // Validate each field
-            Object.entries(schema).forEach(([name, field]) => {
-                if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
-                    this._validationErrors.push(`Config field name '${name}' must be a valid identifier`);
-                }
-                if (!field || typeof field !== 'object') {
-                    this._validationErrors.push(`Config field '${name}' must be a valid field definition`);
-                }
-            });
-        }
-        this._configSchema = { ...this._configSchema, ...schema };
-        return this;
+    this._inputSchema = { ...this._inputSchema, ...schema };
+    return this;
+  }
+  /**
+   * Add a single input field with validation.
+   *
+   * @param name - Field name
+   * @param field - Field definition
+   * @returns This builder instance for chaining
+   *
+   * @example
+   * ```typescript
+   * .inputField('city', stringField({
+   *   required: true,
+   *   description: 'Name of the city',
+   *   minLength: 2,
+   *   example: 'Madrid'
+   * }))
+   * .inputField('units', {
+   *   type: 'enum',
+   *   required: false,
+   *   enum: ['celsius', 'fahrenheit'],
+   *   default: 'celsius'
+   * })
+   * ```
+   */
+  inputField(name, field) {
+    this.validateBuilderState();
+    if (!name || typeof name !== 'string' || name.trim().length === 0) {
+      this._validationErrors.push(
+        'Input field name must be a non-empty string'
+      );
+    } else if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
+      this._validationErrors.push(
+        `Input field name '${name}' must be a valid identifier (letters, numbers, underscores only)`
+      );
     }
-    /**
-     * Add a single configuration field with validation.
-     *
-     * @param name - Field name
-     * @param field - Field definition
-     * @returns This builder instance for chaining
-     *
-     * @example
-     * ```typescript
-     * .configField('apiKey', apiKeyField({
-     *   required: true,
-     *   envVar: 'WEATHER_API_KEY',
-     *   description: 'OpenWeatherMap API key'
-     * }))
-     * .configField('timeout', configNumberField({
-     *   required: false,
-     *   default: 5000,
-     *   description: 'Request timeout in milliseconds'
-     * }))
-     * ```
-     */
-    configField(name, field) {
-        this.validateBuilderState();
-        if (!name || typeof name !== 'string' || name.trim().length === 0) {
-            this._validationErrors.push('Config field name must be a non-empty string');
-        }
-        else if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
-            this._validationErrors.push(`Config field name '${name}' must be a valid identifier (letters, numbers, underscores only)`);
+    if (!field || typeof field !== 'object') {
+      this._validationErrors.push(
+        `Input field '${name}' must be a valid field definition object`
+      );
+    }
+    this._inputSchema[name] = field;
+    return this;
+  }
+  /**
+   * Define multiple configuration fields at once.
+   *
+   * @param schema - Configuration schema definition
+   * @returns This builder instance for chaining
+   *
+   * @example
+   * ```typescript
+   * .config({
+   *   apiKey: apiKeyField({ required: true, envVar: 'API_KEY' }),
+   *   baseUrl: configStringField({
+   *     required: false,
+   *     default: 'https://api.example.com',
+   *     description: 'API base URL'
+   *   }),
+   *   timeout: configNumberField({ required: false, default: 5000 })
+   * })
+   * ```
+   */
+  config(schema) {
+    this.validateBuilderState();
+    if (!schema || typeof schema !== 'object') {
+      this._validationErrors.push('Config schema must be an object');
+    } else {
+      // Validate each field
+      Object.entries(schema).forEach(([name, field]) => {
+        if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
+          this._validationErrors.push(
+            `Config field name '${name}' must be a valid identifier`
+          );
         }
         if (!field || typeof field !== 'object') {
-            this._validationErrors.push(`Config field '${name}' must be a valid field definition object`);
+          this._validationErrors.push(
+            `Config field '${name}' must be a valid field definition`
+          );
         }
-        this._configSchema[name] = field;
-        return this;
+      });
     }
-    /**
-     * Set the main tool execution function with comprehensive type safety.
-     *
-     * @param fn - Tool execution function
-     * @returns This builder instance for chaining
-     *
-     * @example
-     * ```typescript
-     * .execute(async (input, config, context) => {
-     *   // Validate input
-     *   if (!input.city) {
-     *     return {
-     *       status: 'error',
-     *       error: {
-     *         code: 'MISSING_CITY',
-     *         message: 'City parameter is required',
-     *         type: 'validation_error'
-     *       }
-     *     };
-     *   }
-     *
-     *   // Execute tool logic
-     *   const weatherData = await getWeatherData(input.city, config.apiKey);
-     *
-     *   // Return structured result
-     *   return {
-     *     status: 'success',
-     *     data: weatherData,
-     *     timing: {
-     *       executionTimeMs: Date.now() - context.performance!.startTime,
-     *       startedAt: new Date(context.performance!.startTime).toISOString(),
-     *       completedAt: new Date().toISOString()
-     *     }
-     *   };
-     * })
-     * ```
-     */
-    execute(fn) {
-        this.validateBuilderState();
-        if (typeof fn !== 'function') {
-            this._validationErrors.push('Execute function must be a valid function');
-        }
-        this._executeFunction = fn;
-        return this;
+    this._configSchema = { ...this._configSchema, ...schema };
+    return this;
+  }
+  /**
+   * Add a single configuration field with validation.
+   *
+   * @param name - Field name
+   * @param field - Field definition
+   * @returns This builder instance for chaining
+   *
+   * @example
+   * ```typescript
+   * .configField('apiKey', apiKeyField({
+   *   required: true,
+   *   envVar: 'WEATHER_API_KEY',
+   *   description: 'OpenWeatherMap API key'
+   * }))
+   * .configField('timeout', configNumberField({
+   *   required: false,
+   *   default: 5000,
+   *   description: 'Request timeout in milliseconds'
+   * }))
+   * ```
+   */
+  configField(name, field) {
+    this.validateBuilderState();
+    if (!name || typeof name !== 'string' || name.trim().length === 0) {
+      this._validationErrors.push(
+        'Config field name must be a non-empty string'
+      );
+    } else if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
+      this._validationErrors.push(
+        `Config field name '${name}' must be a valid identifier (letters, numbers, underscores only)`
+      );
     }
-    /**
-     * Set configuration setup function called when tool is initialized.
-     *
-     * @param fn - Setup function
-     * @returns This builder instance for chaining
-     *
-     * @example
-     * ```typescript
-     * .onSetup(async (config) => {
-     *   // Validate API connectivity
-     *   await validateApiKey(config.apiKey);
-     *
-     *   // Initialize connections
-     *   await initializeCache();
-     *
-     *   console.log('Tool setup completed successfully');
-     * })
-     * ```
-     */
-    onSetup(fn) {
-        this.validateBuilderState();
-        if (typeof fn !== 'function') {
-            this._validationErrors.push('Setup function must be a valid function');
-        }
-        this._setupFunction = fn;
-        return this;
+    if (!field || typeof field !== 'object') {
+      this._validationErrors.push(
+        `Config field '${name}' must be a valid field definition object`
+      );
     }
-    /**
-     * Set cleanup function called when tool is stopped.
-     *
-     * @param fn - Cleanup function
-     * @returns This builder instance for chaining
-     *
-     * @example
-     * ```typescript
-     * .onCleanup(async () => {
-     *   // Close database connections
-     *   await db.close();
-     *
-     *   // Clear caches
-     *   cache.clear();
-     *
-     *   // Log cleanup completion
-     *   console.log('Tool cleanup completed');
-     * })
-     * ```
-     */
-    onCleanup(fn) {
-        this.validateBuilderState();
-        if (typeof fn !== 'function') {
-            this._validationErrors.push('Cleanup function must be a valid function');
-        }
-        this._cleanupFunction = fn;
-        return this;
+    this._configSchema[name] = field;
+    return this;
+  }
+  /**
+   * Set the main tool execution function with comprehensive type safety.
+   *
+   * @param fn - Tool execution function
+   * @returns This builder instance for chaining
+   *
+   * @example
+   * ```typescript
+   * .execute(async (input, config, context) => {
+   *   // Validate input
+   *   if (!input.city) {
+   *     return {
+   *       status: 'error',
+   *       error: {
+   *         code: 'MISSING_CITY',
+   *         message: 'City parameter is required',
+   *         type: 'validation_error'
+   *       }
+   *     };
+   *   }
+   *
+   *   // Execute tool logic
+   *   const weatherData = await getWeatherData(input.city, config.apiKey);
+   *
+   *   // Return structured result
+   *   return {
+   *     status: 'success',
+   *     data: weatherData,
+   *     timing: {
+   *       executionTimeMs: Date.now() - context.performance!.startTime,
+   *       startedAt: new Date(context.performance!.startTime).toISOString(),
+   *       completedAt: new Date().toISOString()
+   *     }
+   *   };
+   * })
+   * ```
+   */
+  execute(fn) {
+    this.validateBuilderState();
+    if (typeof fn !== 'function') {
+      this._validationErrors.push('Execute function must be a valid function');
     }
-    /**
-     * Set custom health check function for monitoring.
-     *
-     * @param fn - Health check function
-     * @returns This builder instance for chaining
-     *
-     * @example
-     * ```typescript
-     * .healthCheck(async () => {
-     *   try {
-     *     // Check database connectivity
-     *     await db.ping();
-     *
-     *     // Check external API
-     *     const apiStatus = await checkExternalApi();
-     *
-     *     return {
-     *       status: 'healthy',
-     *       details: {
-     *         database: 'connected',
-     *         externalApi: apiStatus
-     *       }
-     *     };
-     *   } catch (error) {
-     *     return {
-     *       status: 'unhealthy',
-     *       details: { error: error.message }
-     *     };
-     *   }
-     * })
-     * ```
-     */
-    healthCheck(fn) {
-        this.validateBuilderState();
-        if (typeof fn !== 'function') {
-            this._validationErrors.push('Health check function must be a valid function');
-        }
-        this._healthCheckFunction = fn;
-        return this;
+    this._executeFunction = fn;
+    return this;
+  }
+  /**
+   * Set configuration setup function called when tool is initialized.
+   *
+   * @param fn - Setup function
+   * @returns This builder instance for chaining
+   *
+   * @example
+   * ```typescript
+   * .onSetup(async (config) => {
+   *   // Validate API connectivity
+   *   await validateApiKey(config.apiKey);
+   *
+   *   // Initialize connections
+   *   await initializeCache();
+   *
+   *   console.log('Tool setup completed successfully');
+   * })
+   * ```
+   */
+  onSetup(fn) {
+    this.validateBuilderState();
+    if (typeof fn !== 'function') {
+      this._validationErrors.push('Setup function must be a valid function');
     }
-    /**
-     * Validates that the builder hasn't been used yet and can accept more configuration.
-     * @private
-     */
-    validateBuilderState() {
-        if (this._built) {
-            throw new tools_core_1.ConfigurationError('ToolBuilder has already been built and cannot be modified. Create a new builder instance.');
-        }
+    this._setupFunction = fn;
+    return this;
+  }
+  /**
+   * Set cleanup function called when tool is stopped.
+   *
+   * @param fn - Cleanup function
+   * @returns This builder instance for chaining
+   *
+   * @example
+   * ```typescript
+   * .onCleanup(async () => {
+   *   // Close database connections
+   *   await db.close();
+   *
+   *   // Clear caches
+   *   cache.clear();
+   *
+   *   // Log cleanup completion
+   *   console.log('Tool cleanup completed');
+   * })
+   * ```
+   */
+  onCleanup(fn) {
+    this.validateBuilderState();
+    if (typeof fn !== 'function') {
+      this._validationErrors.push('Cleanup function must be a valid function');
     }
-    /**
-     * Build the tool with comprehensive validation and error reporting.
-     *
-     * @returns A fully configured Tool instance
-     * @throws {ConfigurationError} When builder configuration is invalid
-     *
-     * @example
-     * ```typescript
-     * const tool = builder.build();
-     * await tool.start({ port: 3000 });
-     * ```
-     */
-    build() {
-        // Prevent multiple builds from same instance
-        if (this._built) {
-            throw new tools_core_1.ConfigurationError('ToolBuilder has already been built. Create a new builder instance for a new tool.');
-        }
-        // Validate required components
-        if (!this._metadata) {
-            this._validationErrors.push('Tool metadata is required. Call .metadata() with tool information.');
-        }
-        if (!this._executeFunction) {
-            this._validationErrors.push('Execute function is required. Call .execute() with your tool logic.');
-        }
-        // Report all validation errors at once
-        if (this._validationErrors.length > 0) {
-            throw new tools_core_1.ConfigurationError(`Tool configuration validation failed:\n${this._validationErrors.map(e => `  - ${e}`).join('\n')}`, this._validationErrors);
-        }
-        // Create the tool options
-        const options = {
-            metadata: this._metadata,
-            schema: {
-                input: this._inputSchema,
-                config: this._configSchema,
-            },
-            execute: this._executeFunction,
-            setup: this._setupFunction,
-            cleanup: this._cleanupFunction,
-            healthCheck: this._healthCheckFunction,
-        };
-        // Mark as built to prevent reuse
-        this._built = true;
-        // Create and return the tool
-        return createTool(options);
+    this._cleanupFunction = fn;
+    return this;
+  }
+  /**
+   * Set custom health check function for monitoring.
+   *
+   * @param fn - Health check function
+   * @returns This builder instance for chaining
+   *
+   * @example
+   * ```typescript
+   * .healthCheck(async () => {
+   *   try {
+   *     // Check database connectivity
+   *     await db.ping();
+   *
+   *     // Check external API
+   *     const apiStatus = await checkExternalApi();
+   *
+   *     return {
+   *       status: 'healthy',
+   *       details: {
+   *         database: 'connected',
+   *         externalApi: apiStatus
+   *       }
+   *     };
+   *   } catch (error) {
+   *     return {
+   *       status: 'unhealthy',
+   *       details: { error: error.message }
+   *     };
+   *   }
+   * })
+   * ```
+   */
+  healthCheck(fn) {
+    this.validateBuilderState();
+    if (typeof fn !== 'function') {
+      this._validationErrors.push(
+        'Health check function must be a valid function'
+      );
     }
-    /**
-     * Get current validation errors without building.
-     * Useful for debugging configuration issues.
-     *
-     * @returns Array of validation error messages
-     */
-    getValidationErrors() {
-        const errors = [...this._validationErrors];
-        if (!this._metadata) {
-            errors.push('Tool metadata is required');
-        }
-        if (!this._executeFunction) {
-            errors.push('Execute function is required');
-        }
-        return errors;
+    this._healthCheckFunction = fn;
+    return this;
+  }
+  /**
+   * Validates that the builder hasn't been used yet and can accept more configuration.
+   * @private
+   */
+  validateBuilderState() {
+    if (this._built) {
+      throw new tools_core_1.ConfigurationError(
+        'ToolBuilder has already been built and cannot be modified. Create a new builder instance.'
+      );
     }
-    /**
-     * Check if the builder configuration is valid without building.
-     *
-     * @returns True if configuration is valid, false otherwise
-     */
-    isValid() {
-        return this.getValidationErrors().length === 0;
+  }
+  /**
+   * Build the tool with comprehensive validation and error reporting.
+   *
+   * @returns A fully configured Tool instance
+   * @throws {ConfigurationError} When builder configuration is invalid
+   *
+   * @example
+   * ```typescript
+   * const tool = builder.build();
+   * await tool.start({ port: 3000 });
+   * ```
+   */
+  build() {
+    // Prevent multiple builds from same instance
+    if (this._built) {
+      throw new tools_core_1.ConfigurationError(
+        'ToolBuilder has already been built. Create a new builder instance for a new tool.'
+      );
     }
+    // Validate required components
+    if (!this._metadata) {
+      this._validationErrors.push(
+        'Tool metadata is required. Call .metadata() with tool information.'
+      );
+    }
+    if (!this._executeFunction) {
+      this._validationErrors.push(
+        'Execute function is required. Call .execute() with your tool logic.'
+      );
+    }
+    // Report all validation errors at once
+    if (this._validationErrors.length > 0) {
+      throw new tools_core_1.ConfigurationError(
+        `Tool configuration validation failed:\n${this._validationErrors.map(e => `  - ${e}`).join('\n')}`,
+        this._validationErrors
+      );
+    }
+    // Create the tool options
+    const options = {
+      metadata: this._metadata,
+      schema: {
+        input: this._inputSchema,
+        config: this._configSchema,
+      },
+      execute: this._executeFunction,
+      setup: this._setupFunction,
+      cleanup: this._cleanupFunction,
+      healthCheck: this._healthCheckFunction,
+    };
+    // Mark as built to prevent reuse
+    this._built = true;
+    // Create and return the tool
+    return createTool(options);
+  }
+  /**
+   * Get current validation errors without building.
+   * Useful for debugging configuration issues.
+   *
+   * @returns Array of validation error messages
+   */
+  getValidationErrors() {
+    const errors = [...this._validationErrors];
+    if (!this._metadata) {
+      errors.push('Tool metadata is required');
+    }
+    if (!this._executeFunction) {
+      errors.push('Execute function is required');
+    }
+    return errors;
+  }
+  /**
+   * Check if the builder configuration is valid without building.
+   *
+   * @returns True if configuration is valid, false otherwise
+   */
+  isValid() {
+    return this.getValidationErrors().length === 0;
+  }
 }
 exports.ToolBuilder = ToolBuilder;
 // ============================================================================
@@ -649,11 +692,11 @@ exports.ToolBuilder = ToolBuilder;
  * ```
  */
 function stringField(options = {}) {
-    return {
-        type: 'string',
-        required: options.required ?? false,
-        ...options,
-    };
+  return {
+    type: 'string',
+    required: options.required ?? false,
+    ...options,
+  };
 }
 /**
  * Creates a number input field with validation options.
@@ -672,11 +715,11 @@ function stringField(options = {}) {
  * ```
  */
 function numberField(options = {}) {
-    return {
-        type: 'number',
-        required: options.required ?? false,
-        ...options,
-    };
+  return {
+    type: 'number',
+    required: options.required ?? false,
+    ...options,
+  };
 }
 /**
  * Creates a boolean input field.
@@ -694,11 +737,11 @@ function numberField(options = {}) {
  * ```
  */
 function booleanField(options = {}) {
-    return {
-        type: 'boolean',
-        required: options.required ?? false,
-        ...options,
-    };
+  return {
+    type: 'boolean',
+    required: options.required ?? false,
+    ...options,
+  };
 }
 /**
  * Creates an array input field with item type validation.
@@ -722,12 +765,12 @@ function booleanField(options = {}) {
  * ```
  */
 function arrayField(items, options = {}) {
-    return {
-        type: 'array',
-        required: options.required ?? false,
-        items,
-        ...options,
-    };
+  return {
+    type: 'array',
+    required: options.required ?? false,
+    items,
+    ...options,
+  };
 }
 /**
  * Creates an object input field with property definitions.
@@ -751,12 +794,12 @@ function arrayField(items, options = {}) {
  * ```
  */
 function objectField(properties, options = {}) {
-    return {
-        type: 'object',
-        required: options.required ?? false,
-        properties,
-        ...options,
-    };
+  return {
+    type: 'object',
+    required: options.required ?? false,
+    properties,
+    ...options,
+  };
 }
 /**
  * Creates a date input field with format validation.
@@ -775,11 +818,11 @@ function objectField(properties, options = {}) {
  * ```
  */
 function dateField(options = {}) {
-    return {
-        type: 'date',
-        required: options.required ?? false,
-        ...options,
-    };
+  return {
+    type: 'date',
+    required: options.required ?? false,
+    ...options,
+  };
 }
 /**
  * Creates a time input field with format validation.
@@ -797,11 +840,11 @@ function dateField(options = {}) {
  * ```
  */
 function timeField(options = {}) {
-    return {
-        type: 'time',
-        required: options.required ?? false,
-        ...options,
-    };
+  return {
+    type: 'time',
+    required: options.required ?? false,
+    ...options,
+  };
 }
 /**
  * Creates an enum input field with predefined values.
@@ -823,12 +866,12 @@ function timeField(options = {}) {
  * ```
  */
 function enumField(values, options = {}) {
-    return {
-        type: 'enum',
-        required: options.required ?? false,
-        enum: values,
-        ...options,
-    };
+  return {
+    type: 'enum',
+    required: options.required ?? false,
+    enum: values,
+    ...options,
+  };
 }
 /**
  * Creates an API key configuration field with security best practices.
@@ -854,13 +897,13 @@ function enumField(values, options = {}) {
  * ```
  */
 function apiKeyField(options = {}) {
-    return {
-        type: 'apiKey',
-        required: options.required ?? true,
-        secret: true,
-        description: options.description || 'API key for authentication',
-        ...options,
-    };
+  return {
+    type: 'apiKey',
+    required: options.required ?? true,
+    secret: true,
+    description: options.description || 'API key for authentication',
+    ...options,
+  };
 }
 /**
  * Creates a configuration string field.
@@ -879,11 +922,11 @@ function apiKeyField(options = {}) {
  * ```
  */
 function configStringField(options = {}) {
-    return {
-        type: 'string',
-        required: options.required ?? false,
-        ...options,
-    };
+  return {
+    type: 'string',
+    required: options.required ?? false,
+    ...options,
+  };
 }
 /**
  * Creates a configuration number field.
@@ -902,11 +945,11 @@ function configStringField(options = {}) {
  * ```
  */
 function configNumberField(options = {}) {
-    return {
-        type: 'number',
-        required: options.required ?? false,
-        ...options,
-    };
+  return {
+    type: 'number',
+    required: options.required ?? false,
+    ...options,
+  };
 }
 /**
  * Creates a URL configuration field with validation.
@@ -924,15 +967,15 @@ function configNumberField(options = {}) {
  * ```
  */
 function configUrlField(options = {}) {
-    return {
-        type: 'url',
-        required: options.required ?? false,
-        validation: {
-            allowedProtocols: ['https', 'http'],
-            ...options.validation
-        },
-        ...options,
-    };
+  return {
+    type: 'url',
+    required: options.required ?? false,
+    validation: {
+      allowedProtocols: ['https', 'http'],
+      ...options.validation,
+    },
+    ...options,
+  };
 }
 /**
  * Comprehensive validation of tool definition for completeness, correctness, and best practices.
@@ -943,99 +986,127 @@ function configUrlField(options = {}) {
  * @private
  */
 function validateToolDefinition(options) {
-    const errors = [];
-    const warnings = [];
-    // Comprehensive metadata validation
-    if (!options.metadata) {
-        errors.push('Tool metadata is required');
+  const errors = [];
+  const warnings = [];
+  // Comprehensive metadata validation
+  if (!options.metadata) {
+    errors.push('Tool metadata is required');
+  } else {
+    const meta = options.metadata;
+    // Required fields validation
+    if (
+      !meta.name ||
+      typeof meta.name !== 'string' ||
+      meta.name.trim().length === 0
+    ) {
+      errors.push('Tool name is required and must be a non-empty string');
+    } else if (!/^[a-z0-9-]+$/.test(meta.name)) {
+      warnings.push(
+        'Tool name should use kebab-case format (lowercase with hyphens)'
+      );
     }
-    else {
-        const meta = options.metadata;
-        // Required fields validation
-        if (!meta.name || typeof meta.name !== 'string' || meta.name.trim().length === 0) {
-            errors.push('Tool name is required and must be a non-empty string');
-        }
-        else if (!/^[a-z0-9-]+$/.test(meta.name)) {
-            warnings.push('Tool name should use kebab-case format (lowercase with hyphens)');
-        }
-        if (!meta.version || typeof meta.version !== 'string' || meta.version.trim().length === 0) {
-            errors.push('Tool version is required and must be a non-empty string');
-        }
-        else if (!/^\d+\.\d+\.\d+/.test(meta.version)) {
-            warnings.push('Tool version should follow semantic versioning (e.g., "1.0.0")');
-        }
-        if (!meta.description || typeof meta.description !== 'string' || meta.description.trim().length === 0) {
-            errors.push('Tool description is required and must be a non-empty string');
-        }
-        else if (meta.description.length < 10) {
-            warnings.push('Tool description should be descriptive (at least 10 characters)');
-        }
-        if (!Array.isArray(meta.capabilities) || meta.capabilities.length === 0) {
-            errors.push('Tool capabilities must be a non-empty array');
-        }
-        else {
-            // Validate capability strings
-            meta.capabilities.forEach((cap, index) => {
-                if (typeof cap !== 'string' || cap.trim().length === 0) {
-                    errors.push(`Capability at index ${index} must be a non-empty string`);
-                }
-            });
-        }
-        // Optional fields validation
-        if (meta.author && typeof meta.author !== 'string') {
-            errors.push('Tool author must be a string if provided');
-        }
-        if (meta.license && typeof meta.license !== 'string') {
-            errors.push('Tool license must be a string if provided');
-        }
-        if (meta.tags && !Array.isArray(meta.tags)) {
-            errors.push('Tool tags must be an array if provided');
-        }
+    if (
+      !meta.version ||
+      typeof meta.version !== 'string' ||
+      meta.version.trim().length === 0
+    ) {
+      errors.push('Tool version is required and must be a non-empty string');
+    } else if (!/^\d+\.\d+\.\d+/.test(meta.version)) {
+      warnings.push(
+        'Tool version should follow semantic versioning (e.g., "1.0.0")'
+      );
     }
-    // Schema structure validation
-    if (!options.schema) {
-        errors.push('Tool schema is required');
+    if (
+      !meta.description ||
+      typeof meta.description !== 'string' ||
+      meta.description.trim().length === 0
+    ) {
+      errors.push(
+        'Tool description is required and must be a non-empty string'
+      );
+    } else if (meta.description.length < 10) {
+      warnings.push(
+        'Tool description should be descriptive (at least 10 characters)'
+      );
     }
-    else {
-        const schema = options.schema;
-        if (!schema.input || typeof schema.input !== 'object') {
-            errors.push('Input schema is required and must be an object');
+    if (!Array.isArray(meta.capabilities) || meta.capabilities.length === 0) {
+      errors.push('Tool capabilities must be a non-empty array');
+    } else {
+      // Validate capability strings
+      meta.capabilities.forEach((cap, index) => {
+        if (typeof cap !== 'string' || cap.trim().length === 0) {
+          errors.push(
+            `Capability at index ${index} must be a non-empty string`
+          );
         }
-        if (!schema.config || typeof schema.config !== 'object') {
-            errors.push('Config schema is required and must be an object');
-        }
+      });
     }
-    // Execute function validation
-    if (!options.execute || typeof options.execute !== 'function') {
-        errors.push('Execute function is required and must be a function');
+    // Optional fields validation
+    if (meta.author && typeof meta.author !== 'string') {
+      errors.push('Tool author must be a string if provided');
     }
-    else {
-        // Check function signature (approximate)
-        const funcStr = options.execute.toString();
-        if (funcStr.includes('function') && options.execute.length < 3) {
-            warnings.push('Execute function should accept three parameters: (input, config, context)');
-        }
+    if (meta.license && typeof meta.license !== 'string') {
+      errors.push('Tool license must be a string if provided');
     }
-    // Optional function validations
-    if (options.setup && typeof options.setup !== 'function') {
-        errors.push('Setup function must be a function if provided');
+    if (meta.tags && !Array.isArray(meta.tags)) {
+      errors.push('Tool tags must be an array if provided');
     }
-    if (options.cleanup && typeof options.cleanup !== 'function') {
-        errors.push('Cleanup function must be a function if provided');
+  }
+  // Schema structure validation
+  if (!options.schema) {
+    errors.push('Tool schema is required');
+  } else {
+    const schema = options.schema;
+    if (!schema.input || typeof schema.input !== 'object') {
+      errors.push('Input schema is required and must be an object');
     }
-    if (options.healthCheck && typeof options.healthCheck !== 'function') {
-        errors.push('Health check function must be a function if provided');
+    if (!schema.config || typeof schema.config !== 'object') {
+      errors.push('Config schema is required and must be an object');
     }
-    // Report errors
-    if (errors.length > 0) {
-        throw new tools_core_1.ConfigurationError(`Tool definition validation failed:\n${errors.map(e => `  ❌ ${e}`).join('\n')}${warnings.length > 0 ?
-            `\n\nWarnings:\n${warnings.map(w => `  ⚠️  ${w}`).join('\n')}` :
-            ''}`, errors);
+  }
+  // Execute function validation
+  if (!options.execute || typeof options.execute !== 'function') {
+    errors.push('Execute function is required and must be a function');
+  } else {
+    // Check function signature (approximate)
+    const funcStr = options.execute.toString();
+    if (funcStr.includes('function') && options.execute.length < 3) {
+      warnings.push(
+        'Execute function should accept three parameters: (input, config, context)'
+      );
     }
-    // Log warnings in development
-    if (warnings.length > 0 && (process.env.NODE_ENV === 'development' || process.env.AI_SPINE_DEBUG === 'true')) {
-        console.warn(`\n⚠️  Tool Definition Warnings for "${options.metadata.name}":\n${warnings.map(w => `  • ${w}`).join('\n')}\n`);
-    }
+  }
+  // Optional function validations
+  if (options.setup && typeof options.setup !== 'function') {
+    errors.push('Setup function must be a function if provided');
+  }
+  if (options.cleanup && typeof options.cleanup !== 'function') {
+    errors.push('Cleanup function must be a function if provided');
+  }
+  if (options.healthCheck && typeof options.healthCheck !== 'function') {
+    errors.push('Health check function must be a function if provided');
+  }
+  // Report errors
+  if (errors.length > 0) {
+    throw new tools_core_1.ConfigurationError(
+      `Tool definition validation failed:\n${errors.map(e => `  ❌ ${e}`).join('\n')}${
+        warnings.length > 0
+          ? `\n\nWarnings:\n${warnings.map(w => `  ⚠️  ${w}`).join('\n')}`
+          : ''
+      }`,
+      errors
+    );
+  }
+  // Log warnings in development
+  if (
+    warnings.length > 0 &&
+    (process.env.NODE_ENV === 'development' ||
+      process.env.AI_SPINE_DEBUG === 'true')
+  ) {
+    console.warn(
+      `\n⚠️  Tool Definition Warnings for "${options.metadata.name}":\n${warnings.map(w => `  • ${w}`).join('\n')}\n`
+    );
+  }
 }
 /**
  * Applies intelligent defaults and enhancements to tool options.
@@ -1046,23 +1117,23 @@ function validateToolDefinition(options) {
  * @private
  */
 function applyIntelligentDefaults(options) {
-    const enhanced = { ...options };
-    // Enhance metadata with defaults
-    if (!enhanced.metadata.tags) {
-        enhanced.metadata.tags = [];
-    }
-    // Add SDK version if not specified
-    if (!enhanced.metadata.minSdkVersion) {
-        enhanced.metadata.minSdkVersion = '1.0.0';
-    }
-    // Ensure schema has proper structure
-    if (!enhanced.schema.input) {
-        enhanced.schema.input = {};
-    }
-    if (!enhanced.schema.config) {
-        enhanced.schema.config = {};
-    }
-    return enhanced;
+  const enhanced = { ...options };
+  // Enhance metadata with defaults
+  if (!enhanced.metadata.tags) {
+    enhanced.metadata.tags = [];
+  }
+  // Add SDK version if not specified
+  if (!enhanced.metadata.minSdkVersion) {
+    enhanced.metadata.minSdkVersion = '1.0.0';
+  }
+  // Ensure schema has proper structure
+  if (!enhanced.schema.input) {
+    enhanced.schema.input = {};
+  }
+  if (!enhanced.schema.config) {
+    enhanced.schema.config = {};
+  }
+  return enhanced;
 }
 /**
  * Validates schema structure and field definitions for correctness.
@@ -1072,32 +1143,36 @@ function applyIntelligentDefaults(options) {
  * @private
  */
 function validateSchemaStructure(schema) {
-    const errors = [];
-    // Validate input fields
-    if (schema.input) {
-        Object.entries(schema.input).forEach(([fieldName, field]) => {
-            if (!field.type) {
-                errors.push(`Input field '${fieldName}' must have a type`);
-            }
-            if (field.required === undefined) {
-                errors.push(`Input field '${fieldName}' must specify if it's required`);
-            }
-        });
-    }
-    // Validate config fields
-    if (schema.config) {
-        Object.entries(schema.config).forEach(([fieldName, field]) => {
-            if (!field.type) {
-                errors.push(`Config field '${fieldName}' must have a type`);
-            }
-            if (field.required === undefined) {
-                errors.push(`Config field '${fieldName}' must specify if it's required`);
-            }
-        });
-    }
-    if (errors.length > 0) {
-        throw new tools_core_1.ValidationError(`Schema validation failed:\n${errors.map(e => `  ❌ ${e}`).join('\n')}`);
-    }
+  const errors = [];
+  // Validate input fields
+  if (schema.input) {
+    Object.entries(schema.input).forEach(([fieldName, field]) => {
+      if (!field.type) {
+        errors.push(`Input field '${fieldName}' must have a type`);
+      }
+      if (field.required === undefined) {
+        errors.push(`Input field '${fieldName}' must specify if it's required`);
+      }
+    });
+  }
+  // Validate config fields
+  if (schema.config) {
+    Object.entries(schema.config).forEach(([fieldName, field]) => {
+      if (!field.type) {
+        errors.push(`Config field '${fieldName}' must have a type`);
+      }
+      if (field.required === undefined) {
+        errors.push(
+          `Config field '${fieldName}' must specify if it's required`
+        );
+      }
+    });
+  }
+  if (errors.length > 0) {
+    throw new tools_core_1.ValidationError(
+      `Schema validation failed:\n${errors.map(e => `  ❌ ${e}`).join('\n')}`
+    );
+  }
 }
 /**
  * Adds development mode enhancements to improve developer experience.
@@ -1107,24 +1182,37 @@ function validateSchemaStructure(schema) {
  * @private
  */
 function addDevelopmentEnhancements(tool, definition) {
-    // Add helpful logging
-    console.log(`\n🛠️  Created tool "${definition.metadata.name}" v${definition.metadata.version}`);
-    console.log(`   📝 ${definition.metadata.description}`);
-    console.log(`   🎯 Capabilities: ${definition.metadata.capabilities.join(', ')}`);
-    console.log(`   📊 Input fields: ${Object.keys(definition.schema.input).length}`);
-    console.log(`   ⚙️  Config fields: ${Object.keys(definition.schema.config).length}`);
-    // Add development event listeners
-    tool.on('beforeExecution', (context) => {
-        console.log(`🚀 Executing tool "${definition.metadata.name}" (ID: ${context.executionId})`);
-    });
-    tool.on('afterExecution', (_context, result) => {
-        const duration = result.timing?.executionTimeMs || 0;
-        const status = result.status === 'success' ? '✅' : '❌';
-        console.log(`${status} Tool execution ${result.status} in ${duration}ms`);
-    });
-    tool.on('error', (error) => {
-        console.error(`❌ Tool error in "${definition.metadata.name}":`, error.message);
-    });
+  // Add helpful logging
+  console.log(
+    `\n🛠️  Created tool "${definition.metadata.name}" v${definition.metadata.version}`
+  );
+  console.log(`   📝 ${definition.metadata.description}`);
+  console.log(
+    `   🎯 Capabilities: ${definition.metadata.capabilities.join(', ')}`
+  );
+  console.log(
+    `   📊 Input fields: ${Object.keys(definition.schema.input).length}`
+  );
+  console.log(
+    `   ⚙️  Config fields: ${Object.keys(definition.schema.config).length}`
+  );
+  // Add development event listeners
+  tool.on('beforeExecution', context => {
+    console.log(
+      `🚀 Executing tool "${definition.metadata.name}" (ID: ${context.executionId})`
+    );
+  });
+  tool.on('afterExecution', (_context, result) => {
+    const duration = result.timing?.executionTimeMs || 0;
+    const status = result.status === 'success' ? '✅' : '❌';
+    console.log(`${status} Tool execution ${result.status} in ${duration}ms`);
+  });
+  tool.on('error', error => {
+    console.error(
+      `❌ Tool error in "${definition.metadata.name}":`,
+      error.message
+    );
+  });
 }
 // ============================================================================
 // CONVENIENCE FUNCTIONS
@@ -1157,42 +1245,41 @@ function addDevelopmentEnhancements(tool, definition) {
  * ```
  */
 function simpleCreateTool(name, version, description, execute) {
-    return createTool({
-        metadata: {
-            name,
-            version,
-            description,
-            capabilities: [name.replace(/-tool$/, '')]
-        },
-        schema: {
-            input: {},
-            config: {}
-        },
-        execute: async (input, _config, context) => {
-            try {
-                const result = await execute(input);
-                return {
-                    status: 'success',
-                    data: result,
-                    timing: {
-                        executionTimeMs: Date.now() - context.performance.startTime,
-                        startedAt: new Date(context.performance.startTime).toISOString(),
-                        completedAt: new Date().toISOString()
-                    }
-                };
-            }
-            catch (error) {
-                return {
-                    status: 'error',
-                    error: {
-                        code: 'EXECUTION_ERROR',
-                        message: error.message,
-                        type: 'execution_error'
-                    }
-                };
-            }
-        }
-    });
+  return createTool({
+    metadata: {
+      name,
+      version,
+      description,
+      capabilities: [name.replace(/-tool$/, '')],
+    },
+    schema: {
+      input: {},
+      config: {},
+    },
+    execute: async (input, _config, context) => {
+      try {
+        const result = await execute(input);
+        return {
+          status: 'success',
+          data: result,
+          timing: {
+            executionTimeMs: Date.now() - context.performance.startTime,
+            startedAt: new Date(context.performance.startTime).toISOString(),
+            completedAt: new Date().toISOString(),
+          },
+        };
+      } catch (error) {
+        return {
+          status: 'error',
+          error: {
+            code: 'EXECUTION_ERROR',
+            message: error.message,
+            type: 'execution_error',
+          },
+        };
+      }
+    },
+  });
 }
 /**
  * Creates a tool builder instance for fluent API usage.
@@ -1209,6 +1296,6 @@ function simpleCreateTool(name, version, description, execute) {
  * ```
  */
 function createToolBuilder() {
-    return new ToolBuilder();
+  return new ToolBuilder();
 }
 //# sourceMappingURL=create-tool.js.map

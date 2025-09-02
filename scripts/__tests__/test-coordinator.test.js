@@ -22,16 +22,16 @@ describe('TestCoordinator', () => {
     mockPackages = {
       'ai-spine-tools-core': {
         name: '@ai-spine/tools-core',
-        scripts: { test: 'jest' }
+        scripts: { test: 'jest' },
       },
       'ai-spine-tools': {
         name: '@ai-spine/tools',
-        scripts: { test: 'jest', 'test:coverage': 'jest --coverage' }
-      }
+        scripts: { test: 'jest', 'test:coverage': 'jest --coverage' },
+      },
     };
 
     // Mock file system
-    fs.readdirSync.mockImplementation((dirPath) => {
+    fs.readdirSync.mockImplementation(dirPath => {
       if (dirPath.includes('packages')) {
         return Object.keys(mockPackages);
       }
@@ -41,9 +41,9 @@ describe('TestCoordinator', () => {
     fs.statSync.mockReturnValue({ isDirectory: () => true });
     fs.existsSync.mockReturnValue(true);
 
-    fs.readFileSync.mockImplementation((filePath) => {
+    fs.readFileSync.mockImplementation(filePath => {
       if (filePath.includes('package.json')) {
-        const packageName = Object.keys(mockPackages).find(name => 
+        const packageName = Object.keys(mockPackages).find(name =>
           filePath.includes(name)
         );
         if (packageName) {
@@ -59,11 +59,13 @@ describe('TestCoordinator', () => {
   describe('Package Discovery', () => {
     it('should discover packages with test scripts', () => {
       expect(coordinator.packages).toHaveLength(2);
-      expect(coordinator.packages.every(pkg => pkg.packageJson.scripts.test)).toBe(true);
+      expect(
+        coordinator.packages.every(pkg => pkg.packageJson.scripts.test)
+      ).toBe(true);
     });
 
     it('should detect test files', () => {
-      fs.existsSync.mockImplementation((path) => {
+      fs.existsSync.mockImplementation(path => {
         if (path.includes('__tests__')) return true;
         return path.includes('package.json');
       });
@@ -88,7 +90,7 @@ describe('TestCoordinator', () => {
       mockChild = {
         on: jest.fn(),
         stdout: { on: jest.fn() },
-        stderr: { on: jest.fn() }
+        stderr: { on: jest.fn() },
       };
       spawn.mockReturnValue(mockChild);
     });
@@ -102,9 +104,11 @@ describe('TestCoordinator', () => {
       });
 
       const testPromise = coordinator.runPackageTests(coordinator.packages[0]);
-      
+
       // Trigger close event
-      const closeCallback = mockChild.on.mock.calls.find(call => call[0] === 'close')[1];
+      const closeCallback = mockChild.on.mock.calls.find(
+        call => call[0] === 'close'
+      )[1];
       closeCallback(0);
 
       const result = await testPromise;
@@ -120,9 +124,11 @@ describe('TestCoordinator', () => {
       });
 
       const testPromise = coordinator.runPackageTests(coordinator.packages[0]);
-      
+
       // Trigger close event
-      const closeCallback = mockChild.on.mock.calls.find(call => call[0] === 'close')[1];
+      const closeCallback = mockChild.on.mock.calls.find(
+        call => call[0] === 'close'
+      )[1];
       closeCallback(1);
 
       await expect(testPromise).rejects.toThrow();
@@ -136,20 +142,26 @@ describe('TestCoordinator', () => {
         }
       });
 
-      coordinator.runPackageTests = jest.fn().mockResolvedValue({ code: 0, duration: 100 });
+      coordinator.runPackageTests = jest
+        .fn()
+        .mockResolvedValue({ code: 0, duration: 100 });
 
       const results = await coordinator.runTestsParallel(coordinator.packages);
-      
+
       expect(results.success).toHaveLength(2);
       expect(results.failed).toHaveLength(0);
       expect(coordinator.runPackageTests).toHaveBeenCalledTimes(2);
     });
 
     it('should run tests sequentially', async () => {
-      coordinator.runPackageTests = jest.fn().mockResolvedValue({ code: 0, duration: 100 });
+      coordinator.runPackageTests = jest
+        .fn()
+        .mockResolvedValue({ code: 0, duration: 100 });
 
-      const results = await coordinator.runTestsSequential(coordinator.packages);
-      
+      const results = await coordinator.runTestsSequential(
+        coordinator.packages
+      );
+
       expect(results.success).toHaveLength(2);
       expect(results.failed).toHaveLength(0);
     });
@@ -164,12 +176,12 @@ describe('TestCoordinator', () => {
       `;
 
       const coverage = coordinator.extractCoverage(output);
-      
+
       expect(coverage).toEqual({
         statements: 85.5,
         branches: 90.2,
         functions: 75.8,
-        lines: 88.1
+        lines: 88.1,
       });
     });
 
@@ -180,7 +192,7 @@ describe('TestCoordinator', () => {
       `;
 
       const stats = coordinator.extractTestStats(output);
-      
+
       expect(stats.passed).toBe(8);
       expect(stats.total).toBe(10);
       expect(stats.failed).toBe(2);
@@ -190,7 +202,7 @@ describe('TestCoordinator', () => {
     it('should handle missing coverage data', () => {
       const output = 'No coverage information';
       const coverage = coordinator.extractCoverage(output);
-      
+
       expect(coverage).toBeNull();
     });
   });
@@ -204,11 +216,11 @@ describe('TestCoordinator', () => {
             result: {
               duration: 1000,
               testStats: { total: 10, passed: 10, failed: 0 },
-              coverage: { lines: 85 }
-            }
-          }
+              coverage: { lines: 85 },
+            },
+          },
         ],
-        failed: []
+        failed: [],
       };
 
       // Mock console.log to capture output
@@ -218,12 +230,12 @@ describe('TestCoordinator', () => {
 
       expect(success).toBe(true);
       expect(consoleSpy).toHaveBeenCalled();
-      
+
       // Check that report contains expected sections
       const output = consoleSpy.mock.calls.map(call => call[0]).join('\n');
       expect(output).toContain('Test Execution Report');
       expect(output).toContain('Summary');
-      
+
       consoleSpy.mockRestore();
     });
 
@@ -233,9 +245,9 @@ describe('TestCoordinator', () => {
         failed: [
           {
             package: { name: '@ai-spine/tools' },
-            error: new Error('Tests failed')
-          }
-        ]
+            error: new Error('Tests failed'),
+          },
+        ],
       };
 
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
@@ -243,10 +255,10 @@ describe('TestCoordinator', () => {
       const success = coordinator.generateTestReport(results);
 
       expect(success).toBe(false);
-      
+
       const output = consoleSpy.mock.calls.map(call => call[0]).join('\n');
       expect(output).toContain('Failed Packages');
-      
+
       consoleSpy.mockRestore();
     });
   });
@@ -258,21 +270,23 @@ describe('TestCoordinator', () => {
       coordinator.printTestOverview();
 
       expect(consoleSpy).toHaveBeenCalled();
-      
+
       const output = consoleSpy.mock.calls.map(call => call[0]).join('\n');
       expect(output).toContain('Test Overview');
       expect(output).toContain('Packages with Tests');
-      
+
       consoleSpy.mockRestore();
     });
 
     it('should detect test runners', () => {
       coordinator.printTestOverview();
-      
+
       // Should detect Jest as test runner for both packages
-      expect(coordinator.packages.every(pkg => 
-        pkg.packageJson.scripts.test.includes('jest')
-      )).toBe(true);
+      expect(
+        coordinator.packages.every(pkg =>
+          pkg.packageJson.scripts.test.includes('jest')
+        )
+      ).toBe(true);
     });
   });
 
@@ -280,24 +294,24 @@ describe('TestCoordinator', () => {
     beforeEach(() => {
       coordinator.testResults.set('@ai-spine/tools-core', {
         code: 0,
-        coverage: { lines: 85 }
+        coverage: { lines: 85 },
       });
       coordinator.testResults.set('@ai-spine/tools', {
         code: 1,
-        coverage: { lines: 60 }
+        coverage: { lines: 60 },
       });
     });
 
     it('should generate test badges', () => {
       const badges = coordinator.generateTestBadges();
-      
+
       expect(badges.has('@ai-spine/tools-core')).toBe(true);
       expect(badges.has('@ai-spine/tools')).toBe(true);
-      
+
       const coreBadges = badges.get('@ai-spine/tools-core');
       expect(coreBadges.testBadge).toContain('passing');
       expect(coreBadges.coverage).toContain('85%');
-      
+
       const toolsBadges = badges.get('@ai-spine/tools');
       expect(toolsBadges.testBadge).toContain('failing');
     });
@@ -313,17 +327,19 @@ describe('TestCoordinator', () => {
             }
           }),
           stdout: { on: jest.fn() },
-          stderr: { on: jest.fn() }
+          stderr: { on: jest.fn() },
         };
         return child;
       });
 
-      await expect(coordinator.runPackageTests(coordinator.packages[0])).rejects.toThrow('Spawn failed');
+      await expect(
+        coordinator.runPackageTests(coordinator.packages[0])
+      ).rejects.toThrow('Spawn failed');
     });
 
     it('should handle missing test scripts gracefully', () => {
       mockPackages['ai-spine-tools-core'].scripts = {}; // Remove test script
-      
+
       const newCoordinator = new TestCoordinator({ verbose: false });
       expect(newCoordinator.packages).toHaveLength(1); // Only one package has test script
     });

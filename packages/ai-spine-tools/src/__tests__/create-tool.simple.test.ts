@@ -6,7 +6,7 @@ import {
   createTool,
   ToolBuilder,
   stringField,
-  apiKeyField
+  apiKeyField,
 } from '../create-tool';
 
 describe('createTool Factory Function', () => {
@@ -15,22 +15,22 @@ describe('createTool Factory Function', () => {
       name: 'test-tool',
       version: '1.0.0',
       description: 'A test tool for unit testing',
-      capabilities: ['test.execute']
+      capabilities: ['test.execute'],
     },
     schema: {
       input: {
-        message: stringField({ required: true, description: 'Test message' })
+        message: stringField({ required: true, description: 'Test message' }),
       },
       config: {
-        apiKey: apiKeyField({ required: true, description: 'Test API key' })
-      }
+        apiKey: apiKeyField({ required: true, description: 'Test API key' }),
+      },
     },
     execute: async (input: any, _config: any, _context: any) => {
       return {
         status: 'success' as const,
-        data: { echo: input.message }
+        data: { echo: input.message },
       };
-    }
+    },
   };
 
   describe('Basic Tool Creation', () => {
@@ -44,7 +44,7 @@ describe('createTool Factory Function', () => {
     it('should validate tool definition for missing metadata', () => {
       const invalidDefinition = {
         ...validToolDefinition,
-        metadata: undefined
+        metadata: undefined,
       } as any;
 
       expect(() => {
@@ -55,7 +55,7 @@ describe('createTool Factory Function', () => {
     it('should validate tool definition for missing execute function', () => {
       const invalidDefinition = {
         ...validToolDefinition,
-        execute: undefined
+        execute: undefined,
       } as any;
 
       expect(() => {
@@ -72,14 +72,14 @@ describe('createTool Factory Function', () => {
 
     it('should build a valid tool', () => {
       const builder = new ToolBuilder();
-      
+
       expect(() => {
         const tool = builder
           .metadata({
             name: 'build-test',
             version: '1.0.0',
             description: 'Testing build functionality',
-            capabilities: ['test']
+            capabilities: ['test'],
           })
           .execute(async () => {
             return { status: 'success' as const, data: {} };
@@ -92,7 +92,7 @@ describe('createTool Factory Function', () => {
 
     it('should validate required metadata', () => {
       const builder = new ToolBuilder();
-      
+
       expect(() => {
         builder.build();
       }).toThrow();

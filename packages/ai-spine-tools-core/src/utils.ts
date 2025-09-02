@@ -4,7 +4,10 @@ export class ToolUtils {
   /**
    * Creates a successful tool execution result
    */
-  static success(data: any, metadata?: Record<string, any>): ToolExecutionResult {
+  static success(
+    data: any,
+    metadata?: Record<string, any>
+  ): ToolExecutionResult {
     return {
       status: 'success',
       data,
@@ -54,12 +57,12 @@ export class ToolUtils {
   ): Promise<ToolExecutionResult> {
     const startTime = Date.now();
     const startedAt = new Date().toISOString();
-    
+
     try {
       const result = await fn();
       const executionTime = Date.now() - startTime;
       const completedAt = new Date().toISOString();
-      
+
       return {
         status: 'success',
         data: result,
@@ -72,7 +75,7 @@ export class ToolUtils {
     } catch (error) {
       const executionTime = Date.now() - startTime;
       const completedAt = new Date().toISOString();
-      
+
       if (error instanceof ToolError) {
         return {
           ...this.errorFromException(error),
@@ -83,7 +86,7 @@ export class ToolUtils {
           },
         };
       }
-      
+
       return {
         status: 'error',
         error: {
@@ -137,7 +140,7 @@ export class ToolUtils {
 
     const cloned = {} as T;
     for (const key in obj) {
-      if (obj.hasOwnProperty(key)) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
         cloned[key] = this.deepClone(obj[key]);
       }
     }
@@ -153,7 +156,7 @@ export class ToolUtils {
     secretFields: string[] = []
   ): Record<string, any> {
     const sanitized = { ...config };
-    
+
     // Default secret field patterns
     const defaultSecretPatterns = [
       /api[_-]?key/i,
@@ -164,9 +167,10 @@ export class ToolUtils {
     ];
 
     for (const key of Object.keys(sanitized)) {
-      const isSecret = secretFields.includes(key) ||
+      const isSecret =
+        secretFields.includes(key) ||
         defaultSecretPatterns.some(pattern => pattern.test(key));
-      
+
       if (isSecret && sanitized[key]) {
         sanitized[key] = '***REDACTED***';
       }
@@ -182,11 +186,11 @@ export class ToolUtils {
     if (error instanceof Error) {
       return error.message;
     }
-    
+
     if (typeof error === 'string') {
       return error;
     }
-    
+
     try {
       return JSON.stringify(error);
     } catch {
@@ -214,7 +218,7 @@ export class ToolUtils {
     wait: number
   ): (...args: Parameters<T>) => void {
     let timeout: NodeJS.Timeout;
-    
+
     return (...args: Parameters<T>) => {
       clearTimeout(timeout);
       timeout = setTimeout(() => func(...args), wait);
@@ -228,7 +232,10 @@ export class ToolUtils {
     return Promise.race([
       promise,
       new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error(`Operation timed out after ${ms}ms`)), ms)
+        setTimeout(
+          () => reject(new Error(`Operation timed out after ${ms}ms`)),
+          ms
+        )
       ),
     ]);
   }

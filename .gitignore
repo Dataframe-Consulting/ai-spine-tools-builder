@@ -42,8 +42,8 @@ tmp/
 temp/
 .tmp/
 
-# Package manager
-package-lock.json
+# Package manager (keep root lock file for CI/CD)
+# package-lock.json  # Root lock file needed for GitHub Actions
 yarn.lock
 pnpm-lock.yaml
 
@@ -59,3 +59,4 @@ CHANGELOG.md
 
 documentation/
 qa/
+examples/

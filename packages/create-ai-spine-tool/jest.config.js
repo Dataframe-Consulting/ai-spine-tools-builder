@@ -6,17 +6,14 @@ module.exports = {
   transform: {
     '^.+\\.ts$': 'ts-jest',
   },
-  collectCoverageFrom: [
-    'src/**/*.ts',
-    '!src/**/*.d.ts',
-  ],
+  collectCoverageFrom: ['src/**/*.ts', '!src/**/*.d.ts'],
   modulePathIgnorePatterns: [
-    '<rootDir>/templates/',  // Ignore template files
-    '<rootDir>/dist/'
+    '<rootDir>/templates/', // Ignore template files
+    '<rootDir>/dist/',
   ],
   testPathIgnorePatterns: [
     '<rootDir>/node_modules/',
-    '<rootDir>/templates/',  // Ignore template files in tests too
-    '<rootDir>/dist/'
+    '<rootDir>/templates/', // Ignore template files in tests too
+    '<rootDir>/dist/',
   ],
 };
