@@ -131,8 +131,12 @@ async function main() {
   const examplesDir = path.resolve(__dirname, '../../../examples');
 
   if (!(await fs.pathExists(examplesDir))) {
-    console.log(chalk.yellow('⚠️  Examples directory not found - skipping validation'));
-    console.log(chalk.gray('This is expected if no examples have been created yet.'));
+    console.log(
+      chalk.yellow('⚠️  Examples directory not found - skipping validation')
+    );
+    console.log(
+      chalk.gray('This is expected if no examples have been created yet.')
+    );
     process.exit(0);
   }
 
