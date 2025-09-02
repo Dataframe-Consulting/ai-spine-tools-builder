@@ -12,9 +12,9 @@ const { execSync } = require('child_process');
 const distDir = path.join(__dirname, '..', 'dist');
 const requiredFiles = [
   'index.js',
-  'index.esm.js', 
+  'index.esm.js',
   'template-validator.js',
-  'example-validator.js'
+  'example-validator.js',
 ];
 
 console.log('🔍 Verifying build output...');
@@ -31,24 +31,33 @@ for (const file of requiredFiles) {
 
 if (missingFiles.length > 0) {
   console.error('❌ Missing build files:', missingFiles.join(', '));
-  
+
   // Try to rebuild CLI files specifically if they're missing
   if (missingFiles.some(file => file.includes('validator'))) {
     console.log('🔧 Attempting to rebuild CLI files...');
     try {
       // Build CLI files directly using rollup CLI
       const cliFiles = [
-        { input: 'src/template-validator-cli.ts', output: 'dist/template-validator.js' },
-        { input: 'src/example-validator-cli.ts', output: 'dist/example-validator.js' }
+        {
+          input: 'src/template-validator-cli.ts',
+          output: 'dist/template-validator.js',
+        },
+        {
+          input: 'src/example-validator-cli.ts',
+          output: 'dist/example-validator.js',
+        },
       ];
-      
+
       for (const { input, output } of cliFiles) {
         if (!fs.existsSync(path.join(__dirname, '..', output))) {
           console.log(`Building ${input} -> ${output}`);
-          execSync(`npx rollup ${input} --file ${output} --format cjs --banner "#!/usr/bin/env node" --plugin @rollup/plugin-typescript --plugin @rollup/plugin-node-resolve --plugin @rollup/plugin-commonjs`, {
-            cwd: path.join(__dirname, '..'),
-            stdio: 'inherit'
-          });
+          execSync(
+            `npx rollup ${input} --file ${output} --format cjs --banner "#!/usr/bin/env node" --plugin @rollup/plugin-typescript --plugin @rollup/plugin-node-resolve --plugin @rollup/plugin-commonjs`,
+            {
+              cwd: path.join(__dirname, '..'),
+              stdio: 'inherit',
+            }
+          );
         }
       }
     } catch (error) {
