@@ -14,8 +14,9 @@
     "dev": "rollup -c -w",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:templates": "node dist/template-validator.js",
-    "test:examples": "node dist/example-validator.js",
+    "test:templates": "npm run build:ensure && node dist/template-validator.js",
+    "test:examples": "npm run build:ensure && node dist/example-validator.js",
+    "build:ensure": "node scripts/ensure-cli-files.js",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build"
   },
