@@ -412,7 +412,7 @@ jobs:
         with:
           script: |
             const status = '${{ steps.check.outputs.status }}';
-            const context = 'AI Spine Tools SDK CI';
+            const statusContext = 'AI Spine Tools SDK CI';
             const description = status === 'success' 
               ? 'All checks passed' 
               : 'Some checks failed';
@@ -424,7 +424,7 @@ jobs:
               state: status,
               target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
               description: description,
-              context: context
+              context: statusContext
             });
 
   # ============================================================================
