@@ -101,8 +101,8 @@ function analyzeExternalDependencies(packages) {
     analysis.totalDependencies += Object.keys(allDeps).length;
 
     for (const [depName, version] of Object.entries(allDeps)) {
-      // Check for heavy dependencies
-      if (heavyDeps.includes(depName)) {
+      // Check for heavy dependencies - only flag if they're in runtime dependencies, not devDependencies
+      if (heavyDeps.includes(depName) && pkg.dependencies[depName]) {
         analysis.heavyDependencies.push({
           package: pkg.name,
           dependency: depName,
@@ -111,8 +111,12 @@ function analyzeExternalDependencies(packages) {
         });
       }
 
-      // Check for dependencies that should be peer dependencies
-      if (shouldBePeer.includes(depName) && !pkg.peerDependencies[depName]) {
+      // Check for dependencies that should be peer dependencies - only for runtime dependencies
+      if (
+        shouldBePeer.includes(depName) &&
+        pkg.dependencies[depName] &&
+        !pkg.peerDependencies[depName]
+      ) {
         analysis.recommendations.push({
           package: pkg.name,
           dependency: depName,
