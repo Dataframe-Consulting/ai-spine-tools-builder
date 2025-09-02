@@ -130,9 +130,9 @@ class BuildVerifier {
           if (
             content.includes('undefined exports') ||
             content.includes('undefined module') ||
-            (content.includes('SyntaxError') && 
-             !content.includes('instanceof SyntaxError') && 
-             !content.includes('error instanceof SyntaxError'))
+            (content.includes('SyntaxError') &&
+              !content.includes('instanceof SyntaxError') &&
+              !content.includes('error instanceof SyntaxError'))
           ) {
             results.passed = false;
             results.errors.push(`${file}: Potential syntax or export errors`);
