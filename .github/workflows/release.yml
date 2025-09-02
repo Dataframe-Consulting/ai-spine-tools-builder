@@ -58,7 +58,7 @@ jobs:
 
       - name: 📦 Install Dependencies
         run: |
-          rm -rf node_modules package-lock.json
+          npx rimraf node_modules package-lock.json
           npm install --prefer-offline --no-audit --ignore-scripts
 
       - name: 🏷️ Extract Version
@@ -133,7 +133,7 @@ jobs:
 
       - name: 📦 Install Dependencies  
         run: |
-          rm -rf node_modules package-lock.json
+          npx rimraf node_modules package-lock.json
           npm install --prefer-offline --no-audit --ignore-scripts
 
       - name: 🔧 Configure Git
@@ -192,7 +192,7 @@ jobs:
 
       - name: 📦 Install Dependencies
         run: |
-          rm -rf node_modules package-lock.json
+          npx rimraf node_modules package-lock.json
           npm install --prefer-offline --no-audit --ignore-scripts
 
       - name: 🔨 Build Package
@@ -256,7 +256,7 @@ jobs:
 
       - name: 📦 Install Dependencies
         run: |
-          rm -rf node_modules package-lock.json
+          npx rimraf node_modules package-lock.json
           npm install --prefer-offline --no-audit --ignore-scripts
 
       - name: 📝 Generate Release Notes
