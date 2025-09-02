@@ -798,7 +798,7 @@ export declare function simpleCreateTool<TInput extends ToolInput = ToolInput>(
   version: string,
   description: string,
   execute: (input: TInput) => Promise<any>
-): Tool<TInput, {}>;
+): Tool<TInput, Record<string, never>>;
 /**
  * Creates a tool builder instance for fluent API usage.
  *

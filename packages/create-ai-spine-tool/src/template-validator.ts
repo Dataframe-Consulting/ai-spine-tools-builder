@@ -12,6 +12,7 @@
 
 import fs from 'fs-extra';
 import path from 'path';
+import os from 'os';
 import mustache from 'mustache';
 import { execSync } from 'child_process';
 import chalk from 'chalk';
@@ -267,10 +268,7 @@ export class TemplateValidator {
     const warnings: ValidationWarning[] = [];
     const validatedFiles: string[] = [];
 
-    const tempDir = path.join(
-      require('os').tmpdir(),
-      `ai-spine-test-${Date.now()}`
-    );
+    const tempDir = path.join(os.tmpdir(), `ai-spine-test-${Date.now()}`);
 
     try {
       // Generate template context

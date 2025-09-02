@@ -17,6 +17,7 @@ import inquirer from 'inquirer';
 import chalk from 'chalk';
 import ora from 'ora';
 import path from 'path';
+import os from 'os';
 import fs from 'fs-extra';
 import { execSync } from 'child_process';
 import validatePackageName from 'validate-npm-package-name';
@@ -543,7 +544,7 @@ async function loadTeamConfig(configPath?: string): Promise<TeamConfig | null> {
   searchPaths.push(
     path.join(process.cwd(), TEAM_CONFIG_FILENAME),
     path.join(process.cwd(), '.config', TEAM_CONFIG_FILENAME),
-    path.join(require('os').homedir(), TEAM_CONFIG_FILENAME)
+    path.join(os.homedir(), TEAM_CONFIG_FILENAME)
   );
 
   for (const configPath of searchPaths) {

@@ -1074,8 +1074,8 @@ export class Tool<TInput = ToolInput, TConfig = ToolConfig> {
 
     try {
       let healthStatus: 'healthy' | 'unhealthy' | 'degraded' = 'healthy';
-      let details: Record<string, any> = {};
-      let checks: Record<string, any> = {};
+      let _details: Record<string, any> = {};
+      const checks: Record<string, any> = {};
 
       // Update metrics before health check
       this.updateMetrics();
@@ -1169,7 +1169,7 @@ export class Tool<TInput = ToolInput, TConfig = ToolConfig> {
             healthStatus = 'degraded';
           }
 
-          details = { ...details, ...customHealth.details };
+          _details = { ..._details, ...customHealth.details };
         } catch (error) {
           checks.custom = {
             status: 'unhealthy',
