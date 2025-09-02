@@ -25,6 +25,7 @@ permissions:
   security-events: write
   checks: write
   pull-requests: write
+  statuses: write
 
 env:
   # Performance and caching optimizations
@@ -380,6 +381,7 @@ jobs:
     
     steps:
       - name: Check all job statuses
+        id: check
         run: |
           echo "📋 Checking CI pipeline status..."
           
