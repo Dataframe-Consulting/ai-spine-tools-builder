@@ -126,10 +126,13 @@ class BuildVerifier {
           const content = fs.readFileSync(filePath, 'utf8');
 
           // Check for common syntax errors
+          // Note: We exclude legitimate uses of SyntaxError in error handling
           if (
             content.includes('undefined exports') ||
             content.includes('undefined module') ||
-            content.includes('SyntaxError')
+            (content.includes('SyntaxError') && 
+             !content.includes('instanceof SyntaxError') && 
+             !content.includes('error instanceof SyntaxError'))
           ) {
             results.passed = false;
             results.errors.push(`${file}: Potential syntax or export errors`);

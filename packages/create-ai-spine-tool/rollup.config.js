@@ -4,6 +4,7 @@
  */
 
 const {
+  createRollupConfig,
   createCliConfig,
   EXTERNAL_DEPS,
   loadPackageJson,
@@ -11,19 +12,23 @@ const {
 
 const packageJson = loadPackageJson('.');
 
-module.exports = [
-  // Main library build
-  createCliConfig({
-    input: 'src/index.ts',
-    output: 'dist/index.js',
-    external: EXTERNAL_DEPS.cli,
-  }),
+// Main library builds (ESM, CJS, and types)
+const mainConfigs = createRollupConfig({
+  packageName: 'create-ai-spine-tool',
+  input: 'src/index.ts',
+  external: EXTERNAL_DEPS.cli,
+  packageJson,
+  generateTypes: true,
+  bundleSizeLimit: 500,
+  isCli: true,
+});
 
-  // CLI executable build (skip banner since cli.ts already has shebang)
-  createCliConfig({
-    input: 'src/cli.ts',
-    output: 'dist/cli.js',
-    external: EXTERNAL_DEPS.cli,
-    skipBanner: true,
-  }),
-];
+// CLI executable build (skip banner since cli.ts already has shebang)
+const cliConfig = createCliConfig({
+  input: 'src/cli.ts',
+  output: 'dist/cli.js',
+  external: EXTERNAL_DEPS.cli,
+  skipBanner: true,
+});
+
+module.exports = [...mainConfigs, cliConfig];
