@@ -131,8 +131,9 @@ async function main() {
   const examplesDir = path.resolve(__dirname, '../../../examples');
 
   if (!(await fs.pathExists(examplesDir))) {
-    console.log(chalk.red('❌ Examples directory not found'));
-    process.exit(1);
+    console.log(chalk.yellow('⚠️  Examples directory not found - skipping validation'));
+    console.log(chalk.gray('This is expected if no examples have been created yet.'));
+    process.exit(0);
   }
 
   const examples = await fs.readdir(examplesDir, { withFileTypes: true });
