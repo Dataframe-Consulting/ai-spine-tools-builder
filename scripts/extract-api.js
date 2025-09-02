@@ -2,10 +2,10 @@
 
 /**
  * API Extraction Script for Breaking Change Detection
- * 
+ *
  * This script extracts the public API surface from built packages
  * to enable automated breaking change detection in CI pipeline.
- * 
+ *
  * Features:
  * - TypeScript declaration file analysis
  * - Export signature extraction
@@ -27,7 +27,7 @@ class APIExtractor {
     this.api = {
       packages: {},
       timestamp: new Date().toISOString(),
-      version: this.getSDKVersion()
+      version: this.getSDKVersion(),
     };
   }
 
@@ -46,7 +46,8 @@ class APIExtractor {
 
   log(message, level = 'info') {
     if (this.verbose) {
-      const prefix = level === 'error' ? '❌' : level === 'warning' ? '⚠️' : 'ℹ️';
+      const prefix =
+        level === 'error' ? '❌' : level === 'warning' ? '⚠️' : 'ℹ️';
       console.error(`${prefix} ${message}`);
     }
   }
@@ -56,9 +57,12 @@ class APIExtractor {
    */
   extractAPI() {
     this.log('Extracting API surface from all packages...');
-    
-    const packages = fs.readdirSync(this.packagesDir)
-      .filter(dir => fs.statSync(path.join(this.packagesDir, dir)).isDirectory());
+
+    const packages = fs
+      .readdirSync(this.packagesDir)
+      .filter(dir =>
+        fs.statSync(path.join(this.packagesDir, dir)).isDirectory()
+      );
 
     packages.forEach(packageName => {
       try {
@@ -66,7 +70,10 @@ class APIExtractor {
         this.api.packages[packageName] = packageAPI;
         this.log(`Extracted API for package: ${packageName}`);
       } catch (error) {
-        this.log(`Failed to extract API for ${packageName}: ${error.message}`, 'error');
+        this.log(
+          `Failed to extract API for ${packageName}: ${error.message}`,
+          'error'
+        );
         this.api.packages[packageName] = { error: error.message };
       }
     });
@@ -80,7 +87,7 @@ class APIExtractor {
   extractPackageAPI(packageName) {
     const packageDir = path.join(this.packagesDir, packageName);
     const distDir = path.join(packageDir, 'dist');
-    
+
     if (!fs.existsSync(distDir)) {
       throw new Error(`Build directory not found: ${distDir}`);
     }
@@ -88,10 +95,11 @@ class APIExtractor {
     // Find main declaration file
     const packageJsonPath = path.join(packageDir, 'package.json');
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-    
-    const mainDeclaration = packageJson.types || packageJson.typings || 'dist/index.d.ts';
+
+    const mainDeclaration =
+      packageJson.types || packageJson.typings || 'dist/index.d.ts';
     const declarationPath = path.join(packageDir, mainDeclaration);
-    
+
     if (!fs.existsSync(declarationPath)) {
       throw new Error(`Declaration file not found: ${declarationPath}`);
     }
@@ -103,7 +111,7 @@ class APIExtractor {
       interfaces: this.extractInterfaces(declarationPath),
       types: this.extractTypes(declarationPath),
       functions: this.extractFunctions(declarationPath),
-      classes: this.extractClasses(declarationPath)
+      classes: this.extractClasses(declarationPath),
     };
 
     return packageAPI;
@@ -134,28 +142,28 @@ class APIExtractor {
         if (ts.isInterfaceDeclaration(node)) {
           exports.push({
             type: 'interface',
-            name: node.name.text
+            name: node.name.text,
           });
         } else if (ts.isTypeAliasDeclaration(node)) {
           exports.push({
             type: 'type',
-            name: node.name.text
+            name: node.name.text,
           });
         } else if (ts.isFunctionDeclaration(node)) {
           exports.push({
             type: 'function',
-            name: node.name?.text || 'anonymous'
+            name: node.name?.text || 'anonymous',
           });
         } else if (ts.isClassDeclaration(node)) {
           exports.push({
             type: 'class',
-            name: node.name?.text || 'anonymous'
+            name: node.name?.text || 'anonymous',
           });
         } else if (ts.isVariableStatement(node)) {
           node.declarationList.declarations.forEach(decl => {
             exports.push({
               type: 'variable',
-              name: decl.name.text
+              name: decl.name.text,
             });
           });
         }
@@ -177,7 +185,7 @@ class APIExtractor {
         const interfaceInfo = {
           name: node.name.text,
           members: [],
-          heritage: []
+          heritage: [],
         };
 
         // Extract heritage (extends clause)
@@ -186,7 +194,8 @@ class APIExtractor {
             clause.types.forEach(type => {
               interfaceInfo.heritage.push({
                 name: type.expression.text,
-                typeArguments: type.typeArguments?.map(arg => arg.getText()) || []
+                typeArguments:
+                  type.typeArguments?.map(arg => arg.getText()) || [],
               });
             });
           });
@@ -199,19 +208,20 @@ class APIExtractor {
               type: 'property',
               name: member.name.text,
               optional: !!member.questionToken,
-              typeSignature: member.type?.getText() || 'any'
+              typeSignature: member.type?.getText() || 'any',
             });
           } else if (ts.isMethodSignature(member)) {
             interfaceInfo.members.push({
               type: 'method',
               name: member.name.text,
               optional: !!member.questionToken,
-              parameters: member.parameters?.map(param => ({
-                name: param.name.text,
-                type: param.type?.getText() || 'any',
-                optional: !!param.questionToken
-              })) || [],
-              returnType: member.type?.getText() || 'void'
+              parameters:
+                member.parameters?.map(param => ({
+                  name: param.name.text,
+                  type: param.type?.getText() || 'any',
+                  optional: !!param.questionToken,
+                })) || [],
+              returnType: member.type?.getText() || 'void',
             });
           }
         });
@@ -235,7 +245,8 @@ class APIExtractor {
         types.push({
           name: node.name.text,
           definition: node.type.getText(),
-          typeParameters: node.typeParameters?.map(param => param.name.text) || []
+          typeParameters:
+            node.typeParameters?.map(param => param.name.text) || [],
         });
       }
     });
@@ -254,13 +265,15 @@ class APIExtractor {
       if (ts.isFunctionDeclaration(node) && this.hasExportModifier(node)) {
         functions.push({
           name: node.name?.text || 'anonymous',
-          parameters: node.parameters?.map(param => ({
-            name: param.name.text,
-            type: param.type?.getText() || 'any',
-            optional: !!param.questionToken
-          })) || [],
+          parameters:
+            node.parameters?.map(param => ({
+              name: param.name.text,
+              type: param.type?.getText() || 'any',
+              optional: !!param.questionToken,
+            })) || [],
           returnType: node.type?.getText() || 'void',
-          typeParameters: node.typeParameters?.map(param => param.name.text) || []
+          typeParameters:
+            node.typeParameters?.map(param => param.name.text) || [],
         });
       }
     });
@@ -281,7 +294,7 @@ class APIExtractor {
           name: node.name?.text || 'anonymous',
           methods: [],
           properties: [],
-          heritage: []
+          heritage: [],
         };
 
         // Extract heritage (extends/implements)
@@ -289,8 +302,11 @@ class APIExtractor {
           node.heritageClauses.forEach(clause => {
             clause.types.forEach(type => {
               classInfo.heritage.push({
-                kind: clause.token === ts.SyntaxKind.ExtendsKeyword ? 'extends' : 'implements',
-                name: type.expression.text
+                kind:
+                  clause.token === ts.SyntaxKind.ExtendsKeyword
+                    ? 'extends'
+                    : 'implements',
+                name: type.expression.text,
               });
             });
           });
@@ -301,18 +317,25 @@ class APIExtractor {
           if (ts.isMethodDeclaration(member) && member.name) {
             classInfo.methods.push({
               name: member.name.text,
-              parameters: member.parameters?.map(param => ({
-                name: param.name.text,
-                type: param.type?.getText() || 'any'
-              })) || [],
+              parameters:
+                member.parameters?.map(param => ({
+                  name: param.name.text,
+                  type: param.type?.getText() || 'any',
+                })) || [],
               returnType: member.type?.getText() || 'void',
-              isStatic: member.modifiers?.some(mod => mod.kind === ts.SyntaxKind.StaticKeyword) || false
+              isStatic:
+                member.modifiers?.some(
+                  mod => mod.kind === ts.SyntaxKind.StaticKeyword
+                ) || false,
             });
           } else if (ts.isPropertyDeclaration(member) && member.name) {
             classInfo.properties.push({
               name: member.name.text,
               type: member.type?.getText() || 'any',
-              isStatic: member.modifiers?.some(mod => mod.kind === ts.SyntaxKind.StaticKeyword) || false
+              isStatic:
+                member.modifiers?.some(
+                  mod => mod.kind === ts.SyntaxKind.StaticKeyword
+                ) || false,
             });
           }
         });
@@ -328,9 +351,11 @@ class APIExtractor {
    * Check if node has export modifier
    */
   hasExportModifier(node) {
-    return node.modifiers?.some(modifier => 
-      modifier.kind === ts.SyntaxKind.ExportKeyword
-    ) || false;
+    return (
+      node.modifiers?.some(
+        modifier => modifier.kind === ts.SyntaxKind.ExportKeyword
+      ) || false
+    );
   }
 }
 
@@ -338,11 +363,11 @@ class APIExtractor {
 if (require.main === module) {
   const args = process.argv.slice(2);
   const options = {
-    verbose: args.includes('--verbose')
+    verbose: args.includes('--verbose'),
   };
 
   const extractor = new APIExtractor(options);
-  
+
   try {
     const api = extractor.extractAPI();
     console.log(JSON.stringify(api, null, 2));

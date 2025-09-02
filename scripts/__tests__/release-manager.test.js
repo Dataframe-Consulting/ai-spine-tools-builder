@@ -19,11 +19,11 @@ describe('ReleaseManager', () => {
     jest.clearAllMocks();
 
     // Mock root package.json
-    fs.readFileSync.mockImplementation((filePath) => {
+    fs.readFileSync.mockImplementation(filePath => {
       if (filePath.includes('package.json')) {
         return JSON.stringify({
           name: 'ai-spine-tools-sdk',
-          version: '1.0.0'
+          version: '1.0.0',
         });
       }
       return '{}';
@@ -46,7 +46,7 @@ describe('ReleaseManager', () => {
   describe('Commit Analysis', () => {
     beforeEach(() => {
       // Mock git commands
-      execSync.mockImplementation((command) => {
+      execSync.mockImplementation(command => {
         if (command.includes('git describe --tags')) {
           return 'v0.9.0';
         }
@@ -68,7 +68,7 @@ describe('ReleaseManager', () => {
     });
 
     it('should detect breaking changes', () => {
-      execSync.mockImplementation((command) => {
+      execSync.mockImplementation(command => {
         if (command.includes('git log')) {
           return 'abc123 feat!: breaking change\ndef456 fix: normal fix';
         }
@@ -86,10 +86,14 @@ describe('ReleaseManager', () => {
   describe('Changelog Generation', () => {
     it('should generate formatted changelog', () => {
       const analysis = {
-        breaking: [{ hash: 'abc123', description: 'Breaking change', scope: 'api' }],
-        features: [{ hash: 'def456', description: 'New feature', scope: 'core' }],
+        breaking: [
+          { hash: 'abc123', description: 'Breaking change', scope: 'api' },
+        ],
+        features: [
+          { hash: 'def456', description: 'New feature', scope: 'core' },
+        ],
         fixes: [{ hash: 'ghi789', description: 'Bug fix', scope: null }],
-        other: []
+        other: [],
       };
 
       const changelog = manager.generateChangelog(analysis, '2.0.0');
@@ -107,7 +111,7 @@ describe('ReleaseManager', () => {
   describe('Version Bumping', () => {
     beforeEach(() => {
       fs.writeFileSync.mockImplementation(() => {});
-      
+
       // Mock semver
       const semver = require('semver');
       semver.inc.mockImplementation((version, type) => {
@@ -121,14 +125,14 @@ describe('ReleaseManager', () => {
 
     it('should bump version across all packages', async () => {
       const newVersion = await manager.bumpVersion('minor');
-      
+
       expect(newVersion).toBe('1.1.0');
       expect(fs.writeFileSync).toHaveBeenCalled();
     });
 
     it('should use custom version when provided', async () => {
       const newVersion = await manager.bumpVersion('patch', '1.2.3');
-      
+
       expect(newVersion).toBe('1.2.3');
     });
   });
@@ -136,7 +140,7 @@ describe('ReleaseManager', () => {
   describe('Pre-release Checks', () => {
     beforeEach(() => {
       // Mock git status checks
-      execSync.mockImplementation((command) => {
+      execSync.mockImplementation(command => {
         if (command.includes('git status --porcelain')) {
           return ''; // Clean working directory
         }
@@ -155,13 +159,13 @@ describe('ReleaseManager', () => {
 
     it('should pass all pre-release checks', async () => {
       const results = await manager.runPreReleaseChecks();
-      
+
       expect(results).toHaveLength(4);
       expect(results.every(r => r.passed)).toBe(true);
     });
 
     it('should fail on uncommitted changes', async () => {
-      execSync.mockImplementation((command) => {
+      execSync.mockImplementation(command => {
         if (command.includes('git status --porcelain')) {
           return 'M package.json'; // Uncommitted changes
         }
@@ -172,7 +176,7 @@ describe('ReleaseManager', () => {
     });
 
     it('should fail on wrong branch', async () => {
-      execSync.mockImplementation((command) => {
+      execSync.mockImplementation(command => {
         if (command.includes('git branch --show-current')) {
           return 'feature-branch';
         }
@@ -193,7 +197,7 @@ describe('ReleaseManager', () => {
         breaking: [],
         features: [],
         fixes: [],
-        other: []
+        other: [],
       });
       manager.bumpVersion = jest.fn().mockResolvedValue('1.0.1');
       manager.updateChangelogFile = jest.fn();

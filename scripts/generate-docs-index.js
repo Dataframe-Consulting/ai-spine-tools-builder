@@ -2,7 +2,7 @@
 
 /**
  * Documentation index generator for AI Spine Tools SDK
- * 
+ *
  * This script automatically generates navigation indexes and cross-references
  * for the documentation system, ensuring all content is discoverable.
  */
@@ -19,38 +19,38 @@ class DocumentationIndexGenerator {
         name: 'getting-started',
         title: 'Getting Started',
         description: 'Quick start guides and fundamental concepts',
-        icon: '🚀'
+        icon: '🚀',
       },
       {
         name: 'api-reference',
         title: 'API Reference',
         description: 'Complete API documentation and reference',
-        icon: '📚'
+        icon: '📚',
       },
       {
         name: 'advanced',
         title: 'Advanced Usage',
         description: 'Advanced patterns and optimization techniques',
-        icon: '⚡'
+        icon: '⚡',
       },
       {
         name: 'integration',
         title: 'Integration Guides',
         description: 'CI/CD, deployment, and integration patterns',
-        icon: '🔧'
+        icon: '🔧',
       },
       {
         name: 'examples',
         title: 'Examples & Tutorials',
         description: 'Working examples and step-by-step tutorials',
-        icon: '💡'
+        icon: '💡',
       },
       {
         name: 'community',
         title: 'Community',
         description: 'Contributing guidelines and community resources',
-        icon: '🤝'
-      }
+        icon: '🤝',
+      },
     ];
   }
 
@@ -63,7 +63,7 @@ class DocumentationIndexGenerator {
     await this.generateMainIndex();
     await this.generateSectionIndexes();
     await this.generateSitemap();
-    
+
     console.log('✅ Documentation indexes generated successfully!\n');
   }
 
@@ -74,28 +74,30 @@ class DocumentationIndexGenerator {
     console.log('📄 Generating main documentation index...');
 
     const sections = [];
-    
+
     for (const section of this.sections) {
       const sectionPath = path.join(this.docsPath, section.name);
-      
+
       if (fs.existsSync(sectionPath)) {
         const files = await this.getDocumentationFiles(sectionPath);
-        const pages = files.map(file => this.extractPageInfo(file, section.name));
-        
+        const pages = files.map(file =>
+          this.extractPageInfo(file, section.name)
+        );
+
         sections.push({
           ...section,
           pageCount: pages.length,
           pages: pages.slice(0, 5), // Show first 5 pages in main index
-          hasMore: pages.length > 5
+          hasMore: pages.length > 5,
         });
       }
     }
 
     const indexContent = this.generateMainIndexContent(sections);
-    
+
     // Write main index
     fs.writeFileSync(path.join(this.docsPath, 'README.md'), indexContent);
-    
+
     console.log('✅ Main index updated');
   }
 
@@ -107,7 +109,7 @@ class DocumentationIndexGenerator {
 
     for (const section of this.sections) {
       const sectionPath = path.join(this.docsPath, section.name);
-      
+
       if (fs.existsSync(sectionPath)) {
         await this.generateSectionIndex(section);
       }
@@ -123,23 +125,23 @@ class DocumentationIndexGenerator {
     const sectionPath = path.join(this.docsPath, section.name);
     const files = await this.getDocumentationFiles(sectionPath);
     const pages = files.map(file => this.extractPageInfo(file, section.name));
-    
+
     // Sort pages by priority/order
     pages.sort((a, b) => {
       const priorityOrder = {
-        'README': 0,
-        'index': 1,
+        README: 0,
+        index: 1,
         'quick-start': 2,
-        'installation': 3,
-        'concepts': 4
+        installation: 3,
+        concepts: 4,
       };
-      
-      const getPriority = (name) => priorityOrder[name] ?? 10;
+
+      const getPriority = name => priorityOrder[name] ?? 10;
       return getPriority(a.slug) - getPriority(b.slug);
     });
 
     const indexContent = this.generateSectionIndexContent(section, pages);
-    
+
     // Write section index
     const readmePath = path.join(sectionPath, 'README.md');
     fs.writeFileSync(readmePath, indexContent);
@@ -150,8 +152,8 @@ class DocumentationIndexGenerator {
    */
   async getDocumentationFiles(dirPath) {
     const pattern = path.join(dirPath, '**/*.md');
-    return glob.sync(pattern).filter(file => 
-      !file.endsWith('/README.md') // Exclude README files from listing
+    return glob.sync(pattern).filter(
+      file => !file.endsWith('/README.md') // Exclude README files from listing
     );
   }
 
@@ -162,17 +164,17 @@ class DocumentationIndexGenerator {
     const content = fs.readFileSync(filePath, 'utf8');
     const relativePath = path.relative(this.docsPath, filePath);
     const fileName = path.basename(filePath, '.md');
-    
+
     // Extract title from first h1 heading
     const titleMatch = content.match(/^# (.+)$/m);
     const title = titleMatch ? titleMatch[1] : this.titleFromFilename(fileName);
-    
+
     // Extract description from content (first paragraph after title)
     const descriptionMatch = content.match(/^# .+$\s*\n\s*(.+?)(?:\n\n|\n$)/m);
-    const description = descriptionMatch ? 
-      descriptionMatch[1].replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') : // Remove links
-      'No description available';
-    
+    const description = descriptionMatch
+      ? descriptionMatch[1].replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove links
+      : 'No description available';
+
     // Extract metadata
     const wordCount = content.split(/\s+/).length;
     const readingTime = Math.ceil(wordCount / 200); // 200 words per minute
@@ -181,7 +183,8 @@ class DocumentationIndexGenerator {
 
     return {
       title,
-      description: description.slice(0, 150) + (description.length > 150 ? '...' : ''),
+      description:
+        description.slice(0, 150) + (description.length > 150 ? '...' : ''),
       slug: fileName,
       path: relativePath,
       section,
@@ -189,7 +192,7 @@ class DocumentationIndexGenerator {
       readingTime,
       hasExamples,
       linkCount,
-      lastModified: fs.statSync(filePath).mtime
+      lastModified: fs.statSync(filePath).mtime,
     };
   }
 
@@ -208,7 +211,7 @@ class DocumentationIndexGenerator {
    */
   generateMainIndexContent(sections) {
     const lastUpdated = new Date().toISOString().split('T')[0];
-    
+
     let content = `# AI Spine Tools SDK Documentation
 
 Welcome to the AI Spine Tools SDK documentation! This comprehensive documentation system provides everything you need to build, deploy, and maintain AI-agent-compatible tools using our powerful framework.
@@ -223,19 +226,20 @@ Welcome to the AI Spine Tools SDK documentation! This comprehensive documentatio
 ${section.description}
 
 `;
-      
+
       if (section.pages.length > 0) {
         for (const page of section.pages) {
-          const readingTime = page.readingTime > 0 ? ` (${page.readingTime} min)` : '';
+          const readingTime =
+            page.readingTime > 0 ? ` (${page.readingTime} min)` : '';
           const examples = page.hasExamples ? ' 📝' : '';
           content += `- [${page.title}](./${page.path})${readingTime}${examples}\n`;
         }
-        
+
         if (section.hasMore) {
           content += `- [View all ${section.title} guides...](./${section.name}/README.md)\n`;
         }
       }
-      
+
       content += '\n';
     }
 
@@ -314,17 +318,18 @@ ${section.description}
 
     // Group pages by type/category if applicable
     const categories = this.categorizePages(pages, section.name);
-    
+
     for (const [categoryName, categoryPages] of Object.entries(categories)) {
       if (categoryName !== 'default') {
         content += `### ${categoryName}\n\n`;
       }
-      
+
       for (const page of categoryPages) {
-        const readingTime = page.readingTime > 0 ? ` (${page.readingTime} min read)` : '';
+        const readingTime =
+          page.readingTime > 0 ? ` (${page.readingTime} min read)` : '';
         const examples = page.hasExamples ? ' 📝' : '';
         const lastMod = page.lastModified.toISOString().split('T')[0];
-        
+
         content += `- **[${page.title}](./${page.slug}.md)**${readingTime}${examples}  \n`;
         content += `  ${page.description}  \n`;
         content += `  *Updated: ${lastMod}*\n\n`;
@@ -359,7 +364,7 @@ ${section.description}
    */
   categorizePages(pages, sectionName) {
     const categories = { default: [] };
-    
+
     // Define category mappings
     const categoryMappings = {
       'api-reference': {
@@ -367,26 +372,34 @@ ${section.description}
         'Field Builders': ['field-builders'],
         'HTTP API': ['http-api'],
         'CLI Tools': ['cli'],
-        'Testing': ['testing']
+        Testing: ['testing'],
       },
-      'advanced': {
-        'Performance': ['performance', 'optimization'],
-        'Security': ['security', 'authentication'],
-        'Development': ['testing', 'debugging']
+      advanced: {
+        Performance: ['performance', 'optimization'],
+        Security: ['security', 'authentication'],
+        Development: ['testing', 'debugging'],
       },
-      'integration': {
+      integration: {
         'CI/CD': ['cicd', 'github-actions', 'automation'],
-        'Deployment': ['docker', 'kubernetes', 'cloud'],
-        'Monitoring': ['monitoring', 'logging', 'metrics']
-      }
+        Deployment: ['docker', 'kubernetes', 'cloud'],
+        Monitoring: ['monitoring', 'logging', 'metrics'],
+      },
     };
 
     if (categoryMappings[sectionName]) {
       for (const page of pages) {
         let categorized = false;
-        
-        for (const [categoryName, keywords] of Object.entries(categoryMappings[sectionName])) {
-          if (keywords.some(keyword => page.slug.includes(keyword) || page.title.toLowerCase().includes(keyword.toLowerCase()))) {
+
+        for (const [categoryName, keywords] of Object.entries(
+          categoryMappings[sectionName]
+        )) {
+          if (
+            keywords.some(
+              keyword =>
+                page.slug.includes(keyword) ||
+                page.title.toLowerCase().includes(keyword.toLowerCase())
+            )
+          ) {
             if (!categories[categoryName]) {
               categories[categoryName] = [];
             }
@@ -395,7 +408,7 @@ ${section.description}
             break;
           }
         }
-        
+
         if (!categorized) {
           categories.default.push(page);
         }
@@ -417,10 +430,10 @@ ${section.description}
     const relationships = {
       'getting-started': ['api-reference', 'examples'],
       'api-reference': ['getting-started', 'advanced', 'examples'],
-      'advanced': ['api-reference', 'integration'],
-      'integration': ['advanced', 'community'],
-      'examples': ['getting-started', 'api-reference'],
-      'community': ['getting-started', 'integration']
+      advanced: ['api-reference', 'integration'],
+      integration: ['advanced', 'community'],
+      examples: ['getting-started', 'api-reference'],
+      community: ['getting-started', 'integration'],
     };
 
     const relatedNames = relationships[sectionName] || [];
@@ -433,7 +446,9 @@ ${section.description}
   async generateSitemap() {
     console.log('🗺️ Generating documentation sitemap...');
 
-    const allFiles = glob.sync('docs/**/*.md', { cwd: path.join(__dirname, '..') });
+    const allFiles = glob.sync('docs/**/*.md', {
+      cwd: path.join(__dirname, '..'),
+    });
     const pages = [];
 
     for (const filePath of allFiles) {
@@ -441,12 +456,12 @@ ${section.description}
       const stat = fs.statSync(fullPath);
       const section = filePath.split('/')[1];
       const pageInfo = this.extractPageInfo(fullPath, section);
-      
+
       pages.push({
         ...pageInfo,
         fullPath: filePath,
         size: stat.size,
-        lastModified: stat.mtime.toISOString()
+        lastModified: stat.mtime.toISOString(),
       });
     }
 
@@ -454,16 +469,18 @@ ${section.description}
     pages.sort((a, b) => {
       if (a.section !== b.section) {
         const sectionOrder = this.sections.map(s => s.name);
-        return sectionOrder.indexOf(a.section) - sectionOrder.indexOf(b.section);
+        return (
+          sectionOrder.indexOf(a.section) - sectionOrder.indexOf(b.section)
+        );
       }
       return a.title.localeCompare(b.title);
     });
 
     const sitemapContent = this.generateSitemapContent(pages);
-    
+
     // Write sitemap
     fs.writeFileSync(path.join(this.docsPath, 'SITEMAP.md'), sitemapContent);
-    
+
     console.log('✅ Sitemap generated');
   }
 
@@ -494,7 +511,7 @@ This is a complete index of all documentation pages in the AI Spine Tools SDK do
       const readingTime = page.readingTime > 0 ? ` (${page.readingTime}m)` : '';
       const examples = page.hasExamples ? ' 📝' : '';
       const size = `${Math.round(page.size / 1024)}KB`;
-      
+
       content += `- **[${page.title}](./${page.path})**${readingTime}${examples}  \n`;
       content += `  ${page.description}  \n`;
       content += `  *${page.wordCount} words • ${size} • Updated ${page.lastModified.split('T')[0]}*\n\n`;
@@ -506,7 +523,7 @@ This is a complete index of all documentation pages in the AI Spine Tools SDK do
 
     // Generate statistics
     const stats = this.calculateDocumentationStats(pages);
-    
+
     content += `- **Total files**: ${stats.totalFiles}\n`;
     content += `- **Total words**: ${stats.totalWords.toLocaleString()}\n`;
     content += `- **Total size**: ${Math.round(stats.totalSize / 1024)}KB\n`;
@@ -515,7 +532,7 @@ This is a complete index of all documentation pages in the AI Spine Tools SDK do
     content += `- **Estimated reading time**: ${Math.ceil(stats.totalWords / 200)} minutes\n`;
 
     content += `\n### By Section\n\n`;
-    
+
     for (const [section, sectionStats] of Object.entries(stats.bySection)) {
       const sectionInfo = this.sections.find(s => s.name === section);
       content += `- **${sectionInfo?.title || section}**: ${sectionStats.files} files, ${sectionStats.words.toLocaleString()} words\n`;
@@ -533,13 +550,13 @@ This is a complete index of all documentation pages in the AI Spine Tools SDK do
       totalWords: 0,
       totalSize: 0,
       pagesWithExamples: 0,
-      bySection: {}
+      bySection: {},
     };
 
     for (const page of pages) {
       stats.totalWords += page.wordCount;
       stats.totalSize += page.size;
-      
+
       if (page.hasExamples) {
         stats.pagesWithExamples++;
       }
@@ -547,10 +564,10 @@ This is a complete index of all documentation pages in the AI Spine Tools SDK do
       if (!stats.bySection[page.section]) {
         stats.bySection[page.section] = {
           files: 0,
-          words: 0
+          words: 0,
         };
       }
-      
+
       stats.bySection[page.section].files++;
       stats.bySection[page.section].words += page.wordCount;
     }
@@ -564,7 +581,7 @@ This is a complete index of all documentation pages in the AI Spine Tools SDK do
 // Run generator if called directly
 if (require.main === module) {
   const generator = new DocumentationIndexGenerator();
-  
+
   async function main() {
     try {
       await generator.generateAll();
@@ -574,7 +591,7 @@ if (require.main === module) {
       process.exit(1);
     }
   }
-  
+
   main();
 }
 

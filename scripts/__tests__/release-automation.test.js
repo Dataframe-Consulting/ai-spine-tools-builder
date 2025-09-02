@@ -1,9 +1,9 @@
 /**
  * @fileoverview Tests for Release Automation System (Step 7.2)
- * 
+ *
  * Tests cover all aspects of the release automation including:
  * - Version management and coordination
- * - Semantic versioning enforcement  
+ * - Semantic versioning enforcement
  * - Changelog generation
  * - NPM publishing workflow
  * - Git tag management
@@ -19,7 +19,7 @@ const semver = require('semver');
 // Mock the ReleaseManager to avoid actual git/npm operations in tests
 jest.mock('child_process', () => ({
   execSync: jest.fn(),
-  exec: jest.fn()
+  exec: jest.fn(),
 }));
 
 const { ReleaseManager } = require('../release-manager');
@@ -46,7 +46,7 @@ describe('Release Automation System (Step 7.2)', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Mock file system operations
     mockPackages = [
       {
@@ -54,9 +54,9 @@ describe('Release Automation System (Step 7.2)', () => {
         path: path.join(testTempDir, 'packages/ai-spine-tools-core'),
         packageJson: {
           name: '@ai-spine/tools-core',
-          version: '1.0.0'
+          version: '1.0.0',
         },
-        directory: 'ai-spine-tools-core'
+        directory: 'ai-spine-tools-core',
       },
       {
         name: '@ai-spine/tools',
@@ -65,18 +65,18 @@ describe('Release Automation System (Step 7.2)', () => {
           name: '@ai-spine/tools',
           version: '1.0.0',
           dependencies: {
-            '@ai-spine/tools-core': '^1.0.0'
-          }
+            '@ai-spine/tools-core': '^1.0.0',
+          },
         },
-        directory: 'ai-spine-tools'
-      }
+        directory: 'ai-spine-tools',
+      },
     ];
 
     // Create mock root package.json
     const rootPackageJson = {
       name: 'ai-spine-tools-sdk',
       version: '1.0.0',
-      workspaces: ['packages/*']
+      workspaces: ['packages/*'],
     };
 
     fs.writeFileSync(
@@ -95,7 +95,7 @@ describe('Release Automation System (Step 7.2)', () => {
 
     releaseManager = new ReleaseManager({
       verbose: false,
-      dryRun: true
+      dryRun: true,
     });
 
     // Override rootDir for testing
@@ -108,9 +108,9 @@ describe('Release Automation System (Step 7.2)', () => {
   describe('Version Management and Coordination', () => {
     test('should coordinate versions across all packages', async () => {
       const newVersion = await releaseManager.bumpVersion('minor');
-      
+
       expect(newVersion).toBe('1.1.0');
-      
+
       // Verify all packages would be updated
       const rootPackageJson = JSON.parse(
         fs.readFileSync(path.join(testTempDir, 'package.json'), 'utf8')
@@ -120,24 +120,30 @@ describe('Release Automation System (Step 7.2)', () => {
 
     test('should update internal dependencies correctly', async () => {
       await releaseManager.bumpVersion('minor');
-      
+
       // Check that internal dependencies are updated
       const toolsPackageJson = JSON.parse(
-        fs.readFileSync(path.join(testTempDir, 'packages/ai-spine-tools/package.json'), 'utf8')
+        fs.readFileSync(
+          path.join(testTempDir, 'packages/ai-spine-tools/package.json'),
+          'utf8'
+        )
       );
-      
-      expect(toolsPackageJson.dependencies['@ai-spine/tools-core']).toBe('^1.1.0');
+
+      expect(toolsPackageJson.dependencies['@ai-spine/tools-core']).toBe(
+        '^1.1.0'
+      );
     });
 
     test('should validate version format correctness', async () => {
-      await expect(releaseManager.bumpVersion('invalid'))
-        .rejects.toThrow('Invalid version');
+      await expect(releaseManager.bumpVersion('invalid')).rejects.toThrow(
+        'Invalid version'
+      );
     });
 
     test('should handle custom version specification', async () => {
       const customVersion = '2.0.0-beta.1';
       const newVersion = await releaseManager.bumpVersion(null, customVersion);
-      
+
       expect(newVersion).toBe(customVersion);
       expect(semver.valid(newVersion)).toBeTruthy();
     });
@@ -148,12 +154,12 @@ describe('Release Automation System (Step 7.2)', () => {
       const commits = [
         {
           hash: 'abc123',
-          message: 'feat!: redesign API interface'
-        }
+          message: 'feat!: redesign API interface',
+        },
       ];
-      
+
       const analysis = releaseManager.analyzeCommits(commits);
-      
+
       expect(analysis.suggestedBump).toBe('major');
       expect(analysis.breaking.length).toBe(1);
     });
@@ -162,12 +168,12 @@ describe('Release Automation System (Step 7.2)', () => {
       const commits = [
         {
           hash: 'def456',
-          message: 'feat(core): add new tool builder'
-        }
+          message: 'feat(core): add new tool builder',
+        },
       ];
-      
+
       const analysis = releaseManager.analyzeCommits(commits);
-      
+
       expect(analysis.suggestedBump).toBe('minor');
       expect(analysis.features.length).toBe(1);
     });
@@ -176,12 +182,12 @@ describe('Release Automation System (Step 7.2)', () => {
       const commits = [
         {
           hash: 'ghi789',
-          message: 'fix(validation): handle edge case'
-        }
+          message: 'fix(validation): handle edge case',
+        },
       ];
-      
+
       const analysis = releaseManager.analyzeCommits(commits);
-      
+
       expect(analysis.suggestedBump).toBe('patch');
       expect(analysis.fixes.length).toBe(1);
     });
@@ -192,28 +198,32 @@ describe('Release Automation System (Step 7.2)', () => {
         features: [],
         fixes: [],
         other: [],
-        suggestedBump: 'major'
+        suggestedBump: 'major',
       };
 
-      const validation = releaseManager.validateSemanticVersioning('1.0.0', '2.0.0', analysis);
-      
+      const validation = releaseManager.validateSemanticVersioning(
+        '1.0.0',
+        '2.0.0',
+        analysis
+      );
+
       expect(validation.isValid).toBe(true);
       expect(validation.bumpType).toBe('major');
     });
 
     test('should warn when version bump is insufficient', () => {
       const logSpy = jest.spyOn(releaseManager, 'log').mockImplementation();
-      
+
       const analysis = {
         breaking: [{ hash: 'abc', message: 'breaking change' }],
         features: [],
         fixes: [],
         other: [],
-        suggestedBump: 'major'
+        suggestedBump: 'major',
       };
 
       releaseManager.validateSemanticVersioning('1.0.0', '1.0.1', analysis);
-      
+
       expect(logSpy).toHaveBeenCalledWith(
         expect.stringContaining('Warning: Version bump'),
         'warning'
@@ -231,8 +241,8 @@ describe('Release Automation System (Step 7.2)', () => {
             scope: 'api',
             breaking: true,
             description: 'redesign authentication system',
-            raw: 'feat(api)!: redesign authentication system\n\nBREAKING CHANGE: API keys now required'
-          }
+            raw: 'feat(api)!: redesign authentication system\n\nBREAKING CHANGE: API keys now required',
+          },
         ],
         features: [
           {
@@ -241,8 +251,8 @@ describe('Release Automation System (Step 7.2)', () => {
             scope: 'tools',
             breaking: false,
             description: 'add database tool builder',
-            raw: 'feat(tools): add database tool builder'
-          }
+            raw: 'feat(tools): add database tool builder',
+          },
         ],
         fixes: [
           {
@@ -251,8 +261,8 @@ describe('Release Automation System (Step 7.2)', () => {
             scope: 'validation',
             breaking: false,
             description: 'handle null input gracefully',
-            raw: 'fix(validation): handle null input gracefully'
-          }
+            raw: 'fix(validation): handle null input gracefully',
+          },
         ],
         other: [
           {
@@ -261,14 +271,14 @@ describe('Release Automation System (Step 7.2)', () => {
             scope: null,
             breaking: false,
             description: 'update API documentation',
-            raw: 'docs: update API documentation'
-          }
+            raw: 'docs: update API documentation',
+          },
         ],
-        suggestedBump: 'major'
+        suggestedBump: 'major',
       };
 
       const changelog = releaseManager.generateChangelog(analysis, '2.0.0');
-      
+
       expect(changelog).toContain('## [2.0.0]');
       expect(changelog).toContain('### 💥 BREAKING CHANGES');
       expect(changelog).toContain('### 🚀 Features');
@@ -285,11 +295,11 @@ describe('Release Automation System (Step 7.2)', () => {
         features: [],
         fixes: [],
         other: [],
-        suggestedBump: 'patch'
+        suggestedBump: 'patch',
       };
 
       const changelog = releaseManager.generateChangelog(analysis, '1.0.1');
-      
+
       expect(changelog).toContain('### 📦 Packages Updated');
       expect(changelog).toContain('@ai-spine/tools-core@1.0.1');
       expect(changelog).toContain('@ai-spine/tools@1.0.1');
@@ -305,16 +315,16 @@ describe('Release Automation System (Step 7.2)', () => {
             scope: 'core',
             breaking: false,
             description: 'add new feature',
-            raw: 'feat(core): add new feature'
-          }
+            raw: 'feat(core): add new feature',
+          },
         ],
         fixes: [],
         other: [],
-        suggestedBump: 'minor'
+        suggestedBump: 'minor',
       };
 
       const changelog = releaseManager.generateChangelog(analysis, '1.1.0');
-      
+
       expect(changelog).toContain('([abc123](../../commit/abc123))');
       expect(changelog).toContain('**Full Changelog**: [View all changes]');
     });
@@ -331,7 +341,7 @@ describe('Release Automation System (Step 7.2)', () => {
       });
 
       const results = await releaseManager.publishPackages({ dryRun: false });
-      
+
       expect(results).toHaveLength(2);
       expect(results.every(r => r.status === 'published')).toBe(true);
     });
@@ -343,7 +353,7 @@ describe('Release Automation System (Step 7.2)', () => {
       });
 
       const results = await releaseManager.publishPackages({ dryRun: false });
-      
+
       expect(results.every(r => r.status === 'skipped')).toBe(true);
     });
 
@@ -355,8 +365,9 @@ describe('Release Automation System (Step 7.2)', () => {
         return '';
       });
 
-      await expect(releaseManager.publishPackages({ dryRun: false }))
-        .rejects.toThrow('Publishing failed');
+      await expect(
+        releaseManager.publishPackages({ dryRun: false })
+      ).rejects.toThrow('Publishing failed');
     });
 
     test('should verify published packages are available', async () => {
@@ -370,9 +381,9 @@ describe('Release Automation System (Step 7.2)', () => {
       });
 
       const results = await releaseManager.verifyPublishedPackages('1.1.0', {
-        timeout: 10000
+        timeout: 10000,
       });
-      
+
       expect(results.every(r => r.status === 'verified')).toBe(true);
     });
   });
@@ -380,12 +391,14 @@ describe('Release Automation System (Step 7.2)', () => {
   describe('Git Tag Management', () => {
     test('should create git tag with correct format', () => {
       execSync.mockImplementation(() => '');
-      
+
       releaseManager.dryRun = false;
       releaseManager.createGitTag('1.1.0');
-      
+
       expect(execSync).toHaveBeenCalledWith('git add .');
-      expect(execSync).toHaveBeenCalledWith('git commit -m "chore(release): 1.1.0"');
+      expect(execSync).toHaveBeenCalledWith(
+        'git commit -m "chore(release): 1.1.0"'
+      );
       expect(execSync).toHaveBeenCalledWith('git tag v1.1.0');
     });
 
@@ -393,53 +406,55 @@ describe('Release Automation System (Step 7.2)', () => {
       execSync.mockImplementation(() => {
         throw new Error('Git operation failed');
       });
-      
+
       releaseManager.dryRun = false;
-      
-      expect(() => releaseManager.createGitTag('1.1.0'))
-        .toThrow('Git operation failed');
+
+      expect(() => releaseManager.createGitTag('1.1.0')).toThrow(
+        'Git operation failed'
+      );
     });
   });
 
   describe('Rollback Procedures', () => {
     test('should perform rollback with force flag', async () => {
-      execSync.mockImplementation((command) => {
+      execSync.mockImplementation(command => {
         if (command.includes('npm view')) return '1.1.0'; // Version exists
         return '';
       });
 
       const results = await releaseManager.rollbackRelease('1.1.0', {
         force: true,
-        unpublish: true
+        unpublish: true,
       });
-      
+
       expect(results.some(r => r.action === 'remove_tag')).toBe(true);
       expect(results.some(r => r.action === 'unpublish')).toBe(true);
     });
 
     test('should require force flag for rollback', async () => {
-      await expect(releaseManager.rollbackRelease('1.1.0', { force: false }))
-        .rejects.toThrow('Rollback requires --force flag');
+      await expect(
+        releaseManager.rollbackRelease('1.1.0', { force: false })
+      ).rejects.toThrow('Rollback requires --force flag');
     });
 
     test('should handle rollback of non-existent versions', async () => {
-      execSync.mockImplementation((command) => {
+      execSync.mockImplementation(command => {
         if (command.includes('npm view')) return ''; // Version doesn't exist
         return '';
       });
 
       const results = await releaseManager.rollbackRelease('1.1.0', {
         force: true,
-        unpublish: true
+        unpublish: true,
       });
-      
+
       expect(results.some(r => r.status === 'not_found')).toBe(true);
     });
   });
 
   describe('Pre-release Testing and Validation', () => {
     test('should run comprehensive pre-release checks', async () => {
-      execSync.mockImplementation((command) => {
+      execSync.mockImplementation(command => {
         if (command === 'git status --porcelain') return '';
         if (command === 'git branch --show-current') return 'main';
         if (command === 'npm test') return '';
@@ -448,30 +463,32 @@ describe('Release Automation System (Step 7.2)', () => {
       });
 
       const results = await releaseManager.runPreReleaseChecks();
-      
+
       expect(results.every(r => r.passed)).toBe(true);
     });
 
     test('should fail pre-release checks for dirty working directory', async () => {
-      execSync.mockImplementation((command) => {
+      execSync.mockImplementation(command => {
         if (command === 'git status --porcelain') return 'M package.json';
         return '';
       });
 
-      await expect(releaseManager.runPreReleaseChecks())
-        .rejects.toThrow('Pre-release checks failed');
+      await expect(releaseManager.runPreReleaseChecks()).rejects.toThrow(
+        'Pre-release checks failed'
+      );
     });
 
     test('should fail pre-release checks for test failures', async () => {
-      execSync.mockImplementation((command) => {
+      execSync.mockImplementation(command => {
         if (command === 'git status --porcelain') return '';
         if (command === 'git branch --show-current') return 'main';
         if (command === 'npm test') throw new Error('Tests failed');
         return '';
       });
 
-      await expect(releaseManager.runPreReleaseChecks())
-        .rejects.toThrow('Pre-release checks failed');
+      await expect(releaseManager.runPreReleaseChecks()).rejects.toThrow(
+        'Pre-release checks failed'
+      );
     });
   });
 
@@ -489,17 +506,17 @@ describe('Release Automation System (Step 7.2)', () => {
       const commits = [
         { hash: 'abc123', message: 'invalid commit format' },
         { hash: 'def456', message: '' },
-        { hash: 'ghi789', message: 'feat: valid commit' }
+        { hash: 'ghi789', message: 'feat: valid commit' },
       ];
 
       const analysis = releaseManager.analyzeCommits(commits);
-      
+
       expect(analysis.other.length).toBe(2); // Invalid commits go to 'other'
       expect(analysis.features.length).toBe(1);
     });
 
     test('should handle network errors during npm operations', async () => {
-      execSync.mockImplementation((command) => {
+      execSync.mockImplementation(command => {
         if (command.includes('npm view')) {
           throw new Error('Network error');
         }
@@ -507,10 +524,12 @@ describe('Release Automation System (Step 7.2)', () => {
       });
 
       const results = await releaseManager.verifyPublishedPackages('1.1.0', {
-        timeout: 5000
+        timeout: 5000,
       });
-      
-      expect(results.every(r => ['failed', 'timeout'].includes(r.status))).toBe(true);
+
+      expect(results.every(r => ['failed', 'timeout'].includes(r.status))).toBe(
+        true
+      );
     });
   });
 
@@ -533,9 +552,9 @@ describe('Release Automation System (Step 7.2)', () => {
       const result = await releaseManager.performRelease({
         bumpType: 'minor',
         skipPublish: true, // Skip for test
-        skipChecks: false
+        skipChecks: false,
       });
-      
+
       expect(result.version).toMatch(/^\d+\.\d+\.\d+$/);
       expect(result.commits).toBeGreaterThanOrEqual(0);
       expect(result.changes).toBeDefined();
@@ -554,14 +573,14 @@ describe('Release Automation System (Step 7.2)', () => {
       });
 
       releaseManager.dryRun = false;
-      
+
       const result = await releaseManager.performRelease({
         bumpType: 'patch',
         skipPublish: false,
         skipVerify: true, // Skip verification for test speed
-        skipChecks: false
+        skipChecks: false,
       });
-      
+
       expect(result.publishResults).toBeDefined();
       expect(result.publishResults.length).toBe(2);
     });
@@ -575,20 +594,20 @@ describe('Release Automation System (Step 7.2)', () => {
       manager.currentVersion = '1.0.0';
 
       const results = await manager.publishPackages();
-      
+
       expect(results.every(r => r.status === 'dry_run')).toBe(true);
     });
 
     test('should support verbose logging', () => {
       const manager = new ReleaseManager({ verbose: true });
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-      
+
       manager.log('Test message', 'debug');
-      
+
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining('Test message')
       );
-      
+
       consoleSpy.mockRestore();
     });
 
@@ -598,14 +617,14 @@ describe('Release Automation System (Step 7.2)', () => {
         features: [],
         fixes: [],
         other: [],
-        suggestedBump: 'patch'
+        suggestedBump: 'patch',
       };
 
       const changelog = releaseManager.generateChangelog(analysis, '1.0.1', {
         includeCommitLinks: false,
-        includePackageInfo: false
+        includePackageInfo: false,
       });
-      
+
       expect(changelog).not.toContain('### 📦 Packages Updated');
       expect(changelog).not.toContain('](../../commit/');
     });

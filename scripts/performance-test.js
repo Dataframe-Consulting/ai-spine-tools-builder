@@ -2,13 +2,13 @@
 
 /**
  * Performance Testing Script for AI Spine Tools SDK
- * 
+ *
  * This script provides comprehensive performance benchmarking for:
  * - Tool creation and initialization
  * - Request processing throughput
  * - Memory usage and garbage collection
  * - Bundle size and load times
- * 
+ *
  * Used by CI pipeline to detect performance regressions
  */
 
@@ -26,7 +26,7 @@ const colors = {
   magenta: '\x1b[35m',
   cyan: '\x1b[36m',
   reset: '\x1b[0m',
-  bold: '\x1b[1m'
+  bold: '\x1b[1m',
 };
 
 /**
@@ -40,7 +40,7 @@ class PerformanceTester {
     this.results = {
       timestamp: new Date().toISOString(),
       environment: this.getEnvironmentInfo(),
-      tests: {}
+      tests: {},
     };
   }
 
@@ -55,7 +55,7 @@ class PerformanceTester {
       nodeVersion: process.version,
       totalMemory: Math.round(os.totalmem() / 1024 / 1024 / 1024), // GB
       cpuCount: os.cpus().length,
-      cpuModel: os.cpus()[0]?.model || 'Unknown'
+      cpuModel: os.cpus()[0]?.model || 'Unknown',
     };
   }
 
@@ -65,7 +65,7 @@ class PerformanceTester {
       success: `${colors.green}✅${colors.reset}`,
       warning: `${colors.yellow}⚠️${colors.reset}`,
       error: `${colors.red}❌${colors.reset}`,
-      perf: `${colors.magenta}⚡${colors.reset}`
+      perf: `${colors.magenta}⚡${colors.reset}`,
     };
 
     if (this.verbose || level !== 'debug') {
@@ -78,10 +78,10 @@ class PerformanceTester {
    */
   async measurePerformance(name, fn, iterations = 1) {
     this.log(`Running ${name} benchmark (${iterations} iterations)...`, 'perf');
-    
+
     const measurements = [];
     const initialMemory = process.memoryUsage();
-    
+
     // Warm up
     if (iterations > 10) {
       for (let i = 0; i < Math.min(10, iterations); i++) {
@@ -109,17 +109,20 @@ class PerformanceTester {
 
     // Calculate statistics
     const totalTime = endTime - startTime;
-    const avgTime = measurements.reduce((a, b) => a + b, 0) / measurements.length;
+    const avgTime =
+      measurements.reduce((a, b) => a + b, 0) / measurements.length;
     const minTime = Math.min(...measurements);
     const maxTime = Math.max(...measurements);
-    const medianTime = measurements.sort((a, b) => a - b)[Math.floor(measurements.length / 2)];
-    
+    const medianTime = measurements.sort((a, b) => a - b)[
+      Math.floor(measurements.length / 2)
+    ];
+
     // Memory delta
     const memoryDelta = {
       rss: endMemory.rss - startMemory.rss,
       heapUsed: endMemory.heapUsed - startMemory.heapUsed,
       heapTotal: endMemory.heapTotal - startMemory.heapTotal,
-      external: endMemory.external - startMemory.external
+      external: endMemory.external - startMemory.external,
     };
 
     const result = {
@@ -131,17 +134,20 @@ class PerformanceTester {
         min: Math.round(minTime * 100) / 100,
         max: Math.round(maxTime * 100) / 100,
         median: Math.round(medianTime * 100) / 100,
-        throughput: Math.round((iterations / totalTime) * 1000) // ops/sec
+        throughput: Math.round((iterations / totalTime) * 1000), // ops/sec
       },
       memory: {
         rss: Math.round(memoryDelta.rss / 1024), // KB
         heapUsed: Math.round(memoryDelta.heapUsed / 1024), // KB
         heapTotal: Math.round(memoryDelta.heapTotal / 1024), // KB
-        external: Math.round(memoryDelta.external / 1024) // KB
-      }
+        external: Math.round(memoryDelta.external / 1024), // KB
+      },
     };
 
-    this.log(`✅ ${name}: ${result.timing.average}ms avg, ${result.timing.throughput} ops/sec`, 'success');
+    this.log(
+      `✅ ${name}: ${result.timing.average}ms avg, ${result.timing.throughput} ops/sec`,
+      'success'
+    );
     return result;
   }
 
@@ -150,7 +156,7 @@ class PerformanceTester {
    */
   async testToolCreation() {
     this.log('Testing tool creation performance...', 'info');
-    
+
     // Dynamically import createTool to avoid loading it before the test
     const createToolTest = async () => {
       // Simulate tool creation without actually importing the heavy modules
@@ -158,22 +164,22 @@ class PerformanceTester {
         metadata: {
           name: 'test-tool',
           version: '1.0.0',
-          description: 'Performance test tool'
+          description: 'Performance test tool',
         },
         schema: {
           input: {
-            message: { type: 'string', required: true }
-          }
+            message: { type: 'string', required: true },
+          },
         },
-        execute: async (input) => ({ result: input.message })
+        execute: async input => ({ result: input.message }),
       };
-      
+
       // Simulate the tool creation process timing
       const start = performance.now();
-      
+
       // Simulate validation and initialization
       JSON.stringify(toolDefinition);
-      
+
       // Simulate schema compilation
       const schemaKeys = Object.keys(toolDefinition.schema.input);
       schemaKeys.forEach(key => {
@@ -182,12 +188,16 @@ class PerformanceTester {
           // Simulate validation logic
         }
       });
-      
+
       const end = performance.now();
       return end - start;
     };
 
-    const result = await this.measurePerformance('Tool Creation', createToolTest, this.iterations);
+    const result = await this.measurePerformance(
+      'Tool Creation',
+      createToolTest,
+      this.iterations
+    );
     this.results.tests.toolCreation = result;
     return result;
   }
@@ -197,41 +207,48 @@ class PerformanceTester {
    */
   async testRequestProcessing() {
     this.log('Testing request processing performance...', 'info');
-    
+
     const requestProcessingTest = async () => {
       // Simulate a typical request processing cycle
       const inputData = {
         input_data: {
-          message: 'Hello, World! This is a performance test message.'
-        }
+          message: 'Hello, World! This is a performance test message.',
+        },
       };
-      
+
       // Simulate validation
       const start = performance.now();
-      
+
       // Input validation simulation
-      if (!inputData.input_data || typeof inputData.input_data.message !== 'string') {
+      if (
+        !inputData.input_data ||
+        typeof inputData.input_data.message !== 'string'
+      ) {
         throw new Error('Invalid input');
       }
-      
+
       // Simulate tool execution
       const result = {
         status: 'success',
         data: {
           message: inputData.input_data.message,
           timestamp: Date.now(),
-          processed: true
-        }
+          processed: true,
+        },
       };
-      
+
       // Response serialization
       JSON.stringify(result);
-      
+
       const end = performance.now();
       return end - start;
     };
 
-    const result = await this.measurePerformance('Request Processing', requestProcessingTest, this.iterations * 10);
+    const result = await this.measurePerformance(
+      'Request Processing',
+      requestProcessingTest,
+      this.iterations * 10
+    );
     this.results.tests.requestProcessing = result;
     return result;
   }
@@ -241,29 +258,33 @@ class PerformanceTester {
    */
   async testBundlePerformance() {
     this.log('Testing bundle performance...', 'info');
-    
+
     const bundleTest = async () => {
       const start = performance.now();
-      
+
       // Simulate module loading without actually requiring heavy modules
       const moduleSize = 1024 * 50; // Simulate 50KB module
       const buffer = Buffer.alloc(moduleSize);
-      
+
       // Simulate parsing and initialization
       const mockModule = {
         createTool: () => ({ start: () => Promise.resolve() }),
         fieldBuilders: {},
-        validators: {}
+        validators: {},
       };
-      
+
       // Simulate initialization time
       await new Promise(resolve => setTimeout(resolve, 1));
-      
+
       const end = performance.now();
       return end - start;
     };
 
-    const result = await this.measurePerformance('Bundle Loading', bundleTest, Math.min(this.iterations, 50));
+    const result = await this.measurePerformance(
+      'Bundle Loading',
+      bundleTest,
+      Math.min(this.iterations, 50)
+    );
     this.results.tests.bundlePerformance = result;
     return result;
   }
@@ -273,34 +294,38 @@ class PerformanceTester {
    */
   async testMemoryUsage() {
     this.log('Testing memory usage patterns...', 'info');
-    
+
     const memoryTest = async () => {
       // Create objects to simulate memory usage
       const objects = [];
-      
+
       for (let i = 0; i < 100; i++) {
         objects.push({
           id: i,
           data: Buffer.alloc(1024), // 1KB buffer
           metadata: {
             timestamp: Date.now(),
-            random: Math.random()
-          }
+            random: Math.random(),
+          },
         });
       }
-      
+
       // Process objects
       const processed = objects.map(obj => ({
         ...obj,
-        processed: true
+        processed: true,
       }));
-      
+
       // Clear references
       objects.length = 0;
       processed.length = 0;
     };
 
-    const result = await this.measurePerformance('Memory Usage', memoryTest, Math.min(this.iterations, 100));
+    const result = await this.measurePerformance(
+      'Memory Usage',
+      memoryTest,
+      Math.min(this.iterations, 100)
+    );
     this.results.tests.memoryUsage = result;
     return result;
   }
@@ -310,34 +335,37 @@ class PerformanceTester {
    */
   async runAllTests() {
     this.log('Starting comprehensive performance testing...', 'info');
-    
+
     try {
       if (this.testType === 'tool-creation' || this.testType === 'all') {
         await this.testToolCreation();
       }
-      
+
       if (this.testType === 'request-processing' || this.testType === 'all') {
         await this.testRequestProcessing();
       }
-      
+
       if (this.testType === 'bundle-performance' || this.testType === 'all') {
         await this.testBundlePerformance();
       }
-      
+
       if (this.testType === 'memory-usage' || this.testType === 'all') {
         await this.testMemoryUsage();
       }
-      
+
       // Save results
-      const resultsPath = path.join(__dirname, '..', 'performance-results.json');
+      const resultsPath = path.join(
+        __dirname,
+        '..',
+        'performance-results.json'
+      );
       fs.writeFileSync(resultsPath, JSON.stringify(this.results, null, 2));
-      
+
       this.log('Performance testing completed successfully!', 'success');
       this.log(`Results saved to: ${resultsPath}`, 'info');
-      
+
       // Print summary
       this.printSummary();
-      
     } catch (error) {
       this.log(`Performance testing failed: ${error.message}`, 'error');
       process.exit(1);
@@ -349,15 +377,23 @@ class PerformanceTester {
    */
   printSummary() {
     console.log(`\n${colors.bold}Performance Test Summary${colors.reset}`);
-    console.log(`${colors.cyan}Environment: ${this.results.environment.platform} ${this.results.environment.arch}, Node.js ${this.results.environment.nodeVersion}${colors.reset}`);
-    console.log(`${colors.cyan}CPU: ${this.results.environment.cpuModel} (${this.results.environment.cpuCount} cores)${colors.reset}`);
-    console.log(`${colors.cyan}Memory: ${this.results.environment.totalMemory}GB${colors.reset}\n`);
-    
+    console.log(
+      `${colors.cyan}Environment: ${this.results.environment.platform} ${this.results.environment.arch}, Node.js ${this.results.environment.nodeVersion}${colors.reset}`
+    );
+    console.log(
+      `${colors.cyan}CPU: ${this.results.environment.cpuModel} (${this.results.environment.cpuCount} cores)${colors.reset}`
+    );
+    console.log(
+      `${colors.cyan}Memory: ${this.results.environment.totalMemory}GB${colors.reset}\n`
+    );
+
     Object.entries(this.results.tests).forEach(([testName, result]) => {
       console.log(`${colors.bold}${result.name}:${colors.reset}`);
       console.log(`  Average: ${result.timing.average}ms`);
       console.log(`  Throughput: ${result.timing.throughput} ops/sec`);
-      console.log(`  Memory: ${result.memory.heapUsed}KB heap, ${result.memory.rss}KB RSS`);
+      console.log(
+        `  Memory: ${result.memory.heapUsed}KB heap, ${result.memory.rss}KB RSS`
+      );
       console.log('');
     });
   }
@@ -367,7 +403,7 @@ class PerformanceTester {
 if (require.main === module) {
   const args = process.argv.slice(2);
   const options = {};
-  
+
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
     if (arg.startsWith('--test=')) {
@@ -378,7 +414,7 @@ if (require.main === module) {
       options.verbose = true;
     }
   }
-  
+
   const tester = new PerformanceTester(options);
   tester.runAllTests().catch(error => {
     console.error('Performance testing failed:', error);

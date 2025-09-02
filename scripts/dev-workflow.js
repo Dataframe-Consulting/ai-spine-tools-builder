@@ -18,7 +18,7 @@ const colors = {
   magenta: '\x1b[35m',
   cyan: '\x1b[36m',
   reset: '\x1b[0m',
-  bold: '\x1b[1m'
+  bold: '\x1b[1m',
 };
 
 /**
@@ -30,7 +30,7 @@ class DevWorkflowManager {
     this.rootDir = path.resolve(__dirname, '..');
     this.packagesDir = path.join(this.rootDir, 'packages');
     this.examplesDir = path.join(this.rootDir, 'examples');
-    
+
     this.packages = this.discoverPackages();
     this.runningProcesses = new Map();
   }
@@ -41,7 +41,7 @@ class DevWorkflowManager {
       success: `${colors.green}✅${colors.reset}`,
       warning: `${colors.yellow}⚠️${colors.reset}`,
       error: `${colors.red}❌${colors.reset}`,
-      debug: `${colors.cyan}🔍${colors.reset}`
+      debug: `${colors.cyan}🔍${colors.reset}`,
     };
 
     if (this.verbose || level !== 'debug') {
@@ -55,25 +55,29 @@ class DevWorkflowManager {
    */
   discoverPackages() {
     const packages = new Map();
-    
+
     // Discover packages
     if (fs.existsSync(this.packagesDir)) {
-      const packageDirs = fs.readdirSync(this.packagesDir).filter(dir => 
-        fs.statSync(path.join(this.packagesDir, dir)).isDirectory()
-      );
-      
+      const packageDirs = fs
+        .readdirSync(this.packagesDir)
+        .filter(dir =>
+          fs.statSync(path.join(this.packagesDir, dir)).isDirectory()
+        );
+
       for (const dir of packageDirs) {
         const packagePath = path.join(this.packagesDir, dir);
         const packageJsonPath = path.join(packagePath, 'package.json');
-        
+
         if (fs.existsSync(packageJsonPath)) {
-          const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+          const packageJson = JSON.parse(
+            fs.readFileSync(packageJsonPath, 'utf8')
+          );
           packages.set(packageJson.name || dir, {
             name: packageJson.name || dir,
             path: packagePath,
             packageJson,
             type: 'package',
-            directory: dir
+            directory: dir,
           });
         }
       }
@@ -81,22 +85,26 @@ class DevWorkflowManager {
 
     // Discover examples
     if (fs.existsSync(this.examplesDir)) {
-      const exampleDirs = fs.readdirSync(this.examplesDir).filter(dir => 
-        fs.statSync(path.join(this.examplesDir, dir)).isDirectory()
-      );
-      
+      const exampleDirs = fs
+        .readdirSync(this.examplesDir)
+        .filter(dir =>
+          fs.statSync(path.join(this.examplesDir, dir)).isDirectory()
+        );
+
       for (const dir of exampleDirs) {
         const examplePath = path.join(this.examplesDir, dir);
         const packageJsonPath = path.join(examplePath, 'package.json');
-        
+
         if (fs.existsSync(packageJsonPath)) {
-          const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+          const packageJson = JSON.parse(
+            fs.readFileSync(packageJsonPath, 'utf8')
+          );
           packages.set(packageJson.name || dir, {
             name: packageJson.name || dir,
             path: examplePath,
             packageJson,
             type: 'example',
-            directory: dir
+            directory: dir,
           });
         }
       }
@@ -111,12 +119,17 @@ class DevWorkflowManager {
    */
   async startDevServers(packageNames = []) {
     this.log('Starting development servers...', 'info');
-    
-    const packagesToStart = packageNames.length > 0
-      ? Array.from(this.packages.values()).filter(pkg => packageNames.includes(pkg.name))
-      : Array.from(this.packages.values());
 
-    const packagesWithDev = packagesWithDev.filter(pkg => pkg.packageJson.scripts?.dev);
+    const packagesToStart =
+      packageNames.length > 0
+        ? Array.from(this.packages.values()).filter(pkg =>
+            packageNames.includes(pkg.name)
+          )
+        : Array.from(this.packages.values());
+
+    const packagesWithDev = packagesWithDev.filter(
+      pkg => pkg.packageJson.scripts?.dev
+    );
 
     if (packagesWithDev.length === 0) {
       this.log('No packages with dev scripts found', 'warning');
@@ -132,7 +145,10 @@ class DevWorkflowManager {
     process.on('SIGINT', () => this.stopAllServers());
     process.on('SIGTERM', () => this.stopAllServers());
 
-    this.log(`Started ${packagesWithDev.length} development servers`, 'success');
+    this.log(
+      `Started ${packagesWithDev.length} development servers`,
+      'success'
+    );
     this.log('Press Ctrl+C to stop all servers', 'info');
 
     // Keep the process running
@@ -149,22 +165,26 @@ class DevWorkflowManager {
       const child = spawn('npm', ['run', 'dev'], {
         cwd: pkg.path,
         stdio: this.verbose ? 'inherit' : ['ignore', 'pipe', 'pipe'],
-        shell: true
+        shell: true,
       });
 
       this.runningProcesses.set(pkg.name, child);
 
       if (!this.verbose && child.stdout) {
-        child.stdout.on('data', (data) => {
+        child.stdout.on('data', data => {
           const output = data.toString();
-          if (output.includes('listening') || output.includes('started') || output.includes('ready')) {
+          if (
+            output.includes('listening') ||
+            output.includes('started') ||
+            output.includes('ready')
+          ) {
             this.log(`${pkg.name}: ${output.trim()}`, 'success');
           }
         });
       }
 
       if (!this.verbose && child.stderr) {
-        child.stderr.on('data', (data) => {
+        child.stderr.on('data', data => {
           const error = data.toString();
           if (!error.includes('warning') && !error.includes('deprecated')) {
             this.log(`${pkg.name}: ${error.trim()}`, 'error');
@@ -172,19 +192,25 @@ class DevWorkflowManager {
         });
       }
 
-      child.on('close', (code) => {
+      child.on('close', code => {
         this.runningProcesses.delete(pkg.name);
         if (code === 0) {
           this.log(`Dev server for ${pkg.name} stopped gracefully`, 'info');
         } else {
-          this.log(`Dev server for ${pkg.name} exited with code ${code}`, 'warning');
+          this.log(
+            `Dev server for ${pkg.name} exited with code ${code}`,
+            'warning'
+          );
         }
         resolve();
       });
 
-      child.on('error', (error) => {
+      child.on('error', error => {
         this.runningProcesses.delete(pkg.name);
-        this.log(`Failed to start dev server for ${pkg.name}: ${error.message}`, 'error');
+        this.log(
+          `Failed to start dev server for ${pkg.name}: ${error.message}`,
+          'error'
+        );
         reject(error);
       });
 
@@ -201,7 +227,7 @@ class DevWorkflowManager {
    */
   stopAllServers() {
     this.log('Stopping all development servers...', 'info');
-    
+
     for (const [name, process] of this.runningProcesses) {
       this.log(`Stopping ${name}...`, 'info');
       process.kill('SIGTERM');
@@ -222,20 +248,24 @@ class DevWorkflowManager {
    */
   async linkPackages() {
     this.log('Linking packages for local development...', 'info');
-    
-    const corePackages = Array.from(this.packages.values())
-      .filter(pkg => pkg.type === 'package');
+
+    const corePackages = Array.from(this.packages.values()).filter(
+      pkg => pkg.type === 'package'
+    );
 
     // First, run npm link in all core packages
     for (const pkg of corePackages) {
       try {
         this.log(`Creating global link for ${pkg.name}...`, 'info');
-        execSync('npm link', { 
-          cwd: pkg.path, 
-          stdio: this.verbose ? 'inherit' : 'pipe' 
+        execSync('npm link', {
+          cwd: pkg.path,
+          stdio: this.verbose ? 'inherit' : 'pipe',
         });
       } catch (error) {
-        this.log(`Failed to create link for ${pkg.name}: ${error.message}`, 'error');
+        this.log(
+          `Failed to create link for ${pkg.name}: ${error.message}`,
+          'error'
+        );
       }
     }
 
@@ -243,19 +273,22 @@ class DevWorkflowManager {
     for (const pkg of Array.from(this.packages.values())) {
       const deps = {
         ...pkg.packageJson.dependencies,
-        ...pkg.packageJson.devDependencies
+        ...pkg.packageJson.devDependencies,
       };
 
       for (const depName of Object.keys(deps)) {
         if (this.packages.has(depName)) {
           try {
             this.log(`Linking ${depName} in ${pkg.name}...`, 'info');
-            execSync(`npm link ${depName}`, { 
-              cwd: pkg.path, 
-              stdio: this.verbose ? 'inherit' : 'pipe' 
+            execSync(`npm link ${depName}`, {
+              cwd: pkg.path,
+              stdio: this.verbose ? 'inherit' : 'pipe',
             });
           } catch (error) {
-            this.log(`Failed to link ${depName} in ${pkg.name}: ${error.message}`, 'error');
+            this.log(
+              `Failed to link ${depName} in ${pkg.name}: ${error.message}`,
+              'error'
+            );
           }
         }
       }
@@ -269,13 +302,13 @@ class DevWorkflowManager {
    */
   async unlinkPackages() {
     this.log('Unlinking packages...', 'info');
-    
+
     for (const pkg of this.packages.values()) {
       try {
         this.log(`Unlinking ${pkg.name}...`, 'info');
-        execSync('npm unlink', { 
-          cwd: pkg.path, 
-          stdio: this.verbose ? 'inherit' : 'pipe' 
+        execSync('npm unlink', {
+          cwd: pkg.path,
+          stdio: this.verbose ? 'inherit' : 'pipe',
         });
       } catch (error) {
         // Ignore errors for unlinking
@@ -291,13 +324,21 @@ class DevWorkflowManager {
    */
   async watchAndRebuild(packageNames = []) {
     this.log('Starting watch mode for packages...', 'info');
-    
-    const packagesToWatch = packageNames.length > 0
-      ? Array.from(this.packages.values()).filter(pkg => packageNames.includes(pkg.name))
-      : Array.from(this.packages.values()).filter(pkg => pkg.type === 'package');
 
-    const watchablePackages = packagesToWatch.filter(pkg => 
-      pkg.packageJson.scripts?.dev || pkg.packageJson.scripts?.watch || pkg.packageJson.scripts?.['dev:watch']
+    const packagesToWatch =
+      packageNames.length > 0
+        ? Array.from(this.packages.values()).filter(pkg =>
+            packageNames.includes(pkg.name)
+          )
+        : Array.from(this.packages.values()).filter(
+            pkg => pkg.type === 'package'
+          );
+
+    const watchablePackages = packagesToWatch.filter(
+      pkg =>
+        pkg.packageJson.scripts?.dev ||
+        pkg.packageJson.scripts?.watch ||
+        pkg.packageJson.scripts?.['dev:watch']
     );
 
     if (watchablePackages.length === 0) {
@@ -314,7 +355,10 @@ class DevWorkflowManager {
     process.on('SIGINT', () => this.stopAllWatchers());
     process.on('SIGTERM', () => this.stopAllWatchers());
 
-    this.log(`Started watchers for ${watchablePackages.length} packages`, 'success');
+    this.log(
+      `Started watchers for ${watchablePackages.length} packages`,
+      'success'
+    );
     this.log('Press Ctrl+C to stop all watchers', 'info');
 
     // Keep the process running
@@ -325,40 +369,48 @@ class DevWorkflowManager {
    * Start watcher for a single package
    */
   async startWatcher(pkg) {
-    return new Promise((resolve) => {
-      const script = pkg.packageJson.scripts['dev:watch'] || 
-                   pkg.packageJson.scripts.dev || 
-                   pkg.packageJson.scripts.watch;
-      
+    return new Promise(resolve => {
+      const script =
+        pkg.packageJson.scripts['dev:watch'] ||
+        pkg.packageJson.scripts.dev ||
+        pkg.packageJson.scripts.watch;
+
       const [command, ...args] = script.split(' ');
-      
+
       this.log(`Starting watcher for ${pkg.name}...`, 'info');
 
       const child = spawn(command, args, {
         cwd: pkg.path,
         stdio: this.verbose ? 'inherit' : ['ignore', 'pipe', 'pipe'],
-        shell: true
+        shell: true,
       });
 
       this.runningProcesses.set(`${pkg.name}-watch`, child);
 
       if (!this.verbose && child.stdout) {
-        child.stdout.on('data', (data) => {
+        child.stdout.on('data', data => {
           const output = data.toString();
-          if (output.includes('compiled') || output.includes('built') || output.includes('watching')) {
+          if (
+            output.includes('compiled') ||
+            output.includes('built') ||
+            output.includes('watching')
+          ) {
             this.log(`${pkg.name}: ${output.trim()}`, 'success');
           }
         });
       }
 
-      child.on('close', (code) => {
+      child.on('close', code => {
         this.runningProcesses.delete(`${pkg.name}-watch`);
         this.log(`Watcher for ${pkg.name} stopped`, 'info');
       });
 
-      child.on('error', (error) => {
+      child.on('error', error => {
         this.runningProcesses.delete(`${pkg.name}-watch`);
-        this.log(`Failed to start watcher for ${pkg.name}: ${error.message}`, 'error');
+        this.log(
+          `Failed to start watcher for ${pkg.name}: ${error.message}`,
+          'error'
+        );
       });
 
       // Give the watcher a moment to start
@@ -374,7 +426,7 @@ class DevWorkflowManager {
    */
   stopAllWatchers() {
     this.log('Stopping all watchers...', 'info');
-    
+
     for (const [name, process] of this.runningProcesses) {
       if (name.endsWith('-watch')) {
         this.log(`Stopping watcher ${name}...`, 'info');
@@ -392,9 +444,9 @@ class DevWorkflowManager {
    */
   async healthCheck() {
     this.log('Running development environment health check...', 'info');
-    
+
     const checks = [];
-    
+
     // Check Node.js version
     try {
       const nodeVersion = process.version;
@@ -403,13 +455,13 @@ class DevWorkflowManager {
       checks.push({
         name: 'Node.js version',
         status: satisfies ? 'pass' : 'fail',
-        details: `${nodeVersion} (required: >= ${requiredNode})`
+        details: `${nodeVersion} (required: >= ${requiredNode})`,
       });
     } catch (error) {
       checks.push({
         name: 'Node.js version',
         status: 'fail',
-        details: error.message
+        details: error.message,
       });
     }
 
@@ -419,13 +471,13 @@ class DevWorkflowManager {
       checks.push({
         name: 'npm version',
         status: 'pass',
-        details: npmVersion
+        details: npmVersion,
       });
     } catch (error) {
       checks.push({
         name: 'npm version',
         status: 'fail',
-        details: 'npm not found'
+        details: 'npm not found',
       });
     }
 
@@ -437,7 +489,9 @@ class DevWorkflowManager {
         checks.push({
           name: `${pkg.name} built`,
           status: hasBuilt ? 'pass' : 'warning',
-          details: hasBuilt ? 'dist/ exists' : 'dist/ not found (run npm run build)'
+          details: hasBuilt
+            ? 'dist/ exists'
+            : 'dist/ not found (run npm run build)',
         });
       }
     }
@@ -450,20 +504,22 @@ class DevWorkflowManager {
         checks.push({
           name: tool,
           status: 'pass',
-          details: 'available'
+          details: 'available',
         });
       } catch (error) {
         checks.push({
           name: tool,
           status: 'info',
-          details: 'not found (optional)'
+          details: 'not found (optional)',
         });
       }
     }
 
     // Print results
-    console.log(`\n${colors.bold}${colors.cyan}🏥 Development Environment Health Check${colors.reset}`);
-    console.log('=' .repeat(60));
+    console.log(
+      `\n${colors.bold}${colors.cyan}🏥 Development Environment Health Check${colors.reset}`
+    );
+    console.log('='.repeat(60));
 
     let passCount = 0;
     let failCount = 0;
@@ -472,7 +528,7 @@ class DevWorkflowManager {
     for (const check of checks) {
       let statusColor = colors.green;
       let statusIcon = '✅';
-      
+
       if (check.status === 'fail') {
         statusColor = colors.red;
         statusIcon = '❌';
@@ -488,17 +544,27 @@ class DevWorkflowManager {
         passCount++;
       }
 
-      console.log(`${statusIcon} ${statusColor}${check.name}${colors.reset}: ${check.details}`);
+      console.log(
+        `${statusIcon} ${statusColor}${check.name}${colors.reset}: ${check.details}`
+      );
     }
 
-    console.log(`\n${colors.bold}Summary:${colors.reset} ${colors.green}${passCount} passed${colors.reset}, ${colors.yellow}${warningCount} warnings${colors.reset}, ${colors.red}${failCount} failed${colors.reset}`);
+    console.log(
+      `\n${colors.bold}Summary:${colors.reset} ${colors.green}${passCount} passed${colors.reset}, ${colors.yellow}${warningCount} warnings${colors.reset}, ${colors.red}${failCount} failed${colors.reset}`
+    );
 
     if (failCount > 0) {
-      console.log(`\n${colors.red}Some critical checks failed. Please address these issues before development.${colors.reset}`);
+      console.log(
+        `\n${colors.red}Some critical checks failed. Please address these issues before development.${colors.reset}`
+      );
     } else if (warningCount > 0) {
-      console.log(`\n${colors.yellow}Some optional checks have warnings. Development should work but might be improved.${colors.reset}`);
+      console.log(
+        `\n${colors.yellow}Some optional checks have warnings. Development should work but might be improved.${colors.reset}`
+      );
     } else {
-      console.log(`\n${colors.green}All checks passed! Your development environment is ready.${colors.reset}`);
+      console.log(
+        `\n${colors.green}All checks passed! Your development environment is ready.${colors.reset}`
+      );
     }
 
     return { checks, passCount, failCount, warningCount };
@@ -508,15 +574,20 @@ class DevWorkflowManager {
    * Print development workflow status
    */
   printStatus() {
-    console.log(`${colors.bold}${colors.cyan}📊 Development Workflow Status${colors.reset}`);
-    console.log('=' .repeat(60));
+    console.log(
+      `${colors.bold}${colors.cyan}📊 Development Workflow Status${colors.reset}`
+    );
+    console.log('='.repeat(60));
 
     // Package overview
     console.log(`\n${colors.bold}📦 Package Overview${colors.reset}`);
-    const packageTypes = Array.from(this.packages.values()).reduce((acc, pkg) => {
-      acc[pkg.type] = (acc[pkg.type] || 0) + 1;
-      return acc;
-    }, {});
+    const packageTypes = Array.from(this.packages.values()).reduce(
+      (acc, pkg) => {
+        acc[pkg.type] = (acc[pkg.type] || 0) + 1;
+        return acc;
+      },
+      {}
+    );
 
     for (const [type, count] of Object.entries(packageTypes)) {
       console.log(`  ${type}: ${count}`);
@@ -528,7 +599,7 @@ class DevWorkflowManager {
       dev: 0,
       watch: 0,
       start: 0,
-      test: 0
+      test: 0,
     };
 
     for (const pkg of this.packages.values()) {
@@ -561,9 +632,9 @@ class DevWorkflowManager {
 async function main() {
   const args = process.argv.slice(2);
   const command = args[0];
-  
+
   const options = {
-    verbose: args.includes('--verbose') || args.includes('-v')
+    verbose: args.includes('--verbose') || args.includes('-v'),
   };
 
   const manager = new DevWorkflowManager(options);
@@ -571,12 +642,16 @@ async function main() {
   try {
     switch (command) {
       case 'start':
-        const packagesForStart = args.slice(1).filter(arg => !arg.startsWith('--'));
+        const packagesForStart = args
+          .slice(1)
+          .filter(arg => !arg.startsWith('--'));
         await manager.startDevServers(packagesForStart);
         break;
 
       case 'watch':
-        const packagesForWatch = args.slice(1).filter(arg => !arg.startsWith('--'));
+        const packagesForWatch = args
+          .slice(1)
+          .filter(arg => !arg.startsWith('--'));
         await manager.watchAndRebuild(packagesForWatch);
         break;
 
@@ -597,26 +672,46 @@ async function main() {
         break;
 
       default:
-        console.log(`${colors.bold}AI Spine Tools Development Workflow Manager${colors.reset}`);
+        console.log(
+          `${colors.bold}AI Spine Tools Development Workflow Manager${colors.reset}`
+        );
         console.log('');
-        console.log('Usage: node scripts/dev-workflow.js <command> [packages...] [options]');
+        console.log(
+          'Usage: node scripts/dev-workflow.js <command> [packages...] [options]'
+        );
         console.log('');
         console.log('Commands:');
-        console.log('  start [pkg...]    Start development servers for packages');
-        console.log('  watch [pkg...]    Watch and rebuild packages on changes');
+        console.log(
+          '  start [pkg...]    Start development servers for packages'
+        );
+        console.log(
+          '  watch [pkg...]    Watch and rebuild packages on changes'
+        );
         console.log('  link              Link packages for local development');
         console.log('  unlink            Unlink all packages');
-        console.log('  health            Run development environment health check');
-        console.log('  status            Show current development workflow status');
+        console.log(
+          '  health            Run development environment health check'
+        );
+        console.log(
+          '  status            Show current development workflow status'
+        );
         console.log('');
         console.log('Options:');
         console.log('  --verbose, -v     Show detailed output');
         console.log('');
         console.log('Examples:');
-        console.log('  node scripts/dev-workflow.js start                    # Start all dev servers');
-        console.log('  node scripts/dev-workflow.js start @ai-spine/tools    # Start specific package');
-        console.log('  node scripts/dev-workflow.js watch                    # Watch all packages');
-        console.log('  node scripts/dev-workflow.js link                     # Link packages locally');
+        console.log(
+          '  node scripts/dev-workflow.js start                    # Start all dev servers'
+        );
+        console.log(
+          '  node scripts/dev-workflow.js start @ai-spine/tools    # Start specific package'
+        );
+        console.log(
+          '  node scripts/dev-workflow.js watch                    # Watch all packages'
+        );
+        console.log(
+          '  node scripts/dev-workflow.js link                     # Link packages locally'
+        );
         break;
     }
   } catch (error) {

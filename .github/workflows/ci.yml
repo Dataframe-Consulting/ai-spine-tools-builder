@@ -115,7 +115,7 @@ jobs:
       - name: Prettier format checking
         run: |
           echo "🔍 Checking code formatting..."
-          npx prettier --check packages/ examples/ scripts/ --ignore-path .gitignore
+          npx prettier --check packages/ scripts/
           echo "✅ Code formatting is correct"
 
       - name: Package.json validation

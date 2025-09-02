@@ -20,7 +20,7 @@ const colors = {
   magenta: '\x1b[35m',
   cyan: '\x1b[36m',
   reset: '\x1b[0m',
-  bold: '\x1b[1m'
+  bold: '\x1b[1m',
 };
 
 /**
@@ -36,8 +36,8 @@ class BuildVerifier {
         total: 0,
         passed: 0,
         failed: 0,
-        errors: []
-      }
+        errors: [],
+      },
     };
   }
 
@@ -46,7 +46,7 @@ class BuildVerifier {
       info: `${colors.blue}ℹ${colors.reset}`,
       success: `${colors.green}✅${colors.reset}`,
       warning: `${colors.yellow}⚠️${colors.reset}`,
-      error: `${colors.red}❌${colors.reset}`
+      error: `${colors.red}❌${colors.reset}`,
     };
 
     if (this.verbose || level !== 'info') {
@@ -62,7 +62,7 @@ class BuildVerifier {
     const results = {
       passed: true,
       artifacts: {},
-      missing: []
+      missing: [],
     };
 
     if (!fs.existsSync(distPath)) {
@@ -82,7 +82,7 @@ class BuildVerifier {
         results.artifacts[file] = {
           exists: true,
           size: stats.size,
-          sizeKB: (stats.size / 1024).toFixed(2)
+          sizeKB: (stats.size / 1024).toFixed(2),
         };
       } else {
         results.passed = false;
@@ -97,7 +97,7 @@ class BuildVerifier {
         results.artifacts[file] = {
           exists: true,
           size: stats.size,
-          sizeKB: (stats.size / 1024).toFixed(2)
+          sizeKB: (stats.size / 1024).toFixed(2),
         };
       }
     }
@@ -112,23 +112,25 @@ class BuildVerifier {
     const distPath = path.join(packagePath, 'dist');
     const results = {
       passed: true,
-      errors: []
+      errors: [],
     };
 
     const jsFiles = ['index.js', 'index.esm.js', 'index.umd.js'];
 
     for (const file of jsFiles) {
       const filePath = path.join(distPath, file);
-      
+
       if (fs.existsSync(filePath)) {
         try {
           // Basic syntax check by requiring the file
           const content = fs.readFileSync(filePath, 'utf8');
-          
+
           // Check for common syntax errors
-          if (content.includes('undefined exports') || 
-              content.includes('undefined module') ||
-              content.includes('SyntaxError')) {
+          if (
+            content.includes('undefined exports') ||
+            content.includes('undefined module') ||
+            content.includes('SyntaxError')
+          ) {
             results.passed = false;
             results.errors.push(`${file}: Potential syntax or export errors`);
           }
@@ -137,12 +139,13 @@ class BuildVerifier {
           // Note: Source maps should only be present in development builds
           const shouldHaveSourceMaps = process.env.NODE_ENV !== 'production';
           const hasSourceMaps = content.includes('//# sourceMappingURL=');
-          
+
           if (shouldHaveSourceMaps && !hasSourceMaps) {
             results.warnings = results.warnings || [];
-            results.warnings.push(`${file}: Missing source map (development build)`);
+            results.warnings.push(
+              `${file}: Missing source map (development build)`
+            );
           }
-
         } catch (error) {
           results.passed = false;
           results.errors.push(`${file}: ${error.message}`);
@@ -161,7 +164,7 @@ class BuildVerifier {
     const dtsPath = path.join(distPath, 'index.d.ts');
     const results = {
       passed: true,
-      errors: []
+      errors: [],
     };
 
     if (!fs.existsSync(dtsPath)) {
@@ -172,7 +175,7 @@ class BuildVerifier {
 
     try {
       const content = fs.readFileSync(dtsPath, 'utf8');
-      
+
       // Basic checks for TypeScript declaration syntax
       if (!content.includes('export') && !content.includes('declare')) {
         results.passed = false;
@@ -181,9 +184,10 @@ class BuildVerifier {
 
       // Check for common TypeScript declaration issues
       if (content.includes('any') && !content.includes('// @ts-')) {
-        results.errors.push('Contains "any" types (consider more specific types)');
+        results.errors.push(
+          'Contains "any" types (consider more specific types)'
+        );
       }
-
     } catch (error) {
       results.passed = false;
       results.errors.push(`Failed to read type definitions: ${error.message}`);
@@ -200,7 +204,7 @@ class BuildVerifier {
     const results = {
       passed: true,
       errors: [],
-      config: {}
+      config: {},
     };
 
     if (!fs.existsSync(packageJsonPath)) {
@@ -224,7 +228,9 @@ class BuildVerifier {
           const filePath = path.join(packagePath, packageJson[field]);
           if (!fs.existsSync(filePath)) {
             results.passed = false;
-            results.errors.push(`${field} points to non-existent file: ${packageJson[field]}`);
+            results.errors.push(
+              `${field} points to non-existent file: ${packageJson[field]}`
+            );
           }
         }
       }
@@ -232,16 +238,25 @@ class BuildVerifier {
       // Check exports field if present
       if (packageJson.exports) {
         const exports = packageJson.exports['.'] || packageJson.exports;
-        if (exports.import && !fs.existsSync(path.join(packagePath, exports.import))) {
+        if (
+          exports.import &&
+          !fs.existsSync(path.join(packagePath, exports.import))
+        ) {
           results.passed = false;
-          results.errors.push(`exports.import points to non-existent file: ${exports.import}`);
+          results.errors.push(
+            `exports.import points to non-existent file: ${exports.import}`
+          );
         }
-        if (exports.require && !fs.existsSync(path.join(packagePath, exports.require))) {
+        if (
+          exports.require &&
+          !fs.existsSync(path.join(packagePath, exports.require))
+        ) {
           results.passed = false;
-          results.errors.push(`exports.require points to non-existent file: ${exports.require}`);
+          results.errors.push(
+            `exports.require points to non-existent file: ${exports.require}`
+          );
         }
       }
-
     } catch (error) {
       results.passed = false;
       results.errors.push(`Failed to parse package.json: ${error.message}`);
@@ -257,11 +272,11 @@ class BuildVerifier {
     const results = {
       passed: true,
       errors: [],
-      imports: {}
+      imports: {},
     };
 
     const distPath = path.join(packagePath, 'dist');
-    
+
     // Test CommonJS import
     try {
       const cjsPath = path.join(distPath, 'index.js');
@@ -270,7 +285,7 @@ class BuildVerifier {
         const cjsExports = require(cjsPath);
         results.imports.commonjs = {
           success: true,
-          exports: Object.keys(cjsExports || {})
+          exports: Object.keys(cjsExports || {}),
         };
       }
     } catch (error) {
@@ -283,12 +298,13 @@ class BuildVerifier {
       const esmPath = path.join(distPath, 'index.esm.js');
       if (fs.existsSync(esmPath)) {
         const content = fs.readFileSync(esmPath, 'utf8');
-        const hasExports = content.includes('export') || content.includes('module.exports');
+        const hasExports =
+          content.includes('export') || content.includes('module.exports');
         results.imports.esm = {
           success: hasExports,
-          hasExports
+          hasExports,
         };
-        
+
         if (!hasExports) {
           results.passed = false;
           results.errors.push('ES Module has no exports');
@@ -307,13 +323,13 @@ class BuildVerifier {
    */
   async verifyPackage(packageName) {
     const packagePath = path.join(this.packagesDir, packageName);
-    
+
     if (!fs.existsSync(packagePath)) {
       return null;
     }
 
     this.log(`Verifying package: ${packageName}`, 'info');
-    
+
     const results = {
       name: packageName,
       artifacts: this.verifyBuildArtifacts(packagePath, packageName),
@@ -321,15 +337,16 @@ class BuildVerifier {
       types: this.verifyTypeDefinitions(packagePath, packageName),
       exports: this.verifyPackageExports(packagePath, packageName),
       imports: await this.verifyImportability(packagePath, packageName),
-      passed: true
+      passed: true,
     };
 
     // Determine overall pass/fail
-    results.passed = results.artifacts.passed && 
-                    results.syntax.passed && 
-                    results.types.passed && 
-                    results.exports.passed && 
-                    results.imports.passed;
+    results.passed =
+      results.artifacts.passed &&
+      results.syntax.passed &&
+      results.types.passed &&
+      results.exports.passed &&
+      results.imports.passed;
 
     if (results.passed) {
       this.log(`✅ ${packageName} passed all verification tests`, 'success');
@@ -345,23 +362,23 @@ class BuildVerifier {
    */
   async verifyAll() {
     this.log('Starting build verification for all packages', 'info');
-    
+
     const packages = fs.readdirSync(this.packagesDir);
-    
+
     for (const pkg of packages) {
       const result = await this.verifyPackage(pkg);
-      
+
       if (result) {
         this.results.packages[pkg] = result;
         this.results.summary.total++;
-        
+
         if (result.passed) {
           this.results.summary.passed++;
         } else {
           this.results.summary.failed++;
           this.results.summary.errors.push({
             package: pkg,
-            errors: this.collectErrors(result)
+            errors: this.collectErrors(result),
           });
         }
       }
@@ -375,27 +392,29 @@ class BuildVerifier {
    */
   collectErrors(result) {
     const errors = [];
-    
+
     if (result.artifacts && result.artifacts.missing.length > 0) {
-      errors.push(...result.artifacts.missing.map(f => `Missing artifact: ${f}`));
+      errors.push(
+        ...result.artifacts.missing.map(f => `Missing artifact: ${f}`)
+      );
     }
-    
+
     if (result.syntax && result.syntax.errors.length > 0) {
       errors.push(...result.syntax.errors);
     }
-    
+
     if (result.types && result.types.errors.length > 0) {
       errors.push(...result.types.errors.map(e => `Type definition: ${e}`));
     }
-    
+
     if (result.exports && result.exports.errors.length > 0) {
       errors.push(...result.exports.errors.map(e => `Package exports: ${e}`));
     }
-    
+
     if (result.imports && result.imports.errors.length > 0) {
       errors.push(...result.imports.errors.map(e => `Import: ${e}`));
     }
-    
+
     return errors;
   }
 
@@ -403,19 +422,29 @@ class BuildVerifier {
    * Print verification report
    */
   printReport() {
-    console.log(`\n${colors.bold}${colors.cyan}📋 Build Verification Report${colors.reset}`);
-    console.log('=' .repeat(60));
+    console.log(
+      `\n${colors.bold}${colors.cyan}📋 Build Verification Report${colors.reset}`
+    );
+    console.log('='.repeat(60));
 
     // Summary
     console.log(`\n${colors.bold}📊 Summary${colors.reset}`);
     console.log(`Total packages: ${this.results.summary.total}`);
-    console.log(`Passed: ${colors.green}${this.results.summary.passed}${colors.reset}`);
-    console.log(`Failed: ${colors.red}${this.results.summary.failed}${colors.reset}`);
+    console.log(
+      `Passed: ${colors.green}${this.results.summary.passed}${colors.reset}`
+    );
+    console.log(
+      `Failed: ${colors.red}${this.results.summary.failed}${colors.reset}`
+    );
 
     // Package details
     for (const [packageName, result] of Object.entries(this.results.packages)) {
-      const status = result.passed ? `${colors.green}✅ PASSED` : `${colors.red}❌ FAILED`;
-      console.log(`\n${colors.bold}${packageName}${colors.reset}: ${status}${colors.reset}`);
+      const status = result.passed
+        ? `${colors.green}✅ PASSED`
+        : `${colors.red}❌ FAILED`;
+      console.log(
+        `\n${colors.bold}${packageName}${colors.reset}: ${status}${colors.reset}`
+      );
 
       if (!result.passed && this.verbose) {
         const errors = this.collectErrors(result);
@@ -434,7 +463,9 @@ class BuildVerifier {
 
     // Errors summary
     if (this.results.summary.errors.length > 0) {
-      console.log(`\n${colors.bold}${colors.red}❌ Failed Packages${colors.reset}`);
+      console.log(
+        `\n${colors.bold}${colors.red}❌ Failed Packages${colors.reset}`
+      );
       for (const { package: pkg, errors } of this.results.summary.errors) {
         console.log(`\n${colors.red}${pkg}:${colors.reset}`);
         for (const error of errors) {
@@ -444,8 +475,10 @@ class BuildVerifier {
     }
 
     const success = this.results.summary.failed === 0;
-    console.log(`\n${success ? colors.green + '🎉 All packages passed verification!' : colors.red + '💥 Some packages failed verification!'}${colors.reset}`);
-    
+    console.log(
+      `\n${success ? colors.green + '🎉 All packages passed verification!' : colors.red + '💥 Some packages failed verification!'}${colors.reset}`
+    );
+
     return success;
   }
 }
@@ -454,16 +487,19 @@ class BuildVerifier {
  * Main function
  */
 async function main() {
-  const verbose = process.argv.includes('--verbose') || process.argv.includes('-v');
-  
+  const verbose =
+    process.argv.includes('--verbose') || process.argv.includes('-v');
+
   const verifier = new BuildVerifier({ verbose });
-  
+
   try {
     await verifier.verifyAll();
     const success = verifier.printReport();
     process.exit(success ? 0 : 1);
   } catch (error) {
-    console.error(`${colors.red}❌ Verification failed with error: ${error.message}${colors.reset}`);
+    console.error(
+      `${colors.red}❌ Verification failed with error: ${error.message}${colors.reset}`
+    );
     process.exit(1);
   }
 }

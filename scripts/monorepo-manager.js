@@ -19,7 +19,7 @@ const colors = {
   magenta: '\x1b[35m',
   cyan: '\x1b[36m',
   reset: '\x1b[0m',
-  bold: '\x1b[1m'
+  bold: '\x1b[1m',
 };
 
 /**
@@ -33,7 +33,7 @@ class MonorepoManager {
     this.packagesDir = path.join(this.rootDir, 'packages');
     this.examplesDir = path.join(this.rootDir, 'examples');
     this.scriptsDir = path.join(this.rootDir, 'scripts');
-    
+
     this.packages = this.discoverPackages();
     this.dependencyGraph = this.buildDependencyGraph();
   }
@@ -44,7 +44,7 @@ class MonorepoManager {
       success: `${colors.green}✅${colors.reset}`,
       warning: `${colors.yellow}⚠️${colors.reset}`,
       error: `${colors.red}❌${colors.reset}`,
-      debug: `${colors.cyan}🔍${colors.reset}`
+      debug: `${colors.cyan}🔍${colors.reset}`,
     };
 
     if (this.verbose || level !== 'debug') {
@@ -57,44 +57,52 @@ class MonorepoManager {
    */
   discoverPackages() {
     const packages = new Map();
-    
+
     // Discover packages
-    const packageDirs = fs.readdirSync(this.packagesDir).filter(dir => 
-      fs.statSync(path.join(this.packagesDir, dir)).isDirectory()
-    );
-    
+    const packageDirs = fs
+      .readdirSync(this.packagesDir)
+      .filter(dir =>
+        fs.statSync(path.join(this.packagesDir, dir)).isDirectory()
+      );
+
     for (const dir of packageDirs) {
       const packagePath = path.join(this.packagesDir, dir);
       const packageJsonPath = path.join(packagePath, 'package.json');
-      
+
       if (fs.existsSync(packageJsonPath)) {
-        const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+        const packageJson = JSON.parse(
+          fs.readFileSync(packageJsonPath, 'utf8')
+        );
         packages.set(packageJson.name || dir, {
           name: packageJson.name || dir,
           path: packagePath,
           packageJson,
-          type: 'package'
+          type: 'package',
         });
       }
     }
 
     // Discover examples if they exist
     if (fs.existsSync(this.examplesDir)) {
-      const exampleDirs = fs.readdirSync(this.examplesDir).filter(dir => 
-        fs.statSync(path.join(this.examplesDir, dir)).isDirectory()
-      );
-      
+      const exampleDirs = fs
+        .readdirSync(this.examplesDir)
+        .filter(dir =>
+          fs.statSync(path.join(this.examplesDir, dir)).isDirectory()
+        );
+
       for (const dir of exampleDirs) {
         const examplePath = path.join(this.examplesDir, dir);
         const packageJsonPath = path.join(examplePath, 'package.json');
-        
+
         if (fs.existsSync(packageJsonPath)) {
-          const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+          const packageJson = JSON.parse(
+            fs.readFileSync(packageJsonPath, 'utf8')
+          );
           packages.set(packageJson.name || dir, {
             name: packageJson.name || dir,
             path: examplePath,
             packageJson,
-            type: 'example'
+            type: 'example',
           });
         }
       }
@@ -109,25 +117,25 @@ class MonorepoManager {
    */
   buildDependencyGraph() {
     const graph = new Map();
-    
+
     for (const [name, pkg] of this.packages) {
       const deps = {
         ...pkg.packageJson.dependencies,
         ...pkg.packageJson.devDependencies,
-        ...pkg.packageJson.peerDependencies
+        ...pkg.packageJson.peerDependencies,
       };
-      
+
       const internalDeps = [];
       for (const depName of Object.keys(deps)) {
         if (this.packages.has(depName)) {
           internalDeps.push(depName);
         }
       }
-      
+
       graph.set(name, {
         ...pkg,
         internalDependencies: internalDeps,
-        dependents: []
+        dependents: [],
       });
     }
 
@@ -151,14 +159,14 @@ class MonorepoManager {
     const visiting = new Set();
     const order = [];
 
-    const visit = (name) => {
+    const visit = name => {
       if (visited.has(name)) return;
       if (visiting.has(name)) {
         throw new Error(`Circular dependency detected involving ${name}`);
       }
 
       visiting.add(name);
-      
+
       const pkg = this.dependencyGraph.get(name);
       if (pkg) {
         for (const dep of pkg.internalDependencies) {
@@ -183,19 +191,20 @@ class MonorepoManager {
    */
   async syncDependencyVersions() {
     this.log('Synchronizing dependency versions across packages...', 'info');
-    
+
     const updates = new Map();
     const externalDeps = new Map();
-    
+
     // Collect all external dependencies and their versions
     for (const [name, pkg] of this.dependencyGraph) {
       const allDeps = {
         ...pkg.packageJson.dependencies,
-        ...pkg.packageJson.devDependencies
+        ...pkg.packageJson.devDependencies,
       };
-      
+
       for (const [depName, version] of Object.entries(allDeps)) {
-        if (!this.packages.has(depName)) { // External dependency
+        if (!this.packages.has(depName)) {
+          // External dependency
           if (!externalDeps.has(depName)) {
             externalDeps.set(depName, new Map());
           }
@@ -213,11 +222,16 @@ class MonorepoManager {
     for (const [depName, versionMap] of externalDeps) {
       if (versionMap.size > 1) {
         const versions = Array.from(versionMap.keys());
-        
+
         // Try to find a compatible version
         const latestVersion = versions.reduce((latest, current) => {
           try {
-            return semver.gt(semver.coerce(current) || current, semver.coerce(latest) || latest) ? current : latest;
+            return semver.gt(
+              semver.coerce(current) || current,
+              semver.coerce(latest) || latest
+            )
+              ? current
+              : latest;
           } catch {
             return latest;
           }
@@ -226,7 +240,7 @@ class MonorepoManager {
         conflicts.push({
           dependency: depName,
           versions: Array.from(versionMap.entries()),
-          suggested: latestVersion
+          suggested: latestVersion,
         });
       }
     }
@@ -245,10 +259,10 @@ class MonorepoManager {
 
     // Sync external dependencies to resolve conflicts
     const externalUpdates = new Map();
-    
+
     for (const conflict of conflicts) {
       const { dependency, versions, suggested } = conflict;
-      
+
       // For each package using an older version, update to the suggested version
       for (const [version, packages] of versions) {
         if (version !== suggested) {
@@ -259,7 +273,7 @@ class MonorepoManager {
             externalUpdates.get(packageName).push({
               dependency,
               oldVersion: version,
-              newVersion: suggested
+              newVersion: suggested,
             });
           }
         }
@@ -280,7 +294,10 @@ class MonorepoManager {
         for (const depType of ['dependencies', 'devDependencies']) {
           if (packageJson[depType] && packageJson[depType][update.dependency]) {
             if (packageJson[depType][update.dependency] === update.oldVersion) {
-              this.log(`Updating ${packageName}: ${update.dependency} ${update.oldVersion} → ${update.newVersion}`, 'info');
+              this.log(
+                `Updating ${packageName}: ${update.dependency} ${update.oldVersion} → ${update.newVersion}`,
+                'info'
+              );
               packageJson[depType][update.dependency] = update.newVersion;
               updated = true;
             }
@@ -290,14 +307,19 @@ class MonorepoManager {
 
       // Write updated package.json
       if (updated && !this.dryRun) {
-        fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
+        fs.writeFileSync(
+          packageJsonPath,
+          JSON.stringify(packageJson, null, 2) + '\n'
+        );
         this.log(`Updated ${packageName} external dependencies`, 'success');
       }
     }
 
     // Sync internal dependencies
-    const currentVersion = require(path.join(this.rootDir, 'package.json')).version;
-    
+    const currentVersion = require(
+      path.join(this.rootDir, 'package.json')
+    ).version;
+
     for (const [name, pkg] of this.dependencyGraph) {
       let updated = false;
       const packageJsonPath = path.join(pkg.path, 'package.json');
@@ -310,7 +332,10 @@ class MonorepoManager {
             if (this.packages.has(depName)) {
               const expectedVersion = `^${currentVersion}`;
               if (packageJson[depType][depName] !== expectedVersion) {
-                this.log(`Updating ${name}: ${depName} ${packageJson[depType][depName]} → ${expectedVersion}`, 'info');
+                this.log(
+                  `Updating ${name}: ${depName} ${packageJson[depType][depName]} → ${expectedVersion}`,
+                  'info'
+                );
                 packageJson[depType][depName] = expectedVersion;
                 updated = true;
               }
@@ -321,13 +346,19 @@ class MonorepoManager {
 
       // Write updated package.json
       if (updated && !this.dryRun) {
-        fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
+        fs.writeFileSync(
+          packageJsonPath,
+          JSON.stringify(packageJson, null, 2) + '\n'
+        );
         this.log(`Updated ${name} dependencies`, 'success');
       }
     }
 
     const totalUpdates = externalUpdates.size;
-    this.log(`Dependency sync completed: ${totalUpdates} packages updated`, 'success');
+    this.log(
+      `Dependency sync completed: ${totalUpdates} packages updated`,
+      'success'
+    );
 
     return conflicts;
   }
@@ -337,18 +368,21 @@ class MonorepoManager {
    */
   async buildPackages(parallel = true) {
     this.log('Building packages in dependency order...', 'info');
-    
+
     const order = this.getTopologicalOrder();
     const results = new Map();
 
     if (parallel) {
       // Build packages that don't depend on each other in parallel
       const levels = this.getBuildLevels();
-      
+
       for (let level = 0; level < levels.length; level++) {
-        this.log(`Building level ${level + 1}/${levels.length}: ${levels[level].join(', ')}`, 'info');
-        
-        const promises = levels[level].map(async (pkgName) => {
+        this.log(
+          `Building level ${level + 1}/${levels.length}: ${levels[level].join(', ')}`,
+          'info'
+        );
+
+        const promises = levels[level].map(async pkgName => {
           const pkg = this.dependencyGraph.get(pkgName);
           if (!pkg) return null;
 
@@ -356,33 +390,36 @@ class MonorepoManager {
             const startTime = Date.now();
             await this.buildPackage(pkg);
             const duration = Date.now() - startTime;
-            
+
             results.set(pkgName, {
               success: true,
               duration,
-              level
+              level,
             });
-            
+
             this.log(`Built ${pkgName} in ${duration}ms`, 'success');
             return { name: pkgName, success: true, duration };
           } catch (error) {
             results.set(pkgName, {
               success: false,
               error: error.message,
-              level
+              level,
             });
-            
+
             this.log(`Failed to build ${pkgName}: ${error.message}`, 'error');
             return { name: pkgName, success: false, error: error.message };
           }
         });
 
         const levelResults = await Promise.all(promises);
-        
+
         // Check if any builds failed at this level
         const failed = levelResults.filter(r => r && !r.success);
         if (failed.length > 0) {
-          this.log(`${failed.length} packages failed to build at level ${level + 1}`, 'error');
+          this.log(
+            `${failed.length} packages failed to build at level ${level + 1}`,
+            'error'
+          );
           // Continue with remaining levels but mark as having failures
         }
       }
@@ -396,7 +433,7 @@ class MonorepoManager {
           const startTime = Date.now();
           await this.buildPackage(pkg);
           const duration = Date.now() - startTime;
-          
+
           results.set(pkgName, { success: true, duration });
           this.log(`Built ${pkgName} in ${duration}ms`, 'success');
         } catch (error) {
@@ -416,32 +453,34 @@ class MonorepoManager {
   getBuildLevels() {
     const levels = [];
     const processed = new Set();
-    
+
     while (processed.size < this.dependencyGraph.size) {
       const currentLevel = [];
-      
+
       for (const [name, pkg] of this.dependencyGraph) {
         if (processed.has(name)) continue;
-        
+
         // Check if all dependencies are already processed
-        const depsReady = pkg.internalDependencies.every(dep => processed.has(dep));
-        
+        const depsReady = pkg.internalDependencies.every(dep =>
+          processed.has(dep)
+        );
+
         if (depsReady) {
           currentLevel.push(name);
         }
       }
-      
+
       if (currentLevel.length === 0) {
         throw new Error('Circular dependency detected');
       }
-      
+
       for (const name of currentLevel) {
         processed.add(name);
       }
-      
+
       levels.push(currentLevel);
     }
-    
+
     return levels;
   }
 
@@ -464,25 +503,25 @@ class MonorepoManager {
       const child = spawn('npm', ['run', 'build'], {
         cwd: pkg.path,
         stdio: this.verbose ? 'inherit' : 'pipe',
-        shell: true
+        shell: true,
       });
 
       let stdout = '';
       let stderr = '';
 
       if (child.stdout) {
-        child.stdout.on('data', (data) => {
+        child.stdout.on('data', data => {
           stdout += data;
         });
       }
 
       if (child.stderr) {
-        child.stderr.on('data', (data) => {
+        child.stderr.on('data', data => {
           stderr += data;
         });
       }
 
-      child.on('close', (code) => {
+      child.on('close', code => {
         if (code === 0) {
           resolve();
         } else {
@@ -490,7 +529,7 @@ class MonorepoManager {
         }
       });
 
-      child.on('error', (error) => {
+      child.on('error', error => {
         reject(error);
       });
     });
@@ -501,35 +540,36 @@ class MonorepoManager {
    */
   async runTests(parallel = true) {
     this.log('Running tests across all packages...', 'info');
-    
+
     const results = new Map();
-    const packagesWithTests = Array.from(this.dependencyGraph.values())
-      .filter(pkg => pkg.packageJson.scripts?.test);
+    const packagesWithTests = Array.from(this.dependencyGraph.values()).filter(
+      pkg => pkg.packageJson.scripts?.test
+    );
 
     if (packagesWithTests.length === 0) {
       this.log('No packages with test scripts found', 'warning');
       return results;
     }
 
-    const runTest = async (pkg) => {
+    const runTest = async pkg => {
       try {
         const startTime = Date.now();
         await this.runPackageTests(pkg);
         const duration = Date.now() - startTime;
-        
+
         results.set(pkg.name, {
           success: true,
-          duration
+          duration,
         });
-        
+
         this.log(`Tests passed for ${pkg.name} in ${duration}ms`, 'success');
         return { name: pkg.name, success: true, duration };
       } catch (error) {
         results.set(pkg.name, {
           success: false,
-          error: error.message
+          error: error.message,
         });
-        
+
         this.log(`Tests failed for ${pkg.name}: ${error.message}`, 'error');
         return { name: pkg.name, success: false, error: error.message };
       }
@@ -560,25 +600,25 @@ class MonorepoManager {
       const child = spawn('npm', ['test'], {
         cwd: pkg.path,
         stdio: this.verbose ? 'inherit' : 'pipe',
-        shell: true
+        shell: true,
       });
 
       let stdout = '';
       let stderr = '';
 
       if (child.stdout) {
-        child.stdout.on('data', (data) => {
+        child.stdout.on('data', data => {
           stdout += data;
         });
       }
 
       if (child.stderr) {
-        child.stderr.on('data', (data) => {
+        child.stderr.on('data', data => {
           stderr += data;
         });
       }
 
-      child.on('close', (code) => {
+      child.on('close', code => {
         if (code === 0) {
           resolve();
         } else {
@@ -586,7 +626,7 @@ class MonorepoManager {
         }
       });
 
-      child.on('error', (error) => {
+      child.on('error', error => {
         reject(error);
       });
     });
@@ -597,25 +637,30 @@ class MonorepoManager {
    */
   async updateVersion(newVersion, updateDependencies = true) {
     this.log(`Updating version to ${newVersion}...`, 'info');
-    
+
     const rootPackageJsonPath = path.join(this.rootDir, 'package.json');
-    const rootPackageJson = JSON.parse(fs.readFileSync(rootPackageJsonPath, 'utf8'));
-    
+    const rootPackageJson = JSON.parse(
+      fs.readFileSync(rootPackageJsonPath, 'utf8')
+    );
+
     // Update root package.json
     if (!this.dryRun) {
       rootPackageJson.version = newVersion;
-      fs.writeFileSync(rootPackageJsonPath, JSON.stringify(rootPackageJson, null, 2) + '\n');
+      fs.writeFileSync(
+        rootPackageJsonPath,
+        JSON.stringify(rootPackageJson, null, 2) + '\n'
+      );
     }
-    
+
     this.log(`Updated root package version to ${newVersion}`, 'success');
 
     // Update all package versions
     for (const [name, pkg] of this.dependencyGraph) {
       const packageJsonPath = path.join(pkg.path, 'package.json');
       const packageJson = { ...pkg.packageJson };
-      
+
       packageJson.version = newVersion;
-      
+
       // Update internal dependencies if requested
       if (updateDependencies) {
         for (const depType of ['dependencies', 'devDependencies']) {
@@ -628,11 +673,14 @@ class MonorepoManager {
           }
         }
       }
-      
+
       if (!this.dryRun) {
-        fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
+        fs.writeFileSync(
+          packageJsonPath,
+          JSON.stringify(packageJson, null, 2) + '\n'
+        );
       }
-      
+
       this.log(`Updated ${name} version to ${newVersion}`, 'success');
     }
   }
@@ -646,25 +694,25 @@ class MonorepoManager {
       dependencies: {
         internal: 0,
         external: new Set(),
-        conflicts: []
+        conflicts: [],
       },
       buildOrder: this.getTopologicalOrder(),
       coverage: {
         withTests: 0,
         withBuild: 0,
-        withLint: 0
-      }
+        withLint: 0,
+      },
     };
 
     // Analyze dependencies and scripts
     for (const [name, pkg] of this.dependencyGraph) {
       report.dependencies.internal += pkg.internalDependencies.length;
-      
+
       const allDeps = {
         ...pkg.packageJson.dependencies,
-        ...pkg.packageJson.devDependencies
+        ...pkg.packageJson.devDependencies,
       };
-      
+
       for (const dep of Object.keys(allDeps)) {
         if (!this.packages.has(dep)) {
           report.dependencies.external.add(dep);
@@ -687,8 +735,10 @@ class MonorepoManager {
    * Print comprehensive status report
    */
   printStatusReport() {
-    console.log(`${colors.bold}${colors.cyan}📊 Monorepo Health Report${colors.reset}`);
-    console.log('=' .repeat(60));
+    console.log(
+      `${colors.bold}${colors.cyan}📊 Monorepo Health Report${colors.reset}`
+    );
+    console.log('='.repeat(60));
 
     const health = this.generateHealthReport();
 
@@ -707,9 +757,15 @@ class MonorepoManager {
 
     // Script coverage
     console.log(`\n${colors.bold}📋 Script Coverage${colors.reset}`);
-    console.log(`Packages with tests: ${health.coverage.withTests}/${health.packages}`);
-    console.log(`Packages with build: ${health.coverage.withBuild}/${health.packages}`);
-    console.log(`Packages with lint: ${health.coverage.withLint}/${health.packages}`);
+    console.log(
+      `Packages with tests: ${health.coverage.withTests}/${health.packages}`
+    );
+    console.log(
+      `Packages with build: ${health.coverage.withBuild}/${health.packages}`
+    );
+    console.log(
+      `Packages with lint: ${health.coverage.withLint}/${health.packages}`
+    );
 
     // Package details
     console.log(`\n${colors.bold}📝 Package Details${colors.reset}`);
@@ -717,10 +773,14 @@ class MonorepoManager {
       const deps = pkg.internalDependencies.length;
       const dependents = pkg.dependents.length;
       const scripts = Object.keys(pkg.packageJson.scripts || {}).length;
-      
+
       console.log(`${name}:`);
-      console.log(`  Dependencies: ${deps}, Dependents: ${dependents}, Scripts: ${scripts}`);
-      console.log(`  Type: ${pkg.type}, Path: ${path.relative(this.rootDir, pkg.path)}`);
+      console.log(
+        `  Dependencies: ${deps}, Dependents: ${dependents}, Scripts: ${scripts}`
+      );
+      console.log(
+        `  Type: ${pkg.type}, Path: ${path.relative(this.rootDir, pkg.path)}`
+      );
     }
   }
 }
@@ -731,11 +791,11 @@ class MonorepoManager {
 async function main() {
   const args = process.argv.slice(2);
   const command = args[0];
-  
+
   const options = {
     verbose: args.includes('--verbose') || args.includes('-v'),
     dryRun: args.includes('--dry-run') || args.includes('-d'),
-    parallel: !args.includes('--sequential')
+    parallel: !args.includes('--sequential'),
   };
 
   const manager = new MonorepoManager(options);
@@ -761,7 +821,9 @@ async function main() {
       case 'version':
         const newVersion = args[1];
         if (!newVersion) {
-          console.error('Please provide a version: npm run monorepo version 1.2.3');
+          console.error(
+            'Please provide a version: npm run monorepo version 1.2.3'
+          );
           process.exit(1);
         }
         await manager.updateVersion(newVersion);
@@ -773,13 +835,19 @@ async function main() {
         break;
 
       default:
-        console.log(`${colors.bold}AI Spine Tools Monorepo Manager${colors.reset}`);
+        console.log(
+          `${colors.bold}AI Spine Tools Monorepo Manager${colors.reset}`
+        );
         console.log('');
-        console.log('Usage: node scripts/monorepo-manager.js <command> [options]');
+        console.log(
+          'Usage: node scripts/monorepo-manager.js <command> [options]'
+        );
         console.log('');
         console.log('Commands:');
         console.log('  status      Show monorepo status and package overview');
-        console.log('  sync-deps   Synchronize dependency versions across packages');
+        console.log(
+          '  sync-deps   Synchronize dependency versions across packages'
+        );
         console.log('  build       Build all packages in dependency order');
         console.log('  test        Run tests across all packages');
         console.log('  version     Update version across all packages');
@@ -787,8 +855,12 @@ async function main() {
         console.log('');
         console.log('Options:');
         console.log('  --verbose, -v     Show detailed output');
-        console.log('  --dry-run, -d     Show what would be done without executing');
-        console.log('  --sequential      Build/test sequentially instead of parallel');
+        console.log(
+          '  --dry-run, -d     Show what would be done without executing'
+        );
+        console.log(
+          '  --sequential      Build/test sequentially instead of parallel'
+        );
         break;
     }
   } catch (error) {
