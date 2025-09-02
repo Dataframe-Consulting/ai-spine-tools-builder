@@ -78,10 +78,11 @@ jobs:
         run: |
           echo "Running pre-release validation..."
           
-          # Check git status
-          if [ -n "$(git status --porcelain)" ]; then
+          # Check git status (excluding package-lock.json which gets regenerated)
+          CHANGED_FILES=$(git status --porcelain | grep -v "package-lock.json" || true)
+          if [ -n "$CHANGED_FILES" ]; then
             echo "❌ Working directory not clean"
-            git status --porcelain
+            echo "$CHANGED_FILES"
             exit 1
           fi
           
