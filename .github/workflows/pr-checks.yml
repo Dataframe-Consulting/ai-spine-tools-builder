@@ -110,11 +110,19 @@ jobs:
           # Extract public API
           node scripts/extract-api.js > current-api.json || echo "[]" > current-api.json
           
+          # Stash any changes before switching branches
+          git add .
+          git stash
+          
           # Checkout base branch and build
           git checkout origin/main
           npm ci --prefer-offline --no-audit --ignore-scripts  
           npm run build
           node scripts/extract-api.js > baseline-api.json || echo "[]" > baseline-api.json
+          
+          # Switch back to PR branch and restore changes
+          git checkout -
+          git stash pop
           
           # Compare APIs
           node scripts/compare-api.js baseline-api.json current-api.json
