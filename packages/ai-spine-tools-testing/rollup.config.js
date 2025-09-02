@@ -5,13 +5,12 @@
 
 const {
   createRollupConfig,
+  createCliConfig,
   EXTERNAL_DEPS,
   loadPackageJson,
 } = require('../../rollup.shared.js');
 
 const packageJson = loadPackageJson('.');
-
-const { createCliConfig } = require('../../rollup.shared.js');
 
 const mainConfigs = createRollupConfig({
   packageName: 'testing',
@@ -27,12 +26,12 @@ const cliConfigs = [
   createCliConfig({
     input: 'src/template-validator-cli.ts',
     output: 'dist/template-validator.js',
-    external: ['@ai-spine/tools-core'], // Only keep core as external, bundle other deps
+    external: [], // Bundle all dependencies for CLI to be self-contained
   }),
   createCliConfig({
     input: 'src/example-validator-cli.ts',
     output: 'dist/example-validator.js',
-    external: ['@ai-spine/tools-core'], // Only keep core as external, bundle other deps
+    external: [], // Bundle all dependencies for CLI to be self-contained
   }),
 ];
 
