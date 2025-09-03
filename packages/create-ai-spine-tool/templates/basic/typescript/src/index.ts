@@ -13,6 +13,9 @@
  * @since 1.0.0
  */
 
+// Load environment variables from .env file
+import 'dotenv/config';
+
 import { createTool, stringField, numberField, booleanField, apiKeyField } from '@ai-spine/tools';
 
 /**
