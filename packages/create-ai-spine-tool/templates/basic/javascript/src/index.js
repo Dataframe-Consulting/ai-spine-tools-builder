@@ -13,7 +13,10 @@
  * @since 1.0.0
  */
 
-const { createTool, stringField, numberField, booleanField, apiKeyField } = require('@ai-spine/tools');
+// Load environment variables from .env file
+require('dotenv').config()
+
+const { createTool, stringField, numberField, booleanField, apiKeyField } = require('@ai-spine/tools')
 
 /**
  * Main tool instance created using the AI Spine createTool factory.
@@ -32,7 +35,7 @@ const {{toolNameCamelCase}}Tool = createTool({
     description: '{{description}}',
     capabilities: ['text-processing'],
     author: '{{#authorName}}{{authorName}}{{/authorName}}{{^authorName}}Your Name{{/authorName}}',
-    license: 'MIT',
+    license: 'MIT'
   },
 
   /**
@@ -52,20 +55,20 @@ const {{toolNameCamelCase}}Tool = createTool({
         required: true,
         description: 'The message to process',
         minLength: 1,
-        maxLength: 1000,
+        maxLength: 1000
       }),
       count: numberField({
         required: false,
         description: 'Number of times to repeat the message',
         min: 1,
         max: 10,
-        default: 1,
+        default: 1
       }),
       uppercase: booleanField({
         required: false,
         description: 'Whether to convert message to uppercase',
-        default: false,
-      }),
+        default: false
+      })
     },
 
     /**
@@ -76,15 +79,15 @@ const {{toolNameCamelCase}}Tool = createTool({
     config: {
       api_key: apiKeyField({
         required: false,
-        description: 'Optional API key for external services',
+        description: 'Optional API key for external services'
       }),
       default_count: {
         type: 'number',
         required: false,
         description: 'Default count when not specified in input',
-        default: 1,
-      },
-    },
+        default: 1
+      }
+    }
   },
 
   /**
@@ -98,25 +101,25 @@ const {{toolNameCamelCase}}Tool = createTool({
    * @returns {Promise<Object>} Promise resolving to structured execution results
    */
   async execute(input, config, context) {
-    console.log(`Executing {{toolName}} tool with execution ID: ${context.executionId}`);
+    console.log(`Executing {{toolName}} tool with execution ID: ${context.executionId}`)
 
     try {
       // Get the count from input or config default
       // This demonstrates how to merge input parameters with configuration defaults
-      const count = input.count ?? config.default_count ?? 1;
+      const count = input.count ?? config.default_count ?? 1
       
       // Process the message according to the specified transformations
-      let processedMessage = input.message;
+      let processedMessage = input.message
       
       if (input.uppercase) {
-        processedMessage = processedMessage.toUpperCase();
+        processedMessage = processedMessage.toUpperCase()
       }
 
       // Repeat the message according to the count parameter
-      const result = Array(count).fill(processedMessage).join(' ');
+      const result = new Array(count).fill(processedMessage).join(' ')
 
       // Simulate some processing time (remove this in real implementations)
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 100))
 
       // Return structured results following AI Spine conventions
       // The response includes the processed data, metadata, and execution information
@@ -127,22 +130,22 @@ const {{toolNameCamelCase}}Tool = createTool({
           original_message: input.message,
           transformations: {
             uppercase: input.uppercase || false,
-            count: count,
+            count
           },
           metadata: {
             execution_id: context.executionId,
             timestamp: context.timestamp.toISOString(),
-            tool_version: '1.0.0',
-          },
-        },
-      };
+            tool_version: '1.0.0'
+          }
+        }
+      }
     } catch (error) {
-      console.error('Error processing message:', error);
+      console.error('Error processing message:', error)
       // Always provide meaningful error messages to help users troubleshoot issues
-      throw new Error(`Failed to process message: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(`Failed to process message: ${error instanceof Error ? error.message : String(error)}`)
     }
-  },
-});
+  }
+})
 
 /**
  * Main entry point that starts the tool server with configurable options.
@@ -169,16 +172,16 @@ async function main() {
       // Security configuration for production deployments
       security: {
         requireAuth: process.env.API_KEY_AUTH === 'true',
-        apiKeys: process.env.VALID_API_KEYS?.split(','),
-      },
-    });
+        apiKeys: process.env.VALID_API_KEYS?.split(',')
+      }
+    })
     
-    console.log(`🚀 {{toolNamePascalCase}} tool server started successfully`);
-    console.log(`📡 Listening on port ${process.env.PORT || 3000}`);
-    console.log(`🔗 Health check: http://localhost:${process.env.PORT || 3000}/health`);
+    console.log('🚀 {{toolNamePascalCase}} tool server started successfully')
+    console.log(`📡 Listening on port ${process.env.PORT || 3000}`)
+    console.log(`🔗 Health check: http://localhost:${process.env.PORT || 3000}/health`)
   } catch (error) {
-    console.error('Failed to start tool server:', error);
-    process.exit(1);
+    console.error('Failed to start tool server:', error)
+    process.exit(1)
   }
 }
 
@@ -193,25 +196,25 @@ async function main() {
 
 // Handle SIGINT (Ctrl+C) for graceful shutdown
 process.on('SIGINT', async () => {
-  console.log('\n🔄 Received SIGINT, shutting down gracefully...');
-  await {{toolNameCamelCase}}Tool.stop();
-  process.exit(0);
-});
+  console.log('\\n🔄 Received SIGINT, shutting down gracefully...')
+  await {{toolNameCamelCase}}Tool.stop()
+  process.exit(0)
+})
 
 // Handle SIGTERM (container/process manager termination) for graceful shutdown
 process.on('SIGTERM', async () => {
-  console.log('🔄 Received SIGTERM, shutting down gracefully...');
-  await {{toolNameCamelCase}}Tool.stop();
-  process.exit(0);
-});
+  console.log('🔄 Received SIGTERM, shutting down gracefully...')
+  await {{toolNameCamelCase}}Tool.stop()
+  process.exit(0)
+})
 
 // Start the server if this file is run directly (not when imported as a module)
 if (require.main === module) {
-  main();
+  main()
 }
 
 /**
  * Export the tool instance for use in tests, other modules, or programmatic usage.
  * This allows the tool to be imported and used without starting the HTTP server.
  */
-module.exports = {{toolNameCamelCase}}Tool;
+module.exports = {{toolNameCamelCase}}Tool
