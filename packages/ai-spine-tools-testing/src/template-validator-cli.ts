@@ -161,11 +161,31 @@ async function main() {
     __dirname,
     '../../../packages/create-ai-spine-tool/templates'
   );
-  const templateTypes: TemplateType[] = [
-    'basic',
-    'api-integration',
-    'data-processing',
-  ];
+  
+  // Dynamically discover available template types
+  const templateTypes: TemplateType[] = [];
+  try {
+    const templateDirs = await fs.readdir(templatesDir);
+    for (const dir of templateDirs) {
+      const dirPath = path.join(templatesDir, dir);
+      const stat = await fs.stat(dirPath);
+      if (stat.isDirectory() && dir !== 'common') {
+        // Only include known template types
+        if (dir === 'basic' || dir === 'api-integration' || dir === 'data-processing') {
+          templateTypes.push(dir as TemplateType);
+        }
+      }
+    }
+  } catch (error) {
+    console.log(chalk.red(`Failed to read templates directory: ${(error as Error).message}`));
+    process.exit(1);
+  }
+
+  if (templateTypes.length === 0) {
+    console.log(chalk.yellow('No templates found to validate.'));
+    process.exit(0);
+  }
+
   const languages: Language[] = ['typescript', 'javascript'];
 
   let totalTests = 0;
