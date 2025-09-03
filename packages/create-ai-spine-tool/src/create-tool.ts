@@ -47,7 +47,7 @@ import { TemplateValidator } from './template-validator';
  * ```typescript
  * await createTool({
  *   name: 'my-weather-tool',
- *   template: 'api-integration',
+ *   template: 'basic',
  *   language: 'typescript',
  *   includeTests: true,
  *   includeDocker: true,
@@ -144,16 +144,7 @@ function generateTemplateContext(options: CreateToolOptions): TemplateContext {
     devDependencies['eslint-import-resolver-typescript'] = '^3.6.1';
   }
 
-  // Add template-specific dependencies
-  if (options.template === 'api-integration') {
-    dependencies['axios'] = '^1.6.2';
-    devDependencies['@types/axios'] = '^0.14.0';
-  }
-
-  if (options.template === 'data-processing') {
-    dependencies['lodash'] = '^4.17.21';
-    devDependencies['@types/lodash'] = '^4.17.7';
-  }
+  // Template-specific dependencies (none for basic template)
 
   // Add test dependencies if tests are included
   if (options.includeTests) {
@@ -205,8 +196,6 @@ function generateTemplateContext(options: CreateToolOptions): TemplateContext {
     devDependencies: devDependencyArray,
     // Template-specific feature flags
     isBasicTemplate: options.template === 'basic',
-    isApiIntegrationTemplate: options.template === 'api-integration',
-    isDataProcessingTemplate: options.template === 'data-processing',
     isTypeScript: options.language === 'typescript',
     isJavaScript: options.language === 'javascript',
   };
@@ -238,7 +227,7 @@ async function copyTemplate(
 
   if (!(await fs.pathExists(templateDir))) {
     throw new Error(
-      `Template not found: ${template}/${language}. Available templates: basic, api-integration, data-processing`
+      `Template not found: ${template}/${language}. Available templates: basic`
     );
   }
 
@@ -952,12 +941,10 @@ export function generateEnhancedTemplateContext(
 
   return {
     ...baseContext,
-    // Template feature detection
-    hasApiKey: options.template === 'api-integration',
-    hasDatabase:
-      options.template === 'data-processing' ||
-      options.template === 'api-integration',
-    hasFileProcessing: options.template === 'data-processing',
+    // Template feature detection (basic template has minimal features)
+    hasApiKey: false,
+    hasDatabase: false,
+    hasFileProcessing: false,
 
     // Project metadata
     authorName: 'AI Spine Developer',

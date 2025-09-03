@@ -3,7 +3,7 @@
  *
  * @public
  */
-export type TemplateType = 'basic' | 'api-integration' | 'data-processing';
+export type TemplateType = 'basic';
 
 /**
  * Supported programming languages for tool generation.
@@ -99,12 +99,6 @@ export interface TemplateContext {
   // Template-specific feature flags for conditional rendering
   /** Whether this is the basic template */
   isBasicTemplate?: boolean;
-
-  /** Whether this is the API integration template */
-  isApiIntegrationTemplate?: boolean;
-
-  /** Whether this is the data processing template */
-  isDataProcessingTemplate?: boolean;
 
   /** Whether TypeScript is being used */
   isTypeScript?: boolean;

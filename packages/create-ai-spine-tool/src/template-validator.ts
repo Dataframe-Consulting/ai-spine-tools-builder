@@ -176,7 +176,6 @@ export class TemplateValidator {
       // Validate template structure
       await this.validateTemplateStructure(
         templateDir,
-        templateType,
         language,
         errors,
         warnings
@@ -322,7 +321,6 @@ export class TemplateValidator {
    */
   private async validateTemplateStructure(
     templateDir: string,
-    templateType: TemplateType,
     language: Language,
     errors: ValidationError[],
     warnings: ValidationWarning[]
@@ -332,12 +330,7 @@ export class TemplateValidator {
       language === 'typescript' ? 'src/index.ts' : 'src/index.js';
     const requiredFiles = [indexFile, 'package.json'];
 
-    // Template-specific required files
-    if (templateType === 'api-integration') {
-      // API integration templates might need additional files
-    } else if (templateType === 'data-processing') {
-      // Data processing templates might need additional files
-    }
+    // Template-specific required files (none for basic template)
 
     for (const file of requiredFiles) {
       const filePath = path.join(templateDir, file);

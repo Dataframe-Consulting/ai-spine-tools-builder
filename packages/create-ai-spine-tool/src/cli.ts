@@ -54,7 +54,7 @@ function generateHelpText(): string {
     return `
 ${chalk.bold('Examples:')}
   ${chalk.cyan('create-ai-spine-tool my-weather-tool')}
-  ${chalk.cyan('create-ai-spine-tool my-api-tool --template api-integration --lang typescript')}
+  ${chalk.cyan('create-ai-spine-tool my-tool --template basic --lang typescript')}
   ${chalk.cyan('create-ai-spine-tool my-tool --yes --no-git --no-install')}
   ${chalk.cyan('create-ai-spine-tool --check-system')}
   ${chalk.cyan('create-ai-spine-tool my-tool --dry-run')}
@@ -65,9 +65,7 @@ ${chalk.bold('Configuration:')}
   to set team-wide defaults for templates, language, and other options.
 
 ${chalk.bold('Templates:')}
-  ${chalk.green('basic')}          - Simple tool with minimal setup (recommended for beginners)
-  ${chalk.green('api-integration')} - Tool that integrates with external APIs
-  ${chalk.green('data-processing')} - Tool for data transformation and analysis
+  ${chalk.green('basic')}          - Simple tool with minimal setup (recommended)
 
 ${chalk.bold('Support:')}
   Documentation: ${chalk.blue('https://docs.ai-spine.com/tools')}
@@ -78,7 +76,7 @@ ${chalk.bold('Support:')}
     return `
 Examples:
   create-ai-spine-tool my-weather-tool
-  create-ai-spine-tool my-api-tool --template api-integration --lang typescript
+  create-ai-spine-tool my-tool --template basic --lang typescript
   create-ai-spine-tool my-tool --yes --no-git --no-install
   create-ai-spine-tool --check-system
   create-ai-spine-tool my-tool --dry-run
@@ -89,9 +87,7 @@ Configuration:
   to set team-wide defaults for templates, language, and other options.
 
 Templates:
-  basic          - Simple tool with minimal setup (recommended for beginners)
-  api-integration - Tool that integrates with external APIs
-  data-processing - Tool for data transformation and analysis
+  basic          - Simple tool with minimal setup (recommended)
 
 Support:
   Documentation: https://docs.ai-spine.com/tools
@@ -112,10 +108,7 @@ program
   )
   .version('1.0.0')
   .argument('[name]', 'tool name (must be a valid npm package name)')
-  .option(
-    '-t, --template <template>',
-    'template type: basic, api-integration, data-processing'
-  )
+  .option('-t, --template <template>', 'template type: basic')
   .option(
     '-l, --lang <language>',
     'programming language: typescript (recommended), javascript'
@@ -328,14 +321,6 @@ async function collectUserInput(
       message: 'Choose a template:',
       choices: [
         { name: 'Basic Tool - Simple tool with minimal setup', value: 'basic' },
-        {
-          name: 'API Integration - Tool that integrates with external APIs',
-          value: 'api-integration',
-        },
-        {
-          name: 'Data Processing - Tool for data transformation and analysis',
-          value: 'data-processing',
-        },
       ],
       default: 'basic',
     });
@@ -498,28 +483,6 @@ async function showTemplateSpecificInfo(template: TemplateType): Promise<void> {
         chalk.gray('  • Modify src/index.ts to implement your tool logic')
       );
       console.log(chalk.gray('  • Add input fields in the schema section'));
-      break;
-
-    case 'api-integration':
-      console.log(chalk.gray('  • Includes axios for HTTP requests'));
-      console.log(
-        chalk.gray('  • Configure API endpoints in the config section')
-      );
-      console.log(
-        chalk.gray('  • Add API key validation for secure integrations')
-      );
-      console.log(
-        chalk.gray('  • Use environment variables for sensitive data')
-      );
-      break;
-
-    case 'data-processing':
-      console.log(chalk.gray('  • Includes lodash for data manipulation'));
-      console.log(
-        chalk.gray('  • Perfect for CSV, JSON, and data transformation')
-      );
-      console.log(chalk.gray('  • Consider streaming for large datasets'));
-      console.log(chalk.gray('  • Add validation for input data formats'));
       break;
   }
 
@@ -701,7 +664,7 @@ async function dryRun(toolName?: string, cliOptions: any = {}): Promise<void> {
   console.log();
 
   console.log(chalk.bold('📁 Files that would be created:'));
-  const files = await getFileList(options.template, options.language, options);
+  const files = await getFileList(options.language, options);
   files.forEach(file => console.log(chalk.gray(`  ${file}`)));
   console.log();
 
@@ -740,11 +703,7 @@ async function validateToolCreation(options: CreateToolOptions): Promise<void> {
   }
 
   // Validate template exists
-  const validTemplates: TemplateType[] = [
-    'basic',
-    'api-integration',
-    'data-processing',
-  ];
+  const validTemplates: TemplateType[] = ['basic'];
   if (!validTemplates.includes(options.template)) {
     errors.push(
       `Invalid template "${options.template}". Must be one of: ${validTemplates.join(', ')}`
@@ -828,13 +787,11 @@ async function handleCliError(error: any): Promise<void> {
 /**
  * Gets the list of files that would be created for a template.
  *
- * @param template - Template type
  * @param language - Programming language
  * @param options - Tool options
  * @returns Array of file paths
  */
 async function getFileList(
-  template: TemplateType,
   language: Language,
   options: CreateToolOptions
 ): Promise<string[]> {
@@ -855,15 +812,7 @@ async function getFileList(
     files.push('.gitignore');
   }
 
-  // Template-specific files
-  switch (template) {
-    case 'api-integration':
-      files.push('src/api-client.ts', 'src/types.ts');
-      break;
-    case 'data-processing':
-      files.push('src/processors.ts', 'src/validators.ts');
-      break;
-  }
+  // Template-specific files (none for basic template)
 
   // Language-specific adjustments
   if (language === 'javascript') {
@@ -909,11 +858,7 @@ async function validateAllTemplates(): Promise<void> {
   console.log();
 
   const templatesDir = path.join(__dirname, '..', 'templates');
-  const templateTypes: TemplateType[] = [
-    'basic',
-    'api-integration',
-    'data-processing',
-  ];
+  const templateTypes: TemplateType[] = ['basic'];
   const languages: Language[] = ['typescript', 'javascript'];
 
   let totalTests = 0;
