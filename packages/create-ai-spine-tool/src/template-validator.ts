@@ -176,7 +176,6 @@ export class TemplateValidator {
       // Validate template structure
       await this.validateTemplateStructure(
         templateDir,
-        templateType,
         language,
         errors,
         warnings
@@ -322,7 +321,6 @@ export class TemplateValidator {
    */
   private async validateTemplateStructure(
     templateDir: string,
-    templateType: TemplateType,
     language: Language,
     errors: ValidationError[],
     warnings: ValidationWarning[]

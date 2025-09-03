@@ -664,7 +664,7 @@ async function dryRun(toolName?: string, cliOptions: any = {}): Promise<void> {
   console.log();
 
   console.log(chalk.bold('📁 Files that would be created:'));
-  const files = await getFileList(options.template, options.language, options);
+  const files = await getFileList(options.language, options);
   files.forEach(file => console.log(chalk.gray(`  ${file}`)));
   console.log();
 
@@ -787,13 +787,11 @@ async function handleCliError(error: any): Promise<void> {
 /**
  * Gets the list of files that would be created for a template.
  *
- * @param template - Template type
  * @param language - Programming language
  * @param options - Tool options
  * @returns Array of file paths
  */
 async function getFileList(
-  template: TemplateType,
   language: Language,
   options: CreateToolOptions
 ): Promise<string[]> {
