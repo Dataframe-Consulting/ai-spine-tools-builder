@@ -161,7 +161,7 @@ async function main() {
     __dirname,
     '../../../packages/create-ai-spine-tool/templates'
   );
-  
+
   // Dynamically discover available template types
   const templateTypes: TemplateType[] = [];
   try {
@@ -171,13 +171,21 @@ async function main() {
       const stat = await fs.stat(dirPath);
       if (stat.isDirectory() && dir !== 'common') {
         // Only include known template types
-        if (dir === 'basic' || dir === 'api-integration' || dir === 'data-processing') {
+        if (
+          dir === 'basic' ||
+          dir === 'api-integration' ||
+          dir === 'data-processing'
+        ) {
           templateTypes.push(dir as TemplateType);
         }
       }
     }
   } catch (error) {
-    console.log(chalk.red(`Failed to read templates directory: ${(error as Error).message}`));
+    console.log(
+      chalk.red(
+        `Failed to read templates directory: ${(error as Error).message}`
+      )
+    );
     process.exit(1);
   }
 
