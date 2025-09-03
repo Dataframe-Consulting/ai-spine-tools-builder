@@ -142,12 +142,10 @@ npm install --save-dev @ai-spine/tools-testing
 
 Choose from pre-built templates:
 
-- **Basic Tool** - Simple tool with minimal setup
-- **API Integration** - Tool that integrates with external APIs
-- **Data Processing** - Tool for data transformation and analysis
+- **Basic Tool** - Simple tool with minimal setup (recommended)
 
 ```bash
-npx create-ai-spine-tool my-tool --template api-integration
+npx create-ai-spine-tool my-tool --template basic
 ```
 
 ## 🧪 Testing
