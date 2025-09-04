@@ -10,7 +10,8 @@
       "Bash(npm start)",
       "Bash(npm run lint)",
       "Bash(npm run monorepo:status:*)",
-      "Bash(npm run monorepo:health:*)"
+      "Bash(npm run monorepo:health:*)",
+      "Read(/C:\\Users\\Dante Kaled\\Documents\\DATAFRAME\\ai-spine-tools-builder\\packages\\create-ai-spine-tool\\src/**)"
     ],
     "deny": [],
     "ask": []

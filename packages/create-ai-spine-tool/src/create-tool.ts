@@ -116,7 +116,7 @@ function generateTemplateContext(options: CreateToolOptions): TemplateContext {
   // Base dependencies
   const dependencies: Record<string, string> = {
     '@ai-spine/tools': '^1.0.0',
-    'dotenv': '^16.3.1',
+    dotenv: '^16.3.1',
   };
 
   const devDependencies: Record<string, string> = {
@@ -136,7 +136,6 @@ function generateTemplateContext(options: CreateToolOptions): TemplateContext {
   devDependencies['eslint-plugin-node'] = '^11.1.0';
   devDependencies['eslint-plugin-promise'] = '^6.1.1';
   devDependencies['eslint-plugin-unicorn'] = '^49.0.0';
-  
   // Add ESLint Standard config for JavaScript
   if (options.language === 'javascript') {
     devDependencies['eslint-config-standard'] = '^17.1.0';
