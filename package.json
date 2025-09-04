@@ -89,5 +89,8 @@
     "ai-agents"
   ],
   "author": "AI Spine Team",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "chrono-node": "^2.8.4"
+  }
 }
