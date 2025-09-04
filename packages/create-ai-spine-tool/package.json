@@ -1,6 +1,6 @@
 {
   "name": "create-ai-spine-tool",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "CLI tool for creating AI Spine compatible tools",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
