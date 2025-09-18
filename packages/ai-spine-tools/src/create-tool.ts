@@ -1048,6 +1048,49 @@ export function enumField(
 }
 
 /**
+ * Creates a file input field with upload validation.
+ *
+ * @param options - Field configuration options
+ * @returns Configured file field definition
+ *
+ * @example
+ * ```typescript
+ * // Image upload
+ * avatar: fileField({
+ *   required: false,
+ *   allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
+ *   maxFileSize: 5 * 1024 * 1024, // 5MB
+ *   description: 'User avatar image'
+ * })
+ *
+ * // Document upload
+ * document: fileField({
+ *   required: true,
+ *   allowedMimeTypes: ['application/pdf', 'application/msword', 'text/plain'],
+ *   maxFileSize: 10 * 1024 * 1024, // 10MB
+ *   description: 'Document file'
+ * })
+ *
+ * // CSV data file
+ * dataFile: fileField({
+ *   required: true,
+ *   allowedMimeTypes: ['text/csv', 'application/csv'],
+ *   maxFileSize: 50 * 1024 * 1024, // 50MB
+ *   description: 'CSV data file for processing'
+ * })
+ * ```
+ */
+export function fileField(
+  options: Partial<ToolInputField> = {}
+): ToolInputField {
+  return {
+    type: 'file',
+    required: options.required ?? false,
+    ...options,
+  };
+}
+
+/**
  * Creates an API key configuration field with security best practices.
  *
  * @param options - Field configuration options
@@ -1542,3 +1585,6 @@ export function createToolBuilder<
 >(): ToolBuilder<TInput, TConfig> {
   return new ToolBuilder<TInput, TConfig>();
 }
+
+// Re-export missing field builders from core
+export { datetimeField, configEnumField } from '@ai-spine/tools-core';

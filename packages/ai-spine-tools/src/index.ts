@@ -12,13 +12,16 @@ export {
   objectField,
   dateField,
   timeField,
+  datetimeField,
   enumField,
+  fileField,
 
   // Config field builders
   apiKeyField,
   configStringField,
   configNumberField,
   configUrlField,
+  configEnumField,
 
   // Convenience functions
   simpleCreateTool,
