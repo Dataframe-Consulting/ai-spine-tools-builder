@@ -616,6 +616,9 @@ function fileField(config) {
     if (config.description) builder.description(config.description);
     if (config.allowedMimeTypes) builder.mimeTypes(config.allowedMimeTypes);
     if (config.maxFileSize) builder.maxSize(config.maxFileSize);
+
+    // Return the built field when config is provided for consistency
+    return builder.build();
   }
 
   return builder;
