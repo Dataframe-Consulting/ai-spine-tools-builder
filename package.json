@@ -1,6 +1,6 @@
 {
   "name": "ai-spine-tools-sdk",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "SDK for building AI Spine compatible tools",
   "private": true,
   "workspaces": [
