@@ -608,8 +608,17 @@ function datetimeField() {
 /**
  * Create a file input field builder
  */
-function fileField() {
-  return new FileFieldBuilder();
+function fileField(config) {
+  const builder = new FileFieldBuilder();
+
+  if (config) {
+    if (config.required) builder.required();
+    if (config.description) builder.description(config.description);
+    if (config.allowedMimeTypes) builder.mimeTypes(config.allowedMimeTypes);
+    if (config.maxFileSize) builder.maxSize(config.maxFileSize);
+  }
+
+  return builder;
 }
 /**
  * Create an API key configuration field builder
