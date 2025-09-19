@@ -1,6 +1,6 @@
 {
   "name": "@ai-spine/tools-testing",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Testing utilities for AI Spine tools",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
@@ -29,7 +29,7 @@
   "author": "AI Spine Team",
   "license": "MIT",
   "dependencies": {
-    "@ai-spine/tools-core": "^1.2.2",
+    "@ai-spine/tools-core": "^1.2.3",
     "axios": "^1.6.0",
     "supertest": "^6.3.4",
     "fs-extra": "^11.0.0",
