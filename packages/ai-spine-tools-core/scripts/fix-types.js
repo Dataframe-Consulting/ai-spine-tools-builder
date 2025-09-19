@@ -56,13 +56,22 @@ interface FileInput {
     // Find where to insert the interface (before the first interface or at the beginning)
     const insertPosition = content.indexOf('interface ');
     if (insertPosition !== -1) {
-      content = content.slice(0, insertPosition) + fileInputInterface + '\n' + content.slice(insertPosition);
+      content =
+        content.slice(0, insertPosition) +
+        fileInputInterface +
+        '\n' +
+        content.slice(insertPosition);
     } else {
       // If no interfaces found, add after imports
-      const importEndIndex = content.lastIndexOf("import ");
+      const importEndIndex = content.lastIndexOf('import ');
       if (importEndIndex !== -1) {
         const nextLineIndex = content.indexOf('\n', importEndIndex);
-        content = content.slice(0, nextLineIndex + 1) + '\n' + fileInputInterface + '\n' + content.slice(nextLineIndex + 1);
+        content =
+          content.slice(0, nextLineIndex + 1) +
+          '\n' +
+          fileInputInterface +
+          '\n' +
+          content.slice(nextLineIndex + 1);
       } else {
         // Fallback: add at the beginning
         content = fileInputInterface + '\n' + content;
@@ -75,23 +84,25 @@ interface FileInput {
   // Add FileInput to the export type list (handle multiline exports)
   console.log('   Adding FileInput to exports...');
   const exportTypeRegex = /export type \{ ([^}]+) \};/s;
-  content = content.replace(
-    exportTypeRegex,
-    (match, types) => {
-      // Clean up the types string by removing newlines and extra spaces
-      const cleanTypes = types.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
-      const typeList = cleanTypes.split(', ').map(t => t.trim()).filter(t => t.length > 0);
+  content = content.replace(exportTypeRegex, (match, types) => {
+    // Clean up the types string by removing newlines and extra spaces
+    const cleanTypes = types.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+    const typeList = cleanTypes
+      .split(', ')
+      .map(t => t.trim())
+      .filter(t => t.length > 0);
 
-      if (!typeList.includes('FileInput')) {
-        typeList.push('FileInput');
-        typeList.sort();
-        console.log(`   Updated exports: ${typeList.length} types including FileInput`);
-      } else {
-        console.log('   FileInput already in exports');
-      }
-      return `export type { ${typeList.join(', ')} };`;
+    if (!typeList.includes('FileInput')) {
+      typeList.push('FileInput');
+      typeList.sort();
+      console.log(
+        `   Updated exports: ${typeList.length} types including FileInput`
+      );
+    } else {
+      console.log('   FileInput already in exports');
     }
-  );
+    return `export type { ${typeList.join(', ')} };`;
+  });
 
   // Write the updated content back
   fs.writeFileSync(typesPath, content, 'utf8');

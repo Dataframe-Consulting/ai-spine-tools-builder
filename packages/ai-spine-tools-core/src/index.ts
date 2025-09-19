@@ -3,7 +3,6 @@ export type { FileInput } from './types.js';
 
 // Core types and interfaces - explicit exports for proper TypeScript declarations
 export type {
-
   // Tool metadata and configuration
   ToolMetadata,
   ToolInputField,
@@ -90,4 +89,3 @@ export {
   type ToolState,
   type ToolEvents,
 } from './tool.js';
-

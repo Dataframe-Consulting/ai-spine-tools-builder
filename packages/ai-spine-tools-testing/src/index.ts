@@ -72,7 +72,7 @@ export type {
   ToolServerConfig,
   ToolMetrics,
   ToolState,
-  ToolEvents
+  ToolEvents,
 } from '@ai-spine/tools-core';
 
 export {
@@ -98,5 +98,5 @@ export {
   apiKeyField,
   configStringField,
   urlConfigField,
-  configEnumField
+  configEnumField,
 } from '@ai-spine/tools-core';
