@@ -11,7 +11,9 @@ function verifyFileInput(packagePath) {
   const dtsPath = path.join(packagePath, 'dist', 'index.d.ts');
 
   if (!fs.existsSync(dtsPath)) {
-    console.log(`⚠️  ${packageName}: No .d.ts file found, skipping FileInput check`);
+    console.log(
+      `⚠️  ${packageName}: No .d.ts file found, skipping FileInput check`
+    );
     return true;
   }
 
@@ -21,8 +23,9 @@ function verifyFileInput(packagePath) {
   const hasInterface = content.includes('interface FileInput');
 
   // Check if FileInput is exported
-  const hasExport = content.includes('FileInput') &&
-                   content.match(/export type \{[^}]*FileInput[^}]*\}/);
+  const hasExport =
+    content.includes('FileInput') &&
+    content.match(/export type \{[^}]*FileInput[^}]*\}/);
 
   if (packageName === '@ai-spine/tools-core') {
     if (!hasInterface) {
@@ -37,7 +40,9 @@ function verifyFileInput(packagePath) {
   } else if (hasExport) {
     console.log(`✅ ${packageName}: FileInput re-exported correctly`);
   } else {
-    console.log(`ℹ️  ${packageName}: FileInput not exported (expected for this package)`);
+    console.log(
+      `ℹ️  ${packageName}: FileInput not exported (expected for this package)`
+    );
   }
 
   return true;
@@ -45,10 +50,14 @@ function verifyFileInput(packagePath) {
 
 // Verify all packages
 const packagesDir = path.join(__dirname, '..', 'packages');
-const packages = fs.readdirSync(packagesDir)
+const packages = fs
+  .readdirSync(packagesDir)
   .map(dir => path.join(packagesDir, dir))
-  .filter(dir => fs.statSync(dir).isDirectory() &&
-                 fs.existsSync(path.join(dir, 'package.json')));
+  .filter(
+    dir =>
+      fs.statSync(dir).isDirectory() &&
+      fs.existsSync(path.join(dir, 'package.json'))
+  );
 
 let allPassed = true;
 
