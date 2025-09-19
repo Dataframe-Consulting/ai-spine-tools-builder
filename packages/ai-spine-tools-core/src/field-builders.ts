@@ -679,12 +679,19 @@ export function datetimeField(): DateTimeFieldBuilder {
 /**
  * Create a file input field builder
  */
+export function fileField(): FileFieldBuilder;
+export function fileField(config: {
+  required?: boolean;
+  description?: string;
+  allowedMimeTypes?: string[];
+  maxFileSize?: number;
+}): ToolInputField;
 export function fileField(config?: {
   required?: boolean;
   description?: string;
   allowedMimeTypes?: string[];
   maxFileSize?: number;
-}): FileFieldBuilder {
+}): FileFieldBuilder | ToolInputField {
   const builder = new FileFieldBuilder();
 
   if (config) {
@@ -694,7 +701,7 @@ export function fileField(config?: {
     if (config.maxFileSize) builder.maxSize(config.maxFileSize);
 
     // Return the built field when config is provided for consistency
-    return builder.build() as any;
+    return builder.build();
   }
 
   return builder;
