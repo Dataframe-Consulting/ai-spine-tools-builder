@@ -14,17 +14,14 @@ let content = fs.readFileSync(typesPath, 'utf8');
 // Add FileInput to the type exports if it's not already there
 if (!content.includes('FileInput')) {
   // Find the line with type exports and add FileInput
-  content = content.replace(
-    /export type \{ ([^}]+) \};/,
-    (match, types) => {
-      const typeList = types.split(', ').map(t => t.trim());
-      if (!typeList.includes('FileInput')) {
-        typeList.push('FileInput');
-        typeList.sort();
-      }
-      return `export type { ${typeList.join(', ')} };`;
+  content = content.replace(/export type \{ ([^}]+) \};/, (match, types) => {
+    const typeList = types.split(', ').map(t => t.trim());
+    if (!typeList.includes('FileInput')) {
+      typeList.push('FileInput');
+      typeList.sort();
     }
-  );
+    return `export type { ${typeList.join(', ')} };`;
+  });
 }
 
 // Write the updated content back
