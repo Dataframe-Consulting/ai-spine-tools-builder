@@ -922,6 +922,8 @@ export interface AISpineExecuteRequest {
   config?: ToolConfig;
   execution_id?: string;
   metadata?: Record<string, any>;
+  /** File inputs for tools that accept file data */
+  files?: FileInput[];
 }
 
 export interface AISpineExecuteResponse {

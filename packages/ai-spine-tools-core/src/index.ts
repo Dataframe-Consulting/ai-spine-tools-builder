@@ -1,6 +1,36 @@
-// Core types and interfaces
-export * from './types.js';
+// Export FileInput type explicitly
 export type { FileInput } from './types.js';
+
+// Core types and interfaces - explicit exports for proper TypeScript declarations
+export type {
+
+  // Tool metadata and configuration
+  ToolMetadata,
+  ToolInputField,
+  ToolConfigField,
+  ToolSchema,
+  ToolInput,
+  ToolConfig,
+  ToolExecutionContext,
+  ToolExecutionResult,
+  ToolHealthCheck,
+  ToolDefinition,
+
+  // Field types
+  ToolInputFieldType,
+  ToolConfigFieldType,
+  StringFormat,
+
+  // API types
+  AISpineExecuteRequest,
+  AISpineExecuteResponse,
+  AISpineHealthResponse,
+
+  // Utility types
+  DeepPartial,
+  RequiredFields,
+  OptionalFields,
+} from './types.js';
 
 // Error classes (exported as values, not types)
 export {
@@ -11,8 +41,27 @@ export {
 } from './types.js';
 
 // Field builders for creating schemas
-export * from './field-builders.js';
 export {
+  // Field builder functions
+  stringField,
+  numberField,
+  booleanField,
+  enumField,
+  arrayField,
+  objectField,
+  dateField,
+  datetimeField,
+  fileField,
+  apiKeyField,
+  configStringField,
+  urlConfigField,
+  configEnumField,
+  emailField,
+  urlField,
+  uuidField,
+  timeField,
+
+  // Schema and validation utilities
   SchemaBuilder,
   DocumentationGenerator,
   createSchema,
@@ -42,38 +91,3 @@ export {
   type ToolEvents,
 } from './tool.js';
 
-// Re-export commonly used types for convenience
-export type {
-  // Core interfaces
-  ToolMetadata,
-  ToolInputField,
-  ToolConfigField,
-  ToolSchema,
-  ToolInput,
-  ToolConfig,
-  ToolExecutionContext,
-  ToolExecutionResult,
-  ToolHealthCheck,
-  ToolDefinition,
-
-  // Field types
-  ToolInputFieldType,
-  ToolConfigFieldType,
-  StringFormat,
-
-  // API types
-  AISpineExecuteRequest,
-  AISpineExecuteResponse,
-  AISpineHealthResponse,
-
-  // Error classes
-  // ToolError,
-  // ValidationError,
-  // ConfigurationError,
-  // ExecutionError,
-
-  // Utility types
-  DeepPartial,
-  RequiredFields,
-  OptionalFields,
-} from './types.js';

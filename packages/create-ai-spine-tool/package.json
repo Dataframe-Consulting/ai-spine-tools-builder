@@ -27,7 +27,7 @@
     "dev": "rollup -c -w",
     "test": "jest --passWithNoTests",
     "clean": "rm -rf dist",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build && npm run build:verify"
   },
   "keywords": [
     "ai-spine",

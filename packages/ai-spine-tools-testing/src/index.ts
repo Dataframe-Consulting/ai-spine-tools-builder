@@ -46,5 +46,57 @@ export {
   InvalidDataType,
 } from './test-helpers';
 
-// Re-export core types for convenience
-export * from '@ai-spine/tools-core';
+// Re-export core types for convenience - explicit exports for consistency
+export type {
+  // Core types from tools-core
+  FileInput,
+  ToolMetadata,
+  ToolInputField,
+  ToolConfigField,
+  ToolSchema,
+  ToolInput,
+  ToolConfig,
+  ToolExecutionContext,
+  ToolExecutionResult,
+  ToolHealthCheck,
+  ToolDefinition,
+  ToolInputFieldType,
+  ToolConfigFieldType,
+  StringFormat,
+  AISpineExecuteRequest,
+  AISpineExecuteResponse,
+  AISpineHealthResponse,
+  ValidationResult,
+  ValidationErrorDetail,
+  ValidationOptions,
+  ToolServerConfig,
+  ToolMetrics,
+  ToolState,
+  ToolEvents
+} from '@ai-spine/tools-core';
+
+export {
+  // Core classes and utilities
+  Tool,
+  ToolError,
+  ValidationError,
+  ConfigurationError,
+  ExecutionError,
+  ToolUtils,
+  ZodSchemaValidator,
+
+  // Field builders for test setup
+  stringField,
+  numberField,
+  booleanField,
+  enumField,
+  arrayField,
+  objectField,
+  dateField,
+  datetimeField,
+  fileField,
+  apiKeyField,
+  configStringField,
+  urlConfigField,
+  configEnumField
+} from '@ai-spine/tools-core';

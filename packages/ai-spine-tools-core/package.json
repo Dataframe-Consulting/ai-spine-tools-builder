@@ -9,12 +9,12 @@
     "dist"
   ],
   "scripts": {
-    "build": "rollup -c && node scripts/generate-types.js",
+    "build": "rollup -c && node scripts/fix-types.js",
     "dev": "rollup -c -w",
     "test": "jest",
     "test:watch": "jest --watch",
     "clean": "rm -rf dist",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build && npm run build:verify"
   },
   "keywords": [
     "ai-spine",

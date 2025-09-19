@@ -281,7 +281,9 @@ function createRollupConfig(options) {
             preserveSymlinks: false,
             declaration: true,
             declarationMap: false
-          }
+          },
+          // Ensure all exported types are included
+          insertTypesEntry: true
         })
       ],
       external: allExternal,
