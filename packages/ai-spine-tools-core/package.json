@@ -9,7 +9,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "rollup -c",
+    "build": "rollup -c && node scripts/generate-types.js",
     "dev": "rollup -c -w",
     "test": "jest",
     "test:watch": "jest --watch",

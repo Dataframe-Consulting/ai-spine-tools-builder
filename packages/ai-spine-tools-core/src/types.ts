@@ -1,6 +1,37 @@
 // Core type definitions for AI Spine tools
 
 /**
+ * Type helper for file inputs received from the AI Spine API.
+ * Files are automatically processed and encoded in base64 with metadata.
+ *
+ * @example
+ * ```typescript
+ * interface MyToolInput {
+ *   document: FileInput;
+ *   attachments: FileInput[];
+ * }
+ *
+ * // In your execute function:
+ * const document = input.document;
+ * const fileBuffer = Buffer.from(document.content, 'base64');
+ * ```
+ */
+export interface FileInput {
+  /** Original filename */
+  name: string;
+  /** File size in bytes */
+  size: number;
+  /** MIME type of the file */
+  type: string;
+  /** Last modified timestamp (optional) */
+  lastModified?: number;
+  /** File content encoded in base64 */
+  content: string;
+  /** Encoding type (always 'base64') */
+  encoding: string;
+}
+
+/**
  * Metadata information for a tool that describes its identity, capabilities, and maintenance information.
  * This information is used for tool discovery, documentation generation, and runtime verification.
  *

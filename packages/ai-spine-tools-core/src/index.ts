@@ -1,5 +1,6 @@
 // Core types and interfaces
 export * from './types.js';
+export type { FileInput } from './types.js';
 
 // Error classes (exported as values, not types)
 export {

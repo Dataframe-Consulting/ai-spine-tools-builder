@@ -362,12 +362,13 @@ export declare function datetimeField(): DateTimeFieldBuilder;
 /**
  * Create a file input field builder
  */
-export declare function fileField(config?: {
+export declare function fileField(): FileFieldBuilder;
+export declare function fileField(config: {
   required?: boolean;
   description?: string;
   allowedMimeTypes?: string[];
   maxFileSize?: number;
-}): FileFieldBuilder;
+}): ToolInputField;
 /**
  * Create an API key configuration field builder
  */
