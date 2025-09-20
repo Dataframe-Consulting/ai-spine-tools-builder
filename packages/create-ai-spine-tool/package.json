@@ -24,6 +24,7 @@
   ],
   "scripts": {
     "build": "rollup -c",
+    "build:verify": "node scripts/verify-build.js",
     "dev": "rollup -c -w",
     "test": "jest --passWithNoTests",
     "clean": "rm -rf dist",
