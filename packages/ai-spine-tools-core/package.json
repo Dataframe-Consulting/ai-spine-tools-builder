@@ -10,6 +10,7 @@
   ],
   "scripts": {
     "build": "rollup -c && node scripts/fix-types.js",
+    "build:verify": "node scripts/verify-build.js",
     "dev": "rollup -c -w",
     "test": "jest",
     "test:watch": "jest --watch",
