@@ -9,7 +9,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "rollup -c && npm run build:verify",
+    "build": "rollup -c && node scripts/fix-types.js && npm run build:verify",
     "build:verify": "node scripts/verify-build.js",
     "dev": "rollup -c -w",
     "test": "jest",

@@ -41,7 +41,7 @@ export type {
   ToolServerConfig,
   ToolMetrics,
   ToolState,
-  ToolEvents
+  ToolEvents,
 } from '@ai-spine/tools-core';
 
 export {
@@ -80,7 +80,7 @@ export {
   createSchema,
   validateField,
   createValidator,
-  validate
+  validate,
 } from '@ai-spine/tools-core';
 
 // Default export for convenience

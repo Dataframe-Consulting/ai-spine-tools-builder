@@ -1,4 +1,20 @@
-// Test client for integration testing
+/**
+ * Post-build script to generate types for ai-spine-tools-testing
+ * This handles superagent type conflicts that prevent automatic generation
+ */
+
+const fs = require('fs');
+const path = require('path');
+
+const typesPath = path.join(__dirname, '..', 'dist', 'index.d.ts');
+
+// Always generate types since rollup skips them due to conflicts
+console.log('⚠️  Generating types due to superagent conflicts...');
+
+const typeDefinition = `// Type definitions for @ai-spine/tools-testing
+// Generated due to superagent type conflicts
+
+// Re-export types from test-client
 export {
   AISpineTestClient,
   TestClientOptions,
@@ -13,32 +29,21 @@ export {
   ErrorEvent,
 } from './test-client';
 
-// Enhanced test helpers for comprehensive testing
+// Re-export types from test-helpers
 export {
-  // Core testing functions
   testTool,
   testToolDirect,
   testToolHealth,
-
-  // Test data generation
   generateTestData,
   generateInvalidTestData,
   generateConfigTestData,
-
-  // Test scenario management
   createTestScenarios,
-
-  // Validation and assertions
   validateToolResponse,
   toolAssertions,
-
-  // Advanced testing utilities
   MockManager,
   PerformanceTester,
   TestServer,
   TestSuiteRunner,
-
-  // Types and interfaces
   TestToolOptions,
   TestDataGenerationOptions,
   TestScenariosOptions,
@@ -46,9 +51,8 @@ export {
   InvalidDataType,
 } from './test-helpers';
 
-// Re-export core types for convenience - explicit exports for consistency
+// Re-export core types for convenience
 export type {
-  // Core types from tools-core
   FileInput,
   ToolMetadata,
   ToolInputField,
@@ -75,8 +79,8 @@ export type {
   ToolEvents,
 } from '@ai-spine/tools-core';
 
+// Re-export core classes and utilities
 export {
-  // Core classes and utilities
   Tool,
   ToolError,
   ValidationError,
@@ -84,8 +88,6 @@ export {
   ExecutionError,
   ToolUtils,
   ZodSchemaValidator,
-
-  // Field builders for test setup
   stringField,
   numberField,
   booleanField,
@@ -100,3 +102,13 @@ export {
   urlConfigField,
   configEnumField,
 } from '@ai-spine/tools-core';
+`;
+
+// Ensure dist directory exists
+const distDir = path.dirname(typesPath);
+if (!fs.existsSync(distDir)) {
+  fs.mkdirSync(distDir, { recursive: true });
+}
+
+fs.writeFileSync(typesPath, typeDefinition, 'utf8');
+console.log('✅ Generated TypeScript declarations for @ai-spine/tools-testing');
