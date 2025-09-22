@@ -633,6 +633,9 @@ export class ZodSchemaValidator {
           name: z.string(),
           size: z.number(),
           type: z.string(),
+          content: z.string().optional(),
+          encoding: z.string().optional(),
+          lastModified: z.number().optional(),
         });
 
         if (field.maxFileSize) {
