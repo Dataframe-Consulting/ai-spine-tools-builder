@@ -621,22 +621,121 @@ class ConfigEnumFieldBuilder extends BaseConfigFieldBuilder<ToolConfigField> {
 /**
  * Create a string input field builder
  */
-export function stringField(): StringFieldBuilder {
-  return new StringFieldBuilder();
+export function stringField(): StringFieldBuilder;
+export function stringField(config: {
+  required?: boolean;
+  description?: string;
+  minLength?: number;
+  maxLength?: number;
+  pattern?: string;
+  format?: StringFormat;
+  default?: string;
+  example?: string;
+  transform?: 'trim' | 'lowercase' | 'uppercase' | 'normalize';
+}): ToolInputField;
+export function stringField(config?: {
+  required?: boolean;
+  description?: string;
+  minLength?: number;
+  maxLength?: number;
+  pattern?: string;
+  format?: StringFormat;
+  default?: string;
+  example?: string;
+  transform?: 'trim' | 'lowercase' | 'uppercase' | 'normalize';
+}): StringFieldBuilder | ToolInputField {
+  const builder = new StringFieldBuilder();
+
+  if (config) {
+    if (config.required) builder.required();
+    else builder.optional();
+    if (config.description) builder.description(config.description);
+    if (config.minLength !== undefined) builder.minLength(config.minLength);
+    if (config.maxLength !== undefined) builder.maxLength(config.maxLength);
+    if (config.pattern) builder.pattern(config.pattern);
+    if (config.format) builder.format(config.format);
+    if (config.default !== undefined) builder.default(config.default);
+    if (config.example !== undefined) builder.example(config.example);
+    if (config.transform) builder.transform(config.transform);
+
+    return builder.build();
+  }
+
+  return builder;
 }
 
 /**
  * Create a number input field builder
  */
-export function numberField(): NumberFieldBuilder {
-  return new NumberFieldBuilder();
+export function numberField(): NumberFieldBuilder;
+export function numberField(config: {
+  required?: boolean;
+  description?: string;
+  min?: number;
+  max?: number;
+  integer?: boolean;
+  precision?: number;
+  default?: number;
+  example?: number;
+}): ToolInputField;
+export function numberField(config?: {
+  required?: boolean;
+  description?: string;
+  min?: number;
+  max?: number;
+  integer?: boolean;
+  precision?: number;
+  default?: number;
+  example?: number;
+}): NumberFieldBuilder | ToolInputField {
+  const builder = new NumberFieldBuilder();
+
+  if (config) {
+    if (config.required) builder.required();
+    else builder.optional();
+    if (config.description) builder.description(config.description);
+    if (config.min !== undefined) builder.min(config.min);
+    if (config.max !== undefined) builder.max(config.max);
+    if (config.integer) builder.integer();
+    if (config.precision !== undefined) builder.precision(config.precision);
+    if (config.default !== undefined) builder.default(config.default);
+    if (config.example !== undefined) builder.example(config.example);
+
+    return builder.build();
+  }
+
+  return builder;
 }
 
 /**
  * Create a boolean input field builder
  */
-export function booleanField(): BooleanFieldBuilder {
-  return new BooleanFieldBuilder();
+export function booleanField(): BooleanFieldBuilder;
+export function booleanField(config: {
+  required?: boolean;
+  description?: string;
+  default?: boolean;
+  example?: boolean;
+}): ToolInputField;
+export function booleanField(config?: {
+  required?: boolean;
+  description?: string;
+  default?: boolean;
+  example?: boolean;
+}): BooleanFieldBuilder | ToolInputField {
+  const builder = new BooleanFieldBuilder();
+
+  if (config) {
+    if (config.required) builder.required();
+    else builder.optional();
+    if (config.description) builder.description(config.description);
+    if (config.default !== undefined) builder.default(config.default);
+    if (config.example !== undefined) builder.example(config.example);
+
+    return builder.build();
+  }
+
+  return builder;
 }
 
 /**
@@ -710,8 +809,38 @@ export function fileField(config?: {
 /**
  * Create an API key configuration field builder
  */
-export function apiKeyField(): ApiKeyFieldBuilder {
-  return new ApiKeyFieldBuilder();
+export function apiKeyField(): ApiKeyFieldBuilder;
+export function apiKeyField(config: {
+  required?: boolean;
+  description?: string;
+  pattern?: string;
+  errorMessage?: string;
+  example?: string;
+  envVar?: string;
+}): ToolConfigField;
+export function apiKeyField(config?: {
+  required?: boolean;
+  description?: string;
+  pattern?: string;
+  errorMessage?: string;
+  example?: string;
+  envVar?: string;
+}): ApiKeyFieldBuilder | ToolConfigField {
+  const builder = new ApiKeyFieldBuilder();
+
+  if (config) {
+    if (config.required) builder.required();
+    else builder.optional();
+    if (config.description) builder.description(config.description);
+    if (config.pattern) builder.pattern(config.pattern);
+    if (config.errorMessage) builder.errorMessage(config.errorMessage);
+    if (config.example !== undefined) builder.example(config.example);
+    if (config.envVar) builder.envVar(config.envVar);
+
+    return builder.build();
+  }
+
+  return builder;
 }
 
 /**
